@@ -1,0 +1,1376 @@
+--[[
+╔══════════════════════════════════════════════════════════════════╗
+║   翠  SAGEHUB  —  Réplica Exata do Design em Lua para Roblox   ║
+║   Layout: Topbar · Sidebar · Script Grid · Console · Statusbar  ║
+║   Cores: Verde Sage #87A878 · Preto Puro #0A0A0A                ║
+╚══════════════════════════════════════════════════════════════════╝
+
+  USO:
+    local Hub = loadstring(game:HttpGet("URL"))()
+    Hub:AddScript({
+        Icon   = "剣",
+        Name   = "Infinite Yield",
+        Game   = "Blox Fruits",
+        Desc   = "Admin commands ilimitados",
+        Status = "Ativo",
+        Tags   = { "Admin", "OP" },
+        Callback = function() print("executou") end,
+    })
+--]]
+
+-- ─── SERVIÇOS ─────────────────────────────────────────────────
+local Players          = game:GetService("Players")
+local TweenService     = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local RunService       = game:GetService("RunService")
+local CoreGui          = game:GetService("CoreGui")
+local HttpService      = game:GetService("HttpService")
+local Stats            = game:GetService("Stats")
+
+local LP    = Players.LocalPlayer
+local Mouse = LP:GetMouse()
+
+-- ─── CORES ────────────────────────────────────────────────────
+local C = {
+    Sage       = Color3.fromRGB(135, 168, 120),
+    SageDark   = Color3.fromRGB( 76, 106,  68),
+    SageBright = Color3.fromRGB(160, 195, 145),
+    SageMid    = Color3.fromRGB(100, 138,  88),
+    Bg         = Color3.fromRGB( 10,  10,  10),
+    Surf       = Color3.fromRGB( 16,  18,  16),
+    Surf2      = Color3.fromRGB( 21,  24,  21),
+    Surf3      = Color3.fromRGB( 28,  32,  28),
+    Surf4      = Color3.fromRGB( 38,  43,  38),
+    Border     = Color3.fromRGB( 44,  52,  44),
+    BorderSage = Color3.fromRGB( 54,  72,  52),
+    Text       = Color3.fromRGB(220, 220, 218),
+    TextDim    = Color3.fromRGB(140, 145, 138),
+    TextMuted  = Color3.fromRGB( 80,  88,  80),
+    Gold       = Color3.fromRGB(184, 160, 106),
+    Red        = Color3.fromRGB(210,  80,  80),
+    Blue       = Color3.fromRGB(100, 160, 220),
+    Yellow     = Color3.fromRGB(220, 180,  60),
+    Green      = Color3.fromRGB(100, 200, 120),
+}
+
+-- ─── UTILS ────────────────────────────────────────────────────
+local function Tw(obj, props, t, sty, dir)
+    TweenService:Create(obj,
+        TweenInfo.new(t or .18, sty or Enum.EasingStyle.Quint,
+                      dir or Enum.EasingDirection.Out),
+        props):Play()
+end
+
+local function New(cls, p, par)
+    local o = Instance.new(cls)
+    for k,v in pairs(p) do o[k]=v end
+    if par then o.Parent = par end
+    return o
+end
+
+local function Corner(par, r)
+    New("UICorner",{CornerRadius=UDim.new(0,r or 6)},par)
+end
+
+local function Stroke(par, col, th)
+    New("UIStroke",{Color=col or C.Border, Thickness=th or 1,
+        ApplyStrokeMode=Enum.ApplyStrokeMode.Border}, par)
+end
+
+local function Pad(par, t, b, l, r)
+    New("UIPadding",{
+        PaddingTop=UDim.new(0,t or 0), PaddingBottom=UDim.new(0,b or t or 0),
+        PaddingLeft=UDim.new(0,l or t or 0), PaddingRight=UDim.new(0,r or l or t or 0),
+    }, par)
+end
+
+local function VList(par, sp)
+    New("UIListLayout",{FillDirection=Enum.FillDirection.Vertical,
+        Padding=UDim.new(0,sp or 0), SortOrder=Enum.SortOrder.LayoutOrder,
+        HorizontalAlignment=Enum.HorizontalAlignment.Center}, par)
+end
+
+local function HList(par, sp)
+    New("UIListLayout",{FillDirection=Enum.FillDirection.Horizontal,
+        Padding=UDim.new(0,sp or 0), SortOrder=Enum.SortOrder.LayoutOrder,
+        VerticalAlignment=Enum.VerticalAlignment.Center}, par)
+end
+
+local function Label(par, text, font, size, col, pos, sz, xa, wrap, z)
+    return New("TextLabel",{
+        Text=text, Font=font or Enum.Font.Gotham,
+        TextSize=size or 11, TextColor3=col or C.Text,
+        BackgroundTransparency=1,
+        Position=pos or UDim2.new(0,0,0,0),
+        Size=sz or UDim2.new(1,0,1,0),
+        TextXAlignment=xa or Enum.TextXAlignment.Left,
+        TextWrapped=wrap or false,
+        ZIndex=z or 5,
+    }, par)
+end
+
+local function Bar(par, w, col, z)
+    local f = New("Frame",{
+        Size=UDim2.new(w or 0, 0, 1, 0),
+        BackgroundColor3=col or C.Sage, ZIndex=z or 5,
+    }, par)
+    Corner(f, 2)
+    return f
+end
+
+-- Draggable
+local function MakeDrag(handle, frame)
+    local drag, st, sp = false, nil, nil
+    handle.InputBegan:Connect(function(i)
+        if i.UserInputType==Enum.UserInputType.MouseButton1 then
+            drag=true; st=i.Position; sp=frame.Position
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(i)
+        if drag and i.UserInputType==Enum.UserInputType.MouseMovement then
+            local d = i.Position - st
+            frame.Position = UDim2.new(sp.X.Scale, sp.X.Offset+d.X,
+                                       sp.Y.Scale, sp.Y.Offset+d.Y)
+        end
+    end)
+    UserInputService.InputEnded:Connect(function(i)
+        if i.UserInputType==Enum.UserInputType.MouseButton1 then drag=false end
+    end)
+end
+
+-- ═══════════════════════════════════════════════════════════════
+--  SCREENGUI
+-- ═══════════════════════════════════════════════════════════════
+local sg = New("ScreenGui",{
+    Name="SageHub", ResetOnSpawn=false,
+    ZIndexBehavior=Enum.ZIndexBehavior.Sibling,
+    IgnoreGuiInset=true,
+})
+local ok = pcall(function() sg.Parent = CoreGui end)
+if not ok then sg.Parent = LP:WaitForChild("PlayerGui") end
+
+-- ─── JANELA PRINCIPAL ─────────────────────────────────────────
+local vp  = workspace.CurrentCamera.ViewportSize
+local W,H = math.min(1366, vp.X-20), math.min(614, vp.Y-20)
+local px  = math.floor((vp.X - W)/2)
+local py  = math.floor((vp.Y - H)/2)
+
+local MAIN = New("Frame",{
+    Name="SageHub_Main",
+    Position=UDim2.new(0,px,0,py),
+    Size=UDim2.new(0,W,0,H),
+    BackgroundColor3=C.Bg,
+    ClipsDescendants=true,
+    ZIndex=10,
+}, sg)
+Corner(MAIN, 8)
+Stroke(MAIN, C.BorderSage, 1.5)
+
+-- Linha topo sage
+local topAccent = New("Frame",{
+    Size=UDim2.new(1,0,0,2), BackgroundColor3=C.Sage, ZIndex=20,
+}, MAIN)
+New("UIGradient",{
+    Color=ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(0,0,0)),
+        ColorSequenceKeypoint.new(.5, C.Sage),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(0,0,0)),
+    }, Rotation=0,
+}, topAccent)
+
+-- ═══════════════════════════════════════════════════════════════
+--  TOPBAR  (h=38)
+-- ═══════════════════════════════════════════════════════════════
+local TOPBAR_H = 38
+local TOPBAR = New("Frame",{
+    Name="Topbar",
+    Position=UDim2.new(0,0,0,2),
+    Size=UDim2.new(1,0,0,TOPBAR_H),
+    BackgroundColor3=C.Surf,
+    ZIndex=15,
+}, MAIN)
+
+-- Borda inferior
+New("Frame",{
+    Position=UDim2.new(0,0,1,-1), Size=UDim2.new(1,0,0,1),
+    BackgroundColor3=C.BorderSage, ZIndex=16,
+}, TOPBAR)
+
+-- Logo 翠
+Label(TOPBAR,"翠",Enum.Font.GothamBlack,18,C.Sage,
+    UDim2.new(0,10,0,0), UDim2.new(0,30,1,0),
+    Enum.TextXAlignment.Center,false,16)
+
+-- Separador
+New("Frame",{
+    Position=UDim2.new(0,40,0.2,0), Size=UDim2.new(0,1,0.6,0),
+    BackgroundColor3=C.BorderSage, ZIndex=16,
+}, TOPBAR)
+
+-- SAGEHUB
+Label(TOPBAR,"SAGEHUB",Enum.Font.GothamBold,11,C.TextDim,
+    UDim2.new(0,46,0,0), UDim2.new(0,80,1,0),
+    Enum.TextXAlignment.Left,false,16)
+
+-- Botões de controle topo (—, =, ×, □)
+local ctrlIcons = {"−","≡","✕"}
+local ctrlX     = {105, 127, 149}
+local ctrlBtns  = {}
+
+for i,ic in ipairs(ctrlIcons) do
+    local b = New("TextButton",{
+        Text=ic, Font=Enum.Font.GothamBold, TextSize=12,
+        TextColor3=C.TextMuted, BackgroundTransparency=1,
+        Position=UDim2.new(0,ctrlX[i],0.5,-11),
+        Size=UDim2.new(0,18,0,22), ZIndex=17,
+    }, TOPBAR)
+    ctrlBtns[i] = b
+
+    b.MouseEnter:Connect(function()
+        Tw(b,{TextColor3=i==3 and C.Red or C.Sage},.12)
+    end)
+    b.MouseLeave:Connect(function()
+        Tw(b,{TextColor3=C.TextMuted},.12)
+    end)
+end
+
+-- Citação central
+Label(TOPBAR,"静寂の中に美がある",Enum.Font.Gotham,11,C.TextMuted,
+    UDim2.new(.5,-120,0,0), UDim2.new(0,240,1,0),
+    Enum.TextXAlignment.Center,false,16)
+
+-- Indicador de carregamento (círculo)
+local loadDot = New("Frame",{
+    AnchorPoint=Vector2.new(.5,.5),
+    Position=UDim2.new(.5,150,.5,0),
+    Size=UDim2.new(0,8,0,8),
+    BackgroundColor3=C.Sage, ZIndex=16,
+})
+Corner(loadDot,4)
+loadDot.Parent=TOPBAR
+
+-- Stats CPU/RAM/FPS (direita)
+local function MiniStat(parent, label, x)
+    Label(parent,label,Enum.Font.Gotham,8,C.TextMuted,
+        UDim2.new(1,x,0,8), UDim2.new(0,30,0,10),
+        Enum.TextXAlignment.Left,false,16)
+    local bg = New("Frame",{
+        Position=UDim2.new(1,x+32,0,17), Size=UDim2.new(0,60,0,2),
+        BackgroundColor3=C.Surf4, ZIndex=16,
+    }, parent)
+    Corner(bg,1)
+    local fill = New("Frame",{
+        Size=UDim2.new(0.5,0,1,0), BackgroundColor3=C.Sage, ZIndex=17,
+    }, bg)
+    Corner(fill,1)
+    return fill
+end
+
+local cpuFill = MiniStat(TOPBAR,"CPU",-335)
+local ramFill = MiniStat(TOPBAR,"RAM",-265)
+local fpsFill = MiniStat(TOPBAR,"FPS",-195)
+
+-- Relógio
+local clockLbl = Label(TOPBAR,"00:00:00",Enum.Font.GothamBold,13,C.TextDim,
+    UDim2.new(1,-90,0,0), UDim2.new(0,80,1,0),
+    Enum.TextXAlignment.Right,false,16)
+
+-- Draggable pela topbar
+MakeDrag(TOPBAR, MAIN)
+
+-- ═══════════════════════════════════════════════════════════════
+--  CONTENT  (abaixo da topbar)
+-- ═══════════════════════════════════════════════════════════════
+local CONTENT_Y = TOPBAR_H + 2
+local STATUS_H  = 28
+local CONTENT_H = H - CONTENT_Y - STATUS_H
+
+local CONTENT = New("Frame",{
+    Position=UDim2.new(0,0,0,CONTENT_Y),
+    Size=UDim2.new(1,0,0,CONTENT_H),
+    BackgroundTransparency=1, ZIndex=10,
+}, MAIN)
+
+local SIDEBAR_W = 212
+local RIGHT_W   = 200
+local CENTER_W  = W - SIDEBAR_W - RIGHT_W
+
+-- ═══════════════════════════════════════════════════════════════
+--  SIDEBAR ESQUERDA
+-- ═══════════════════════════════════════════════════════════════
+local SIDEBAR = New("Frame",{
+    Size=UDim2.new(0,SIDEBAR_W,1,0),
+    BackgroundColor3=C.Surf,
+    ZIndex=11,
+}, CONTENT)
+
+-- Borda direita
+New("Frame",{
+    Position=UDim2.new(1,-1,0,0), Size=UDim2.new(0,1,1,0),
+    BackgroundColor3=C.BorderSage, ZIndex=12,
+}, SIDEBAR)
+
+-- ── PROFILE ────────────────────────────────────────────────────
+local PROFILE = New("Frame",{
+    Size=UDim2.new(1,0,0,170),
+    BackgroundColor3=C.Surf2, ZIndex=12,
+}, SIDEBAR)
+-- Linha top sage
+New("Frame",{Size=UDim2.new(1,0,0,2), BackgroundColor3=C.Sage, ZIndex=13}, PROFILE)
+New("UIGradient",{Color=ColorSequence.new{
+    ColorSequenceKeypoint.new(0,Color3.fromRGB(0,0,0)),
+    ColorSequenceKeypoint.new(.5,C.Sage),
+    ColorSequenceKeypoint.new(1,Color3.fromRGB(0,0,0)),
+}, Rotation=0}, PROFILE:FindFirstChild("Frame") or New("Frame",{},PROFILE))
+
+-- Avatar ring
+local AvRing = New("Frame",{
+    AnchorPoint=Vector2.new(.5,0),
+    Position=UDim2.new(.5,0,0,16),
+    Size=UDim2.new(0,68,0,68),
+    BackgroundColor3=C.Surf3, ZIndex=13,
+}, PROFILE)
+Corner(AvRing,34)
+Stroke(AvRing, C.BorderSage, 1.5)
+
+-- Avatar kanji
+Label(PROFILE,"花",Enum.Font.GothamBlack,26,C.Sage,
+    UDim2.new(.5,-34,0,16), UDim2.new(0,68,0,68),
+    Enum.TextXAlignment.Center,false,14)
+
+-- Status dot
+local sDot = New("Frame",{
+    AnchorPoint=Vector2.new(.5,.5),
+    Position=UDim2.new(.5,22,0,72),
+    Size=UDim2.new(0,10,0,10),
+    BackgroundColor3=C.Sage, ZIndex=14,
+}, PROFILE)
+Corner(sDot,5)
+New("UIStroke",{Color=C.Surf2,Thickness=2}, sDot)
+
+-- Nome
+Label(PROFILE,"ShotaKitten",Enum.Font.GothamBold,13,C.Text,
+    UDim2.new(0,0,0,92), UDim2.new(1,0,0,18),
+    Enum.TextXAlignment.Center,false,13)
+
+-- Rank
+Label(PROFILE,"RANK · 翠玉",Enum.Font.Gotham,9,C.Sage,
+    UDim2.new(0,0,0,110), UDim2.new(1,0,0,14),
+    Enum.TextXAlignment.Center,false,13)
+
+-- Stats row
+local function ProfileStat(n, v, xOff)
+    Label(PROFILE,v,Enum.Font.GothamBold,14,C.Sage,
+        UDim2.new(0,xOff,0,130), UDim2.new(0,60,0,18),
+        Enum.TextXAlignment.Center,false,13)
+    Label(PROFILE,n,Enum.Font.Gotham,8,C.TextMuted,
+        UDim2.new(0,xOff,0,148), UDim2.new(0,60,0,12),
+        Enum.TextXAlignment.Center,false,13)
+end
+ProfileStat("Scripts","84",  16)
+ProfileStat("Exec","12k",    84)
+ProfileStat("Plano","V3",   150)
+
+-- ── MENU NAV ───────────────────────────────────────────────────
+local NAV = New("Frame",{
+    Position=UDim2.new(0,0,0,170),
+    Size=UDim2.new(1,0,0,240),
+    BackgroundTransparency=1, ZIndex=12,
+}, SIDEBAR)
+
+-- Seção MENU
+Label(SIDEBAR,"MENU",Enum.Font.GothamBold,8,C.TextMuted,
+    UDim2.new(0,14,0,177), UDim2.new(0,100,0,14),
+    Enum.TextXAlignment.Left,false,13)
+New("Frame",{
+    Position=UDim2.new(0,50,0,184), Size=UDim2.new(1,-60,0,1),
+    BackgroundColor3=C.Border, ZIndex=13,
+}, SIDEBAR)
+
+local navItems = {
+    {icon="花", name="Scripts",   badge="84", y=192},
+    {icon="月", name="Favoritos", badge=nil,  y=230},
+    {icon="山", name="Explorar",  badge=nil,  y=268},
+    {icon="水", name="Recentes",  badge=nil,  y=306},
+}
+
+-- Seção SISTEMA
+Label(SIDEBAR,"SISTEMA",Enum.Font.GothamBold,8,C.TextMuted,
+    UDim2.new(0,14,0,348), UDim2.new(0,100,0,14),
+    Enum.TextXAlignment.Left,false,13)
+New("Frame",{
+    Position=UDim2.new(0,62,0,355), Size=UDim2.new(1,-72,0,1),
+    BackgroundColor3=C.Border, ZIndex=13,
+}, SIDEBAR)
+
+local sysItems = {
+    {icon="風", name="Config",  y=362},
+    {icon="光", name="Conta",   y=400},
+}
+
+local activeNav = "Scripts"
+local allNavBtns = {}
+
+local function CreateNavBtn(item)
+    local btn = New("TextButton",{
+        Text="", BackgroundColor3=C.Surf3,
+        BackgroundTransparency=1,
+        AutoButtonColor=false,
+        Position=UDim2.new(0,8,0,item.y),
+        Size=UDim2.new(1,-16,0,32),
+        ZIndex=13,
+    }, SIDEBAR)
+    Corner(btn,6)
+
+    local ind = New("Frame",{
+        Position=UDim2.new(0,0,0.15,0), Size=UDim2.new(0,3,0.70,0),
+        BackgroundColor3=C.Sage, BackgroundTransparency=1, ZIndex=14,
+    }, btn)
+    Corner(ind,2)
+
+    Label(btn,item.icon,Enum.Font.GothamBold,13,C.TextMuted,
+        UDim2.new(0,6,0,0), UDim2.new(0,26,1,0),
+        Enum.TextXAlignment.Center,false,14)
+
+    local txtLbl = Label(btn,item.name,Enum.Font.Gotham,11,C.TextMuted,
+        UDim2.new(0,34,0,0), UDim2.new(1,-50,1,0),
+        Enum.TextXAlignment.Left,false,14)
+
+    if item.badge then
+        local bg = New("Frame",{
+            AnchorPoint=Vector2.new(1,.5),
+            Position=UDim2.new(1,-4,.5,0),
+            Size=UDim2.new(0,26,0,16),
+            BackgroundColor3=C.Sage, ZIndex=14,
+        }, btn)
+        Corner(bg,8)
+        Label(bg,item.badge,Enum.Font.GothamBold,9,C.Bg,
+            UDim2.new(0,0,0,0), UDim2.new(1,0,1,0),
+            Enum.TextXAlignment.Center,false,15)
+    end
+
+    local isActive = (item.name == activeNav)
+
+    local function SetActive(v)
+        Tw(btn,{BackgroundColor3=v and C.Surf3 or C.Bg,
+                BackgroundTransparency=v and 0 or 1},.15)
+        Tw(txtLbl,{TextColor3=v and C.Text or C.TextMuted},.15)
+        Tw(ind,{BackgroundTransparency=v and 0 or 1},.15)
+    end
+
+    SetActive(isActive)
+
+    btn.MouseEnter:Connect(function()
+        if item.name~=activeNav then
+            Tw(btn,{BackgroundColor3=C.Surf3,BackgroundTransparency=0.7},.12)
+        end
+    end)
+    btn.MouseLeave:Connect(function()
+        if item.name~=activeNav then
+            Tw(btn,{BackgroundTransparency=1},.12)
+        end
+    end)
+    btn.MouseButton1Click:Connect(function()
+        for _,v in ipairs(allNavBtns) do v.SetActive(false) end
+        activeNav = item.name
+        SetActive(true)
+    end)
+
+    table.insert(allNavBtns,{SetActive=SetActive})
+end
+
+for _,it in ipairs(navItems) do CreateNavBtn(it) end
+for _,it in ipairs(sysItems) do CreateNavBtn(it) end
+
+-- ── MUSIC PLAYER ───────────────────────────────────────────────
+local PLAYER = New("Frame",{
+    AnchorPoint=Vector2.new(0,1),
+    Position=UDim2.new(0,0,1,0),
+    Size=UDim2.new(1,0,0,90),
+    BackgroundColor3=C.Surf2, ZIndex=12,
+}, SIDEBAR)
+New("Frame",{
+    Size=UDim2.new(1,0,0,1), BackgroundColor3=C.Border, ZIndex=13,
+}, PLAYER)
+
+Label(PLAYER,"夜の夢 · Yoru no Yume",Enum.Font.GothamBold,10,C.Text,
+    UDim2.new(0,10,0,8), UDim2.new(1,-20,0,14),
+    Enum.TextXAlignment.Left,false,13)
+Label(PLAYER,"薄明光線 · Atmospheric",Enum.Font.Gotham,9,C.TextMuted,
+    UDim2.new(0,10,0,22), UDim2.new(1,-20,0,12),
+    Enum.TextXAlignment.Left,false,13)
+
+-- Progresso
+local pgBg = New("Frame",{
+    Position=UDim2.new(0,10,0,38), Size=UDim2.new(1,-20,0,2),
+    BackgroundColor3=C.Surf4, ZIndex=13,
+}, PLAYER)
+Corner(pgBg,1)
+local pgFill = New("Frame",{
+    Size=UDim2.new(0.62,0,1,0), BackgroundColor3=C.Sage, ZIndex=14,
+}, pgBg)
+Corner(pgFill,1)
+local pgThumb = New("Frame",{
+    AnchorPoint=Vector2.new(.5,.5),
+    Position=UDim2.new(0.62,0,.5,0),
+    Size=UDim2.new(0,7,0,7), BackgroundColor3=C.SageBright, ZIndex=15,
+}, pgBg)
+Corner(pgThumb,4)
+
+-- Controles
+local function PlayerBtn(txt, x, big)
+    local b = New("TextButton",{
+        Text=txt, Font=Enum.Font.GothamBold, TextSize=big and 11 or 9,
+        TextColor3=C.TextDim, BackgroundColor3=big and C.Surf3 or C.Bg,
+        BackgroundTransparency=big and 0 or 1,
+        AutoButtonColor=false,
+        Position=UDim2.new(0,x,0,48),
+        Size=UDim2.new(0,big and 26 or 16, 0, big and 26 or 16),
+        ZIndex=13,
+    }, PLAYER)
+    if big then Corner(b,13) end
+    b.MouseEnter:Connect(function() Tw(b,{TextColor3=C.Sage},.12) end)
+    b.MouseLeave:Connect(function() Tw(b,{TextColor3=C.TextDim},.12) end)
+    return b
+end
+
+PlayerBtn("⏮",10)
+PlayerBtn("▶",38,true)
+PlayerBtn("⏭",74)
+PlayerBtn("⇄",100)
+
+-- ═══════════════════════════════════════════════════════════════
+--  PAINEL CENTRAL
+-- ═══════════════════════════════════════════════════════════════
+local CENTER = New("Frame",{
+    Position=UDim2.new(0,SIDEBAR_W,0,0),
+    Size=UDim2.new(0,CENTER_W,1,0),
+    BackgroundColor3=C.Bg, ZIndex=11,
+}, CONTENT)
+
+-- Borda direita
+New("Frame",{
+    Position=UDim2.new(1,-1,0,0), Size=UDim2.new(0,1,1,0),
+    BackgroundColor3=C.BorderSage, ZIndex=12,
+}, CENTER)
+
+-- Header
+Label(CENTER,"スクリプト · ライブラリ",Enum.Font.Gotham,9,C.Sage,
+    UDim2.new(0,16,0,10), UDim2.new(1,-20,0,12),
+    Enum.TextXAlignment.Left,false,12)
+Label(CENTER,"Script Library",Enum.Font.GothamBlack,22,C.Text,
+    UDim2.new(0,14,0,22), UDim2.new(1,-200,0,28),
+    Enum.TextXAlignment.Left,false,12)
+
+-- Botões IMPORTAR e EXECUTAR
+local function HeaderBtn(txt, x, primary)
+    local b = New("TextButton",{
+        Text=(primary and "▶ " or "+ ")..txt,
+        Font=Enum.Font.GothamBold, TextSize=9,
+        TextColor3=primary and C.Bg or C.Sage,
+        BackgroundColor3=primary and C.Sage or C.Surf2,
+        AutoButtonColor=false,
+        AnchorPoint=Vector2.new(1,0),
+        Position=UDim2.new(1,-x,0,26),
+        Size=UDim2.new(0,100,0,26), ZIndex=12,
+    }, CENTER)
+    Corner(b,5)
+    if not primary then Stroke(b,C.BorderSage,1) end
+    b.MouseEnter:Connect(function()
+        Tw(b,{BackgroundColor3=primary and C.SageBright or C.Surf3},.15)
+    end)
+    b.MouseLeave:Connect(function()
+        Tw(b,{BackgroundColor3=primary and C.Sage or C.Surf2},.15)
+    end)
+    return b
+end
+
+local importBtn = HeaderBtn("IMPORTAR",112)
+local execBtn   = HeaderBtn("EXECUTAR", 6, true)
+
+-- ── TABS DE CATEGORIA ──────────────────────────────────────────
+local TABS_Y = 62
+local TABS = New("Frame",{
+    Position=UDim2.new(0,14,0,TABS_Y),
+    Size=UDim2.new(1,-28,0,42),
+    BackgroundColor3=C.Surf2, ZIndex=12,
+}, CENTER)
+Corner(TABS,8)
+Stroke(TABS,C.Border,1)
+
+local catDefs = {
+    {jp="全",  en="TODOS",  w=.18},
+    {jp="戦",  en="COMBAT", w=.14},
+    {jp="農",  en="FARM",   w=.14},
+    {jp="動",  en="MOVE",   w=.14},
+    {jp="視",  en="VISUAL", w=.14},
+    {jp="他",  en="MISC",   w=.14},
+}
+
+local activeCat = "TODOS"
+local catBtns   = {}
+local catPos    = 3
+local catW      = CENTER_W - 28
+
+for i, cd in ipairs(catDefs) do
+    local bw = math.floor(catW * cd.w) - 4
+    local btn = New("TextButton",{
+        Text="", BackgroundColor3=C.Surf3,
+        BackgroundTransparency=i==1 and 0 or 1,
+        AutoButtonColor=false,
+        Position=UDim2.new(0,catPos,0,3),
+        Size=UDim2.new(0,bw,0,36), ZIndex=13,
+    }, TABS)
+    Corner(btn,6)
+    if i==1 then Stroke(btn,C.BorderSage,1) end
+
+    Label(btn,cd.jp,Enum.Font.GothamBold,14,i==1 and C.Sage or C.TextMuted,
+        UDim2.new(0,0,0,2), UDim2.new(1,0,0,18),
+        Enum.TextXAlignment.Center,false,14)
+    Label(btn,cd.en,Enum.Font.Gotham,8,i==1 and C.Sage or C.TextMuted,
+        UDim2.new(0,0,0,21), UDim2.new(1,0,0,12),
+        Enum.TextXAlignment.Center,false,14)
+
+    catBtns[i] = {btn=btn, en=cd.en}
+    catPos = catPos + bw + 4
+
+    btn.MouseButton1Click:Connect(function()
+        for j,v in ipairs(catBtns) do
+            local isA = (j==i)
+            Tw(v.btn,{BackgroundColor3=isA and C.Surf3 or C.Bg,
+                      BackgroundTransparency=isA and 0 or 1},.15)
+            -- recolor text inside
+        end
+        activeCat = cd.en
+    end)
+end
+
+-- ── SCRIPT CARDS GRID ──────────────────────────────────────────
+local GRID_Y = TABS_Y + 50
+local GRID = New("ScrollingFrame",{
+    Position=UDim2.new(0,14,0,GRID_Y),
+    Size=UDim2.new(1,-28,1,-(GRID_Y+8)),
+    BackgroundTransparency=1,
+    ScrollBarThickness=3,
+    ScrollBarImageColor3=C.Sage,
+    ScrollBarImageTransparency=0.4,
+    ScrollingDirection=Enum.ScrollingDirection.Y,
+    AutomaticCanvasSize=Enum.AutomaticSize.Y,
+    CanvasSize=UDim2.new(0,0,0,0),
+    ZIndex=12,
+}, CENTER)
+
+New("UIGridLayout",{
+    CellSize=UDim2.new(0.33,-5,0,130),
+    CellPadding=UDim2.new(0,6,0,6),
+    SortOrder=Enum.SortOrder.LayoutOrder,
+}, GRID)
+Pad(GRID,2,8,0,0)
+
+-- Dados dos cards (replicando a screenshot)
+local defaultScripts = {
+    {icon="剣",name="Infinite Yield", game="Blox Fruits",
+     desc="Admin commands com poderes ilimitados e controle total",
+     status="Ativo", tags={"Admin","OP"}, featured=true},
+    {icon="農",name="Auto Farm",      game="Blox Fruits",
+     desc="Farming automático de XP e Beli",
+     status="Ativo", tags={"Farm"}},
+    {icon="目",name="Silent Aim",     game="Arsenal",
+     desc="Mira silenciosa com hitbox expandida",
+     status="OFF",  tags={"Aim"}},
+    {icon="風",name="Speed Hack",     game="Murder Mystery 2",
+     desc="Velocidade configurável e bunny hop",
+     status="Ativo", tags={"Move"}},
+    {icon="眼",name="ESP & Radar",    game="Phantom Forces",
+     desc="Wallhack com radar e info de players",
+     status="OFF",  tags={"Visual"}},
+    {icon="宝",name="Dupe Items",     game="Pet Simulator X",
+     desc="Duplicação de itens e pets raros",
+     status="Ativo", tags={"Dupe","OP"}, featured=true},
+    {icon="虚",name="No Clip",        game="Brookhaven",
+     desc="Atravessar paredes e superfícies",
+     status="OFF",  tags={"Move"}},
+    {icon="眠",name="Anti AFK",       game="Universal",
+     desc="Evita kick por inatividade automaticamente",
+     status="Ativo", tags={"Misc"}},
+    {icon="神",name="God Mode",       game="Universal",
+     desc="Invulnerabilidade e vida infinita",
+     status="OFF",  tags={"Combat","OP"}},
+}
+
+local userScripts = {}
+
+local function CreateCard(data, order)
+    local isActive = (data.status == "Ativo")
+    local isFeatured = data.featured
+
+    local card = New("Frame",{
+        BackgroundColor3=isFeatured and C.Surf3 or C.Surf2,
+        ZIndex=13, LayoutOrder=order or 99,
+    }, GRID)
+    Corner(card,8)
+    Stroke(card, isFeatured and C.BorderSage or C.Border, 1)
+
+    -- Hover
+    card.MouseEnter:Connect(function()
+        Tw(card,{BackgroundColor3=C.Surf4},.18)
+    end)
+    card.MouseLeave:Connect(function()
+        Tw(card,{BackgroundColor3=isFeatured and C.Surf3 or C.Surf2},.18)
+    end)
+
+    -- Linha topo sage (featured)
+    if isFeatured then
+        local lt = New("Frame",{
+            Size=UDim2.new(1,0,0,2), BackgroundColor3=C.Sage,
+            BackgroundTransparency=0.5, ZIndex=14,
+        }, card)
+        Corner(lt,8)
+    end
+
+    -- STATUS DOT + TEXTO
+    local sdot = New("Frame",{
+        AnchorPoint=Vector2.new(1,0),
+        Position=UDim2.new(1,-24,0,12),
+        Size=UDim2.new(0,6,0,6),
+        BackgroundColor3=isActive and C.Sage or C.TextMuted,
+        ZIndex=14,
+    }, card)
+    Corner(sdot,3)
+
+    Label(card, isActive and "● ATIVO" or "● OFF",
+        Enum.Font.GothamBold,8,
+        isActive and C.Sage or C.TextMuted,
+        UDim2.new(1,-62,0,10), UDim2.new(0,56,0,10),
+        Enum.TextXAlignment.Right,false,14)
+
+    -- Estrela featured
+    if isFeatured then
+        Label(card,"★",Enum.Font.GothamBold,11,C.Gold,
+            UDim2.new(1,-16,0,10), UDim2.new(0,12,0,12),
+            Enum.TextXAlignment.Right,false,14)
+    end
+
+    -- ÍCONE
+    local iconBg = New("Frame",{
+        Position=UDim2.new(0,10,0,12),
+        Size=UDim2.new(0,38,0,38),
+        BackgroundColor3=C.Surf4, ZIndex=14,
+    }, card)
+    Corner(iconBg,8)
+    Stroke(iconBg,C.BorderSage,1)
+    Label(iconBg,data.icon,Enum.Font.GothamBold,18,C.Sage,
+        UDim2.new(0,0,0,0), UDim2.new(1,0,1,0),
+        Enum.TextXAlignment.Center,false,15)
+
+    -- NOME
+    Label(card,data.name,Enum.Font.GothamBold,13,C.Text,
+        UDim2.new(0,10,0,56), UDim2.new(1,-20,0,17),
+        Enum.TextXAlignment.Left,false,14)
+
+    -- JOGO
+    Label(card,data.game,Enum.Font.Gotham,9,C.TextMuted,
+        UDim2.new(0,10,0,73), UDim2.new(1,-20,0,12),
+        Enum.TextXAlignment.Left,false,14)
+
+    -- DESC
+    Label(card,data.desc,Enum.Font.GothamItalic,9,C.TextMuted,
+        UDim2.new(0,10,0,86), UDim2.new(1,-20,0,24),
+        Enum.TextXAlignment.Left,true,14)
+
+    -- Linha separadora
+    New("Frame",{
+        Position=UDim2.new(0,10,1,-28), Size=UDim2.new(1,-20,0,1),
+        BackgroundColor3=C.Border, ZIndex=14,
+    }, card)
+
+    -- TAGS
+    local tagX = 10
+    for _, tag in ipairs(data.tags or {}) do
+        local tw2 = #tag * 5 + 10
+        local tbg = New("Frame",{
+            Position=UDim2.new(0,tagX,1,-22),
+            Size=UDim2.new(0,tw2,0,14),
+            BackgroundColor3=C.Surf4, ZIndex=14,
+        }, card)
+        Corner(tbg,3)
+        Label(tbg,tag,Enum.Font.GothamBold,7,C.TextDim,
+            UDim2.new(0,0,0,0), UDim2.new(1,0,1,0),
+            Enum.TextXAlignment.Center,false,15)
+        tagX = tagX + tw2 + 4
+    end
+
+    -- EXEC BUTTON
+    local execB = New("TextButton",{
+        Text="EXEC", Font=Enum.Font.GothamBold, TextSize=8,
+        TextColor3=C.Sage, BackgroundColor3=C.Surf,
+        AutoButtonColor=false,
+        AnchorPoint=Vector2.new(1,1),
+        Position=UDim2.new(1,-8,1,-6),
+        Size=UDim2.new(0,40,0,18), ZIndex=15,
+    }, card)
+    Corner(execB,4)
+    Stroke(execB,C.BorderSage,1)
+
+    execB.MouseEnter:Connect(function()
+        Tw(execB,{BackgroundColor3=C.Surf3,TextColor3=C.SageBright},.12)
+    end)
+    execB.MouseLeave:Connect(function()
+        Tw(execB,{BackgroundColor3=C.Surf,TextColor3=C.Sage},.12)
+    end)
+    execB.MouseButton1Click:Connect(function()
+        Tw(execB,{BackgroundColor3=C.SageDark},.06)
+        task.delay(.1,function() Tw(execB,{BackgroundColor3=C.Surf},.15) end)
+        if data.callback then
+            local ok2,err = pcall(data.callback)
+            if not ok2 then warn("[SageHub] "..tostring(err)) end
+        end
+        -- Log no console
+        _G.SageHub_Log("OK","→ "..data.name.." injetado")
+    end)
+
+    return card
+end
+
+-- Criar cards padrão
+for i, s in ipairs(defaultScripts) do
+    CreateCard(s, i)
+end
+
+-- ═══════════════════════════════════════════════════════════════
+--  PAINEL DIREITO
+-- ═══════════════════════════════════════════════════════════════
+local RIGHT = New("Frame",{
+    AnchorPoint=Vector2.new(1,0),
+    Position=UDim2.new(1,0,0,0),
+    Size=UDim2.new(0,RIGHT_W,1,0),
+    BackgroundColor3=C.Surf, ZIndex=11,
+}, CONTENT)
+
+-- ── CONSOLE ────────────────────────────────────────────────────
+local CON_H = CONTENT_H - 180 - 95
+
+local CON = New("Frame",{
+    Position=UDim2.new(0,0,0,0),
+    Size=UDim2.new(1,0,0,CON_H),
+    BackgroundColor3=Color3.fromRGB(8,10,8), ZIndex=12,
+}, RIGHT)
+
+-- Console header
+local conHdr = New("Frame",{
+    Size=UDim2.new(1,0,0,26),
+    BackgroundColor3=C.Surf2, ZIndex=13,
+}, CON)
+New("Frame",{
+    Position=UDim2.new(0,0,1,-1), Size=UDim2.new(1,0,0,1),
+    BackgroundColor3=C.BorderSage, ZIndex=14,
+}, conHdr)
+
+-- Dots
+local dotCols = {C.Red, C.Yellow, C.Sage}
+for i,dc in ipairs(dotCols) do
+    local d = New("Frame",{
+        Position=UDim2.new(0,6+(i-1)*14,0.5,-4),
+        Size=UDim2.new(0,8,0,8),
+        BackgroundColor3=dc, BackgroundTransparency=0.4,
+        ZIndex=14,
+    }, conHdr)
+    Corner(d,4)
+end
+
+Label(conHdr,"CONSOLE · 翠",Enum.Font.GothamBold,8,C.TextMuted,
+    UDim2.new(0,50,0,0), UDim2.new(1,-60,1,0),
+    Enum.TextXAlignment.Center,false,14)
+
+-- Área de log
+local conBody = New("ScrollingFrame",{
+    Position=UDim2.new(0,0,0,26),
+    Size=UDim2.new(1,0,1,-46),
+    BackgroundTransparency=1,
+    ScrollBarThickness=2,
+    ScrollBarImageColor3=C.BorderSage,
+    AutomaticCanvasSize=Enum.AutomaticSize.Y,
+    CanvasSize=UDim2.new(0,0,0,0),
+    ScrollingDirection=Enum.ScrollingDirection.Y,
+    ZIndex=13,
+}, CON)
+VList(conBody,0)
+Pad(conBody,6,6,8,8)
+
+-- Linha de input
+local conIn = New("Frame",{
+    Position=UDim2.new(0,0,1,-20),
+    Size=UDim2.new(1,0,0,20),
+    BackgroundColor3=Color3.fromRGB(8,10,8), ZIndex=13,
+}, CON)
+New("Frame",{
+    Size=UDim2.new(1,0,0,1), BackgroundColor3=C.BorderSage, ZIndex=14,
+}, conIn)
+
+Label(conIn,"翠›",Enum.Font.GothamBold,10,C.Sage,
+    UDim2.new(0,6,0,0), UDim2.new(0,22,1,0),
+    Enum.TextXAlignment.Left,false,14)
+
+local conBox = New("TextBox",{
+    Text="", PlaceholderText="injetar script...",
+    PlaceholderColor3=C.TextMuted,
+    Font=Enum.Font.Gotham, TextSize=9,
+    TextColor3=C.Text, BackgroundTransparency=1,
+    ClearTextOnFocus=false,
+    Position=UDim2.new(0,28,0,0),
+    Size=UDim2.new(1,-34,1,0),
+    TextXAlignment=Enum.TextXAlignment.Left,
+    ZIndex=14,
+}, conIn)
+
+-- Função de log global
+local logTypes = {
+    OK  = C.Sage,
+    ERR = C.Red,
+    INF = C.Blue,
+    WRN = C.Yellow,
+}
+
+local function AddLog(typ, msg)
+    local now   = os.date("*t")
+    local tstr  = string.format("%02d:%02d:%02d", now.hour, now.min, now.sec)
+    local col   = logTypes[typ] or C.TextDim
+
+    local row = New("Frame",{
+        Size=UDim2.new(1,0,0,14),
+        BackgroundTransparency=1, ZIndex=14,
+    }, conBody)
+    HList(row,4)
+
+    New("TextLabel",{
+        Text=tstr, Font=Enum.Font.Gotham, TextSize=8,
+        TextColor3=C.TextMuted, BackgroundTransparency=1,
+        Size=UDim2.new(0,48,1,0),
+        TextXAlignment=Enum.TextXAlignment.Left, ZIndex=15,
+    }, row)
+    New("TextLabel",{
+        Text="["..typ.."]", Font=Enum.Font.GothamBold, TextSize=8,
+        TextColor3=col, BackgroundTransparency=1,
+        Size=UDim2.new(0,32,1,0),
+        TextXAlignment=Enum.TextXAlignment.Left, ZIndex=15,
+    }, row)
+    New("TextLabel",{
+        Text=msg, Font=Enum.Font.Gotham, TextSize=8,
+        TextColor3=C.TextDim, BackgroundTransparency=1,
+        Size=UDim2.new(1,-84,1,0),
+        TextXAlignment=Enum.TextXAlignment.Left, ZIndex=15,
+        TextWrapped=true,
+    }, row)
+
+    -- Scroll para baixo
+    task.defer(function()
+        conBody.CanvasPosition = Vector2.new(0, math.huge)
+    end)
+end
+
+_G.SageHub_Log = AddLog  -- expõe globalmente
+
+-- Logs iniciais
+task.spawn(function()
+    task.wait(.5)
+    AddLog("INF","SageHub v2.4.1 iniciado")
+    task.wait(.3); AddLog("OK","Conexão estabelecida")
+    task.wait(.2); AddLog("OK",#defaultScripts.." scripts carregados")
+    task.wait(.2); AddLog("INF","Usuário: ShotaKitten")
+    task.wait(1);  AddLog("OK","Infinite Yield → injetado")
+    task.wait(.3); AddLog("OK","Auto Farm → ativo")
+    task.wait(1.5);AddLog("WRN","Anti-cheat · bypass ok")
+end)
+
+-- Input do console
+conBox.FocusLost:Connect(function(enter)
+    if enter and conBox.Text~="" then
+        AddLog("OK","› "..conBox.Text)
+        conBox.Text=""
+        task.delay(.5,function() AddLog("INF","Processando...") end)
+        task.delay(1,function()  AddLog("OK","Executado com sucesso") end)
+    end
+end)
+
+-- ── SISTEMA (stats) ────────────────────────────────────────────
+local SYS_Y = CON_H
+local SYS = New("Frame",{
+    Position=UDim2.new(0,0,0,SYS_Y),
+    Size=UDim2.new(1,0,0,130),
+    BackgroundColor3=C.Surf2, ZIndex=12,
+}, RIGHT)
+New("Frame",{
+    Size=UDim2.new(1,0,0,1), BackgroundColor3=C.Border, ZIndex=13,
+}, SYS)
+
+Label(SYS,"SISTEMA",Enum.Font.GothamBold,8,C.TextMuted,
+    UDim2.new(0,10,0,6), UDim2.new(0,80,0,12),
+    Enum.TextXAlignment.Left,false,13)
+
+local function SysStat(lbl, val, pct, y)
+    Label(SYS,lbl,Enum.Font.Gotham,8,C.TextDim,
+        UDim2.new(0,10,0,y), UDim2.new(0,40,0,10),
+        Enum.TextXAlignment.Left,false,13)
+    local vl = Label(SYS,val,Enum.Font.GothamBold,8,C.Sage,
+        UDim2.new(1,-40,0,y), UDim2.new(0,34,0,10),
+        Enum.TextXAlignment.Right,false,13)
+    local bg = New("Frame",{
+        Position=UDim2.new(0,10,0,y+12), Size=UDim2.new(1,-20,0,2),
+        BackgroundColor3=C.Surf4, ZIndex=13,
+    }, SYS)
+    Corner(bg,1)
+    local fill = New("Frame",{
+        Size=UDim2.new(pct,0,1,0), BackgroundColor3=C.Sage, ZIndex=14,
+    }, bg)
+    Corner(fill,1)
+    return fill, vl
+end
+
+local cpuSFill, cpuVal  = SysStat("CPU", "34%",  0.34, 22)
+local ramSFill, ramVal  = SysStat("RAM", "61%",  0.61, 48)
+local fpsSFill, fpsVal  = SysStat("FPS", "144",  0.88, 74)
+local pingSFill, pingVal= SysStat("Ping","18ms", 0.92, 100)
+
+-- ── NOTIFICAÇÕES ───────────────────────────────────────────────
+local NOTIF_Y = SYS_Y + 130
+local NOTIF = New("Frame",{
+    Position=UDim2.new(0,0,0,NOTIF_Y),
+    Size=UDim2.new(1,0,1,-(NOTIF_Y)),
+    BackgroundColor3=C.Surf2, ZIndex=12,
+}, RIGHT)
+New("Frame",{
+    Size=UDim2.new(1,0,0,1), BackgroundColor3=C.Border, ZIndex=13,
+}, NOTIF)
+
+Label(NOTIF,"NOTIFICAÇÕES",Enum.Font.GothamBold,8,C.TextMuted,
+    UDim2.new(0,10,0,6), UDim2.new(1,-42,0,12),
+    Enum.TextXAlignment.Left,false,13)
+
+-- Badge de contagem
+local nBadge = New("Frame",{
+    AnchorPoint=Vector2.new(1,0),
+    Position=UDim2.new(1,-8,0,5),
+    Size=UDim2.new(0,20,0,14),
+    BackgroundColor3=C.Sage, ZIndex=13,
+}, NOTIF)
+Corner(nBadge,7)
+Label(nBadge,"3",Enum.Font.GothamBold,9,C.Bg,
+    UDim2.new(0,0,0,0), UDim2.new(1,0,1,0),
+    Enum.TextXAlignment.Center,false,14)
+
+local notifData = {
+    {col=C.Sage,   txt="Novo script disponível: Aimbot v3.2", t="há 2 min"},
+    {col=C.Yellow, txt="Auto Farm concluiu 1.000 ciclos",     t="há 8 min"},
+    {col=C.Blue,   txt="Bypass atualizado · Servidor B",      t="há 15 min"},
+}
+
+for i, nd in ipairs(notifData) do
+    local y = 20 + (i-1)*24
+    local dot = New("Frame",{
+        Position=UDim2.new(0,10,0,y+3),
+        Size=UDim2.new(0,5,0,5),
+        BackgroundColor3=nd.col, ZIndex=13,
+    }, NOTIF)
+    Corner(dot,3)
+
+    Label(NOTIF,nd.txt,Enum.Font.Gotham,8,C.TextDim,
+        UDim2.new(0,20,0,y), UDim2.new(1,-24,0,12),
+        Enum.TextXAlignment.Left,true,13)
+    Label(NOTIF,nd.t,Enum.Font.Gotham,7,C.TextMuted,
+        UDim2.new(0,20,0,y+13), UDim2.new(1,-24,0,9),
+        Enum.TextXAlignment.Left,false,13)
+end
+
+-- ═══════════════════════════════════════════════════════════════
+--  STATUSBAR
+-- ═══════════════════════════════════════════════════════════════
+local STATUS = New("Frame",{
+    AnchorPoint=Vector2.new(0,1),
+    Position=UDim2.new(0,0,1,0),
+    Size=UDim2.new(1,0,0,STATUS_H),
+    BackgroundColor3=C.Surf, ZIndex=15,
+}, MAIN)
+New("Frame",{
+    Size=UDim2.new(1,0,0,1), BackgroundColor3=C.BorderSage, ZIndex=16,
+}, STATUS)
+
+-- Itens esquerda
+local sbItems = {
+    "● Servidor: BR-East · 18ms",
+    "|  Executor: Synapse X",
+    "|  Ativos: 4 scripts",
+}
+local sbX = 12
+for _, s in ipairs(sbItems) do
+    local lbl = Label(STATUS,s,Enum.Font.Gotham,8,C.TextMuted,
+        UDim2.new(0,sbX,0,0), UDim2.new(0,#s*5,1,0),
+        Enum.TextXAlignment.Left,false,16)
+    -- Colorir o ●
+    if s:sub(1,1)=="●" then lbl.TextColor3 = C.Sage end
+    sbX = sbX + #s*5 + 4
+end
+
+-- Citação central
+Label(STATUS,"静寂の中に美がある",Enum.Font.GothamItalic,9,C.TextMuted,
+    UDim2.new(.5,-100,0,0), UDim2.new(0,200,1,0),
+    Enum.TextXAlignment.Center,false,16)
+
+-- Versão direita
+Label(STATUS,"SageHub v2.4.1",Enum.Font.Gotham,8,C.TextMuted,
+    UDim2.new(1,-180,0,0), UDim2.new(0,100,1,0),
+    Enum.TextXAlignment.Right,false,16)
+
+Label(STATUS,"● Online",Enum.Font.GothamBold,8,C.Sage,
+    UDim2.new(1,-72,0,0), UDim2.new(0,64,1,0),
+    Enum.TextXAlignment.Right,false,16)
+
+-- ═══════════════════════════════════════════════════════════════
+--  CONTROLES DA JANELA (fechar, minimizar)
+-- ═══════════════════════════════════════════════════════════════
+local minimized = false
+
+ctrlBtns[1].MouseButton1Click:Connect(function()
+    minimized = not minimized
+    if minimized then
+        Tw(MAIN,{Size=UDim2.new(0,W,0,TOPBAR_H+2)},.25)
+    else
+        Tw(MAIN,{Size=UDim2.new(0,W,0,H)},.25)
+    end
+end)
+
+ctrlBtns[3].MouseButton1Click:Connect(function()
+    Tw(MAIN,{BackgroundTransparency=1},.3)
+    task.delay(.35,function() sg:Destroy() end)
+end)
+
+-- ═══════════════════════════════════════════════════════════════
+--  LOOP — clock, CPU, RAM, FPS
+-- ═══════════════════════════════════════════════════════════════
+local frameCount, lastFPS, lastTime = 0, 60, 0
+
+RunService.RenderStepped:Connect(function(dt)
+    frameCount = frameCount + 1
+    lastTime   = lastTime + dt
+    if lastTime >= 1 then
+        lastFPS  = frameCount
+        frameCount, lastTime = 0, 0
+    end
+end)
+
+-- Atualiza stats a cada 2 segundos
+local statTimer = 0
+RunService.Heartbeat:Connect(function(dt)
+    statTimer = statTimer + dt
+    if statTimer < 2 then return end
+    statTimer = 0
+
+    -- Relógio
+    local t = os.date("*t")
+    clockLbl.Text = string.format("%02d:%02d:%02d", t.hour, t.min, t.sec)
+
+    -- FPS
+    local fps     = math.min(lastFPS, 144)
+    local fpsPct  = fps / 144
+    local fpsStr  = tostring(fps)
+    fpsVal.Text   = fpsStr
+    Tw(fpsFill,  {Size=UDim2.new(fpsPct,0,1,0)},.5)
+    Tw(fpsSFill, {Size=UDim2.new(fpsPct,0,1,0)},.5)
+
+    -- Ping (simulado, pode substituir por HttpService)
+    local ping = math.random(10, 40)
+    pingVal.Text = tostring(ping).."ms"
+    Tw(pingSFill,{Size=UDim2.new(1-(ping/200),0,1,0)},.5)
+
+    -- CPU/RAM (valores simulados — Roblox não expõe CPU/RAM real)
+    local cpu = math.random(20,55)
+    local ram = math.random(50,75)
+    cpuVal.Text = tostring(cpu).."%"
+    ramVal.Text = tostring(ram).."%"
+    Tw(cpuSFill,{Size=UDim2.new(cpu/100,0,1,0)},.5)
+    Tw(ramSFill,{Size=UDim2.new(ram/100,0,1,0)},.5)
+    Tw(cpuFill, {Size=UDim2.new(cpu/100,0,1,0)},.5)
+    Tw(ramFill, {Size=UDim2.new(ram/100,0,1,0)},.5)
+    Tw(fpsFill, {Size=UDim2.new(fpsPct,0,1,0)},.5)
+
+    -- Dot pulsante
+    Tw(loadDot,{BackgroundTransparency=loadDot.BackgroundTransparency>0 and 0 or 0.5},.4)
+end)
+
+-- Logs automáticos em intervalos
+task.spawn(function()
+    while sg.Parent do
+        task.wait(math.random(8,20))
+        local msgs = {
+            {"OK",  "Auto Farm → ciclo #"..math.random(800,999).." completo"},
+            {"INF", "Verificando atualizações..."},
+            {"OK",  "Scripts atualizados · sem mudanças"},
+            {"WRN", "Anti-cheat detectado · bypass ativado"},
+            {"OK",  "Reconectado ao servidor BR-East"},
+            {"INF", "Ping: "..math.random(10,40).."ms"},
+        }
+        local m = msgs[math.random(#msgs)]
+        if sg.Parent then AddLog(m[1], m[2]) end
+    end
+end)
+
+-- ═══════════════════════════════════════════════════════════════
+--  API PÚBLICA
+-- ═══════════════════════════════════════════════════════════════
+local Hub = {}
+
+--[[
+    Adiciona um script ao grid.
+
+    @param data {
+        Icon     : string        -- Kanji/emoji do ícone
+        Name     : string        -- Nome do script
+        Game     : string        -- Jogo alvo
+        Desc     : string        -- Descrição curta
+        Status   : string        -- "Ativo" ou "OFF"
+        Tags     : table         -- {"Farm","OP"} etc.
+        Featured : boolean|nil   -- Destaca com borda sage
+        Callback : function|nil  -- Executado ao clicar EXEC
+    }
+--]]
+function Hub:AddScript(data)
+    data = data or {}
+    local entry = {
+        icon     = data.Icon     or "•",
+        name     = data.Name     or "Script",
+        game     = data.Game     or "Universal",
+        desc     = data.Desc     or "",
+        status   = data.Status   or "OFF",
+        tags     = data.Tags     or {},
+        featured = data.Featured or false,
+        callback = data.Callback,
+    }
+    table.insert(userScripts, entry)
+    CreateCard(entry, 100 + #userScripts)
+    AddLog("OK","Script registrado: "..entry.name)
+end
+
+--[[
+    Exibe notificação flutuante integrada ao Hub.
+
+    @param opts {
+        Title   : string
+        Message : string
+        Type    : "success"|"warning"|"error"|"info"
+        Duration: number|nil
+    }
+--]]
+function Hub:Notify(opts)
+    opts = opts or {}
+    local typeCol = {
+        success=C.Sage, warning=C.Yellow, error=C.Red, info=C.Blue,
+    }
+    local accent = typeCol[(opts.Type or "info"):lower()] or C.Sage
+    local dur    = opts.Duration or 4
+
+    local nc = New("Frame",{
+        AnchorPoint=Vector2.new(1,1),
+        Position=UDim2.new(1,-12,1,-40),
+        Size=UDim2.new(0,260,0,64),
+        BackgroundColor3=C.Surf2,
+        BackgroundTransparency=1,
+        ClipsDescendants=true,
+        ZIndex=200,
+    }, sg)
+    Corner(nc,8)
+    Stroke(nc,C.Border,1)
+
+    New("Frame",{Size=UDim2.new(0,3,1,0), BackgroundColor3=accent, ZIndex=201}, nc)
+    Label(nc,opts.Title or "Aviso",Enum.Font.GothamBold,12,C.Text,
+        UDim2.new(0,14,0,8), UDim2.new(1,-18,0,16),
+        Enum.TextXAlignment.Left,false,201)
+    Label(nc,opts.Message or "",Enum.Font.Gotham,10,C.TextDim,
+        UDim2.new(0,14,0,26), UDim2.new(1,-18,0,28),
+        Enum.TextXAlignment.Left,true,201)
+
+    local pgB = New("Frame",{
+        Position=UDim2.new(0,0,1,-3), Size=UDim2.new(1,0,0,3),
+        BackgroundColor3=C.Surf4, ZIndex=201,
+    }, nc)
+    local pgF = New("Frame",{
+        Size=UDim2.new(1,0,1,0), BackgroundColor3=accent, ZIndex=202,
+    }, pgB)
+    Corner(pgF,2)
+
+    Tw(nc,{BackgroundTransparency=0},.3)
+    Tw(pgF,{Size=UDim2.new(0,0,1,0)},dur,Enum.EasingStyle.Linear)
+
+    task.delay(dur,function()
+        Tw(nc,{BackgroundTransparency=1},.3)
+        task.wait(.35); nc:Destroy()
+    end)
+
+    AddLog((opts.Type=="error" and "ERR" or opts.Type=="warning" and "WRN" or "INF"),
+        (opts.Title or "Notify")..": "..(opts.Message or ""))
+end
+
+--[[
+    Limpa todos os scripts do grid (mantém os padrão se keepDefault=true).
+--]]
+function Hub:ClearScripts(keepDefault)
+    if not keepDefault then
+        for _, child in ipairs(GRID:GetChildren()) do
+            if child:IsA("Frame") then child:Destroy() end
+        end
+    end
+    userScripts = {}
+end
+
+-- Notificação de boas-vindas
+task.delay(1.5, function()
+    Hub:Notify({
+        Title   = "翠 SageHub",
+        Message = "Carregado com sucesso! Pressione − para minimizar.",
+        Type    = "success",
+        Duration= 5,
+    })
+end)
+
+return Hub
+
+--[[
+══════════════════════════════════════════════════════════════════
+  EXEMPLO DE USO FINAL
+══════════════════════════════════════════════════════════════════
+
+local Hub = loadstring(game:HttpGet("URL_RAW_AQUI"))()
+
+Hub:AddScript({
+    Icon     = "剣",
+    Name     = "Infinite Yield",
+    Game     = "Blox Fruits",
+    Desc     = "Admin commands ilimitados",
+    Status   = "Ativo",
+    Tags     = { "Admin", "OP" },
+    Featured = true,
+    Callback = function()
+        loadstring(game:HttpGet(
+            "https://raw.githubusercontent.com/.../InfiniteYield.lua"
+        ))()
+    end,
+})
+
+Hub:AddScript({
+    Icon     = "風",
+    Name     = "Speed Hack",
+    Game     = "Universal",
+    Desc     = "WalkSpeed & JumpPower configurável",
+    Status   = "OFF",
+    Tags     = { "Move" },
+    Callback = function()
+        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = 300
+    end,
+})
+
+Hub:Notify({
+    Title   = "Script Adicionado",
+    Message = "Seus scripts foram carregados!",
+    Type    = "success",
+})
+
+══════════════════════════════════════════════════════════════════
+]]
