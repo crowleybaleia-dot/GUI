@@ -1,0 +1,832 @@
+-- NexusLib | UI Library for Roblox
+-- Estilo: Minimalista / Clean
+-- API inspirada na Linoria
+
+local NexusLib = {}
+NexusLib.__index = NexusLib
+
+-- ─── Globals ───────────────────────────────────────────────────────────────
+getgenv().Toggles = getgenv().Toggles or {}
+getgenv().Options = getgenv().Options or {}
+
+-- ─── Tema ──────────────────────────────────────────────────────────────────
+local Theme = {
+    Background    = Color3.fromRGB(18, 18, 18),
+    Surface       = Color3.fromRGB(26, 26, 26),
+    Border        = Color3.fromRGB(45, 45, 45),
+    Accent        = Color3.fromRGB(120, 120, 255),
+    AccentHover   = Color3.fromRGB(150, 150, 255),
+    Text          = Color3.fromRGB(230, 230, 230),
+    TextMuted     = Color3.fromRGB(130, 130, 130),
+    ToggleOff     = Color3.fromRGB(55, 55, 55),
+    ToggleOn      = Color3.fromRGB(120, 120, 255),
+    SliderFill    = Color3.fromRGB(120, 120, 255),
+    SliderBg      = Color3.fromRGB(45, 45, 45),
+    InputBg       = Color3.fromRGB(22, 22, 22),
+}
+
+-- ─── Utilidades ────────────────────────────────────────────────────────────
+local function Create(class, props, children)
+    local obj = Instance.new(class)
+    for k, v in pairs(props) do
+        obj[k] = v
+    end
+    if children then
+        for _, child in ipairs(children) do
+            child.Parent = obj
+        end
+    end
+    return obj
+end
+
+local function Tween(obj, props, t)
+    local TweenService = game:GetService("TweenService")
+    local info = TweenInfo.new(t or 0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    TweenService:Create(obj, info, props):Play()
+end
+
+local function MakePadding(parent, px)
+    return Create('UIPadding', {
+        Parent          = parent,
+        PaddingLeft     = UDim.new(0, px),
+        PaddingRight    = UDim.new(0, px),
+        PaddingTop      = UDim.new(0, px),
+        PaddingBottom   = UDim.new(0, px),
+    })
+end
+
+local function MakeCorner(parent, r)
+    return Create('UICorner', { Parent = parent, CornerRadius = UDim.new(0, r or 6) })
+end
+
+local function MakeStroke(parent, color, thickness)
+    return Create('UIStroke', {
+        Parent    = parent,
+        Color     = color or Theme.Border,
+        Thickness = thickness or 1,
+    })
+end
+
+-- ─── Groupbox ──────────────────────────────────────────────────────────────
+local Groupbox = {}
+Groupbox.__index = Groupbox
+
+function Groupbox:_addItem(height)
+    -- atualiza altura do container
+    local list = self._list
+    local pad  = 8
+    local current = self._frame.Size.Y.Offset
+    self._frame.Size = UDim2.new(1, 0, 0, current + height + pad)
+    self._contentFrame.Size = UDim2.new(1, 0, 0, self._contentFrame.Size.Y.Offset + height + pad)
+end
+
+-- ── Button ──────────────────────────────────────────────────────────────────
+function Groupbox:AddButton(text, callback)
+    local height = 28
+
+    local btn = Create('TextButton', {
+        Parent           = self._contentFrame,
+        Size             = UDim2.new(1, 0, 0, height),
+        BackgroundColor3 = Theme.Surface,
+        Text             = '',
+        AutoButtonColor  = false,
+    })
+    MakeCorner(btn, 5)
+    MakeStroke(btn)
+
+    local label = Create('TextLabel', {
+        Parent           = btn,
+        Size             = UDim2.new(1, 0, 1, 0),
+        BackgroundTransparency = 1,
+        Text             = text,
+        TextColor3       = Theme.Text,
+        Font             = Enum.Font.GothamMedium,
+        TextSize         = 13,
+    })
+
+    -- hover / click
+    btn.MouseEnter:Connect(function()
+        Tween(btn, { BackgroundColor3 = Theme.Accent })
+        Tween(label, { TextColor3 = Color3.fromRGB(255,255,255) })
+    end)
+    btn.MouseLeave:Connect(function()
+        Tween(btn, { BackgroundColor3 = Theme.Surface })
+        Tween(label, { TextColor3 = Theme.Text })
+    end)
+    btn.MouseButton1Click:Connect(function()
+        if callback then callback() end
+    end)
+
+    self:_addItem(height)
+
+    -- retorna objeto com métodos encadeáveis
+    local btnObj = { _btn = btn }
+    function btnObj:AddTooltip(tip)
+        -- tooltip simples: muda hint no hover
+        btn.MouseEnter:Connect(function()
+            label.Text = tip
+        end)
+        btn.MouseLeave:Connect(function()
+            label.Text = text
+        end)
+        return self
+    end
+    function btnObj:AddButton(subText, subCallback)
+        return self._groupbox:AddButton(subText, subCallback)
+    end
+    btnObj._groupbox = self
+    return btnObj
+end
+
+-- ── Toggle ──────────────────────────────────────────────────────────────────
+function Groupbox:AddToggle(idx, info)
+    info = info or {}
+    local text    = info.Text    or idx
+    local default = info.Default or false
+    local height  = 28
+
+    local row = Create('Frame', {
+        Parent           = self._contentFrame,
+        Size             = UDim2.new(1, 0, 0, height),
+        BackgroundTransparency = 1,
+    })
+
+    -- Track (pill)
+    local trackW, trackH = 34, 18
+    local track = Create('Frame', {
+        Parent           = row,
+        Size             = UDim2.new(0, trackW, 0, trackH),
+        Position         = UDim2.new(1, -(trackW + 2), 0.5, -trackH/2),
+        BackgroundColor3 = default and Theme.ToggleOn or Theme.ToggleOff,
+    })
+    MakeCorner(track, 99)
+    MakeStroke(track)
+
+    local knobSize = trackH - 6
+    local knob = Create('Frame', {
+        Parent           = track,
+        Size             = UDim2.new(0, knobSize, 0, knobSize),
+        Position         = default and UDim2.new(1, -(knobSize+3), 0.5, -knobSize/2)
+                                    or UDim2.new(0, 3, 0.5, -knobSize/2),
+        BackgroundColor3 = Color3.fromRGB(255,255,255),
+    })
+    MakeCorner(knob, 99)
+
+    local lbl = Create('TextLabel', {
+        Parent           = row,
+        Size             = UDim2.new(1, -(trackW + 14), 1, 0),
+        BackgroundTransparency = 1,
+        Text             = text,
+        TextColor3       = Theme.Text,
+        Font             = Enum.Font.Gotham,
+        TextSize         = 13,
+        TextXAlignment   = Enum.TextXAlignment.Left,
+    })
+    MakePadding(lbl, 2)
+
+    -- Tooltip label
+    if info.Tooltip then
+        -- simples: aparece ao hover na row
+        local tipLabel = Create('TextLabel', {
+            Parent           = row,
+            Size             = UDim2.new(0, 0, 0, 0),
+            Visible          = false,
+            Text             = info.Tooltip,
+            TextColor3       = Theme.TextMuted,
+            Font             = Enum.Font.Gotham,
+            TextSize         = 11,
+            BackgroundTransparency = 1,
+        })
+    end
+
+    -- State
+    local toggleObj = {
+        Value    = default,
+        _changed = {},
+    }
+
+    local function setState(val, silent)
+        toggleObj.Value = val
+        Tween(track, { BackgroundColor3 = val and Theme.ToggleOn or Theme.ToggleOff })
+        Tween(knob, {
+            Position = val
+                and UDim2.new(1, -(knobSize+3), 0.5, -knobSize/2)
+                or  UDim2.new(0, 3, 0.5, -knobSize/2)
+        })
+        if not silent then
+            for _, fn in ipairs(toggleObj._changed) do fn() end
+        end
+    end
+
+    function toggleObj:OnChanged(fn)
+        table.insert(self._changed, fn)
+    end
+
+    function toggleObj:SetValue(val)
+        setState(val)
+    end
+
+    getgenv().Toggles[idx] = toggleObj
+
+    -- Clique em qualquer lugar da row
+    local clickArea = Create('TextButton', {
+        Parent           = row,
+        Size             = UDim2.new(1, 0, 1, 0),
+        BackgroundTransparency = 1,
+        Text             = '',
+        ZIndex           = 5,
+    })
+    clickArea.MouseButton1Click:Connect(function()
+        setState(not toggleObj.Value)
+    end)
+
+    self:_addItem(height)
+    return toggleObj
+end
+
+-- ── Slider ──────────────────────────────────────────────────────────────────
+function Groupbox:AddSlider(idx, info)
+    info = info or {}
+    local text     = info.Text     or idx
+    local min      = info.Min      or 0
+    local max      = info.Max      or 100
+    local default  = info.Default  or min
+    local rounding = info.Rounding or 0
+    local compact  = info.Compact  or false
+    local height   = compact and 28 or 44
+
+    local container = Create('Frame', {
+        Parent           = self._contentFrame,
+        Size             = UDim2.new(1, 0, 0, height),
+        BackgroundTransparency = 1,
+    })
+
+    local yOff = 0
+    if not compact then
+        local labelRow = Create('Frame', {
+            Parent           = container,
+            Size             = UDim2.new(1, 0, 0, 18),
+            BackgroundTransparency = 1,
+        })
+        Create('TextLabel', {
+            Parent           = labelRow,
+            Size             = UDim2.new(0.7, 0, 1, 0),
+            BackgroundTransparency = 1,
+            Text             = text,
+            TextColor3       = Theme.Text,
+            Font             = Enum.Font.Gotham,
+            TextSize         = 13,
+            TextXAlignment   = Enum.TextXAlignment.Left,
+        })
+        local valLabel = Create('TextLabel', {
+            Parent           = labelRow,
+            Size             = UDim2.new(0.3, 0, 1, 0),
+            Position         = UDim2.new(0.7, 0, 0, 0),
+            BackgroundTransparency = 1,
+            Text             = tostring(default),
+            TextColor3       = Theme.TextMuted,
+            Font             = Enum.Font.GothamMedium,
+            TextSize         = 12,
+            TextXAlignment   = Enum.TextXAlignment.Right,
+        })
+        yOff = 20
+        -- store for later
+        container._valLabel = valLabel
+    end
+
+    local trackH = 6
+    local sliderTrack = Create('Frame', {
+        Parent           = container,
+        Size             = UDim2.new(1, 0, 0, trackH),
+        Position         = UDim2.new(0, 0, 0, yOff + 6),
+        BackgroundColor3 = Theme.SliderBg,
+    })
+    MakeCorner(sliderTrack, 99)
+
+    local fill = Create('Frame', {
+        Parent           = sliderTrack,
+        Size             = UDim2.new((default - min)/(max - min), 0, 1, 0),
+        BackgroundColor3 = Theme.SliderFill,
+    })
+    MakeCorner(fill, 99)
+
+    -- Grab knob
+    local knobR = 8
+    local knobFrame = Create('Frame', {
+        Parent           = sliderTrack,
+        Size             = UDim2.new(0, knobR*2, 0, knobR*2),
+        Position         = UDim2.new((default-min)/(max-min), -knobR, 0.5, -knobR),
+        BackgroundColor3 = Color3.fromRGB(255,255,255),
+        ZIndex           = 3,
+    })
+    MakeCorner(knobFrame, 99)
+    MakeStroke(knobFrame, Theme.Border, 1)
+
+    -- State
+    local sliderObj = {
+        Value    = default,
+        _changed = {},
+    }
+
+    local function round(n, dec)
+        local m = 10^dec
+        return math.floor(n * m + 0.5) / m
+    end
+
+    local function updateVisual(pct)
+        fill.Size = UDim2.new(pct, 0, 1, 0)
+        knobFrame.Position = UDim2.new(pct, -knobR, 0.5, -knobR)
+        if container._valLabel then
+            container._valLabel.Text = tostring(sliderObj.Value)
+        end
+    end
+
+    local function setValue(val, silent)
+        val = math.clamp(val, min, max)
+        val = round(val, rounding)
+        sliderObj.Value = val
+        local pct = (val - min) / (max - min)
+        updateVisual(pct)
+        if not silent then
+            for _, fn in ipairs(sliderObj._changed) do fn() end
+        end
+    end
+
+    function sliderObj:OnChanged(fn) table.insert(self._changed, fn) end
+    function sliderObj:SetValue(v) setValue(v) end
+
+    getgenv().Options[idx] = sliderObj
+
+    -- Drag logic
+    local UIS = game:GetService("UserInputService")
+    local dragging = false
+
+    local function getVal(inputX)
+        local abs = sliderTrack.AbsolutePosition.X
+        local sz  = sliderTrack.AbsoluteSize.X
+        local pct = math.clamp((inputX - abs) / sz, 0, 1)
+        return min + pct * (max - min)
+    end
+
+    sliderTrack.InputBegan:Connect(function(inp)
+        if inp.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            setValue(getVal(inp.Position.X))
+        end
+    end)
+    UIS.InputChanged:Connect(function(inp)
+        if dragging and inp.UserInputType == Enum.UserInputType.MouseMovement then
+            setValue(getVal(inp.Position.X))
+        end
+    end)
+    UIS.InputEnded:Connect(function(inp)
+        if inp.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+
+    self:_addItem(height)
+    return sliderObj
+end
+
+-- ── Input ───────────────────────────────────────────────────────────────────
+function Groupbox:AddInput(idx, info)
+    info = info or {}
+    local text        = info.Text        or idx
+    local default     = info.Default     or ''
+    local placeholder = info.Placeholder or ''
+    local numeric     = info.Numeric     or false
+    local finished    = info.Finished    or false
+    local height      = 44
+
+    local container = Create('Frame', {
+        Parent           = self._contentFrame,
+        Size             = UDim2.new(1, 0, 0, height),
+        BackgroundTransparency = 1,
+    })
+
+    Create('TextLabel', {
+        Parent           = container,
+        Size             = UDim2.new(1, 0, 0, 18),
+        BackgroundTransparency = 1,
+        Text             = text,
+        TextColor3       = Theme.Text,
+        Font             = Enum.Font.Gotham,
+        TextSize         = 13,
+        TextXAlignment   = Enum.TextXAlignment.Left,
+    })
+
+    local box = Create('TextBox', {
+        Parent             = container,
+        Size               = UDim2.new(1, 0, 0, 22),
+        Position           = UDim2.new(0, 0, 0, 20),
+        BackgroundColor3   = Theme.InputBg,
+        Text               = default,
+        PlaceholderText    = placeholder,
+        TextColor3         = Theme.Text,
+        PlaceholderColor3  = Theme.TextMuted,
+        Font               = Enum.Font.Gotham,
+        TextSize           = 12,
+        ClearTextOnFocus   = false,
+    })
+    MakeCorner(box, 5)
+    MakeStroke(box)
+    MakePadding(box, 6)
+
+    -- focus glow
+    box.Focused:Connect(function()
+        Tween(box, { BackgroundColor3 = Color3.fromRGB(30,30,30) })
+    end)
+    box.FocusLost:Connect(function()
+        Tween(box, { BackgroundColor3 = Theme.InputBg })
+    end)
+
+    -- State
+    local inputObj = {
+        Value    = default,
+        _changed = {},
+    }
+
+    local function fireChanged()
+        for _, fn in ipairs(inputObj._changed) do fn() end
+    end
+
+    if finished then
+        box.FocusLost:Connect(function(enterPressed)
+            if enterPressed then
+                if numeric then
+                    local n = tonumber(box.Text)
+                    box.Text = n and tostring(n) or inputObj.Value
+                end
+                inputObj.Value = box.Text
+                fireChanged()
+            end
+        end)
+    else
+        box:GetPropertyChangedSignal('Text'):Connect(function()
+            if numeric and tonumber(box.Text) == nil and box.Text ~= '' then
+                box.Text = inputObj.Value
+                return
+            end
+            inputObj.Value = box.Text
+            fireChanged()
+        end)
+    end
+
+    function inputObj:OnChanged(fn) table.insert(self._changed, fn) end
+    function inputObj:SetValue(v)
+        box.Text = tostring(v)
+        inputObj.Value = tostring(v)
+    end
+
+    getgenv().Options[idx] = inputObj
+
+    self:_addItem(height)
+    return inputObj
+end
+
+-- ── Label & Divider ─────────────────────────────────────────────────────────
+function Groupbox:AddLabel(text, doesWrap)
+    local height = doesWrap and 36 or 18
+    local lbl = Create('TextLabel', {
+        Parent           = self._contentFrame,
+        Size             = UDim2.new(1, 0, 0, height),
+        BackgroundTransparency = 1,
+        Text             = text,
+        TextColor3       = Theme.TextMuted,
+        Font             = Enum.Font.Gotham,
+        TextSize         = 12,
+        TextWrapped      = doesWrap or false,
+        TextXAlignment   = Enum.TextXAlignment.Left,
+    })
+    self:_addItem(height)
+    return lbl
+end
+
+function Groupbox:AddDivider()
+    local line = Create('Frame', {
+        Parent           = self._contentFrame,
+        Size             = UDim2.new(1, 0, 0, 1),
+        BackgroundColor3 = Theme.Border,
+        BorderSizePixel  = 0,
+    })
+    self:_addItem(5)
+end
+
+-- ─── Tab ───────────────────────────────────────────────────────────────────
+local Tab = {}
+Tab.__index = Tab
+
+local function newGroupbox(parent, title, xPos)
+    local HEADER_H = 24
+    local INIT_H   = HEADER_H + 8
+
+    local frame = Create('Frame', {
+        Parent           = parent,
+        Size             = UDim2.new(0.48, 0, 0, INIT_H),
+        Position         = UDim2.new(xPos, 4, 0, 0),
+        BackgroundColor3 = Theme.Surface,
+    })
+    MakeCorner(frame, 7)
+    MakeStroke(frame)
+
+    -- header
+    local header = Create('TextLabel', {
+        Parent           = frame,
+        Size             = UDim2.new(1, 0, 0, HEADER_H),
+        BackgroundColor3 = Theme.Background,
+        Text             = '  ' .. title,
+        TextColor3       = Theme.TextMuted,
+        Font             = Enum.Font.GothamMedium,
+        TextSize         = 11,
+        TextXAlignment   = Enum.TextXAlignment.Left,
+    })
+    MakeStroke(header, Theme.Border, 1)
+
+    -- content (lista de itens)
+    local content = Create('Frame', {
+        Parent           = frame,
+        Size             = UDim2.new(1, 0, 0, 0),
+        Position         = UDim2.new(0, 0, 0, HEADER_H + 4),
+        BackgroundTransparency = 1,
+    })
+
+    local layout = Create('UIListLayout', {
+        Parent           = content,
+        Padding          = UDim.new(0, 6),
+        FillDirection    = Enum.FillDirection.Vertical,
+        HorizontalAlignment = Enum.HorizontalAlignment.Center,
+    })
+    MakePadding(content, 8)
+
+    local gb = setmetatable({
+        _frame        = frame,
+        _contentFrame = content,
+        _layout       = layout,
+    }, Groupbox)
+
+    -- auto resize
+    layout:GetPropertyChangedSignal('AbsoluteContentSize'):Connect(function()
+        local sz = layout.AbsoluteContentSize.Y + HEADER_H + 24
+        frame.Size = UDim2.new(0.48, 0, 0, sz)
+        content.Size = UDim2.new(1, 0, 0, layout.AbsoluteContentSize.Y + 16)
+    end)
+
+    -- _addItem agora é no op (layout cuida)
+    gb._addItem = function() end
+
+    return gb
+end
+
+function Tab:AddLeftGroupbox(title)
+    return newGroupbox(self._container, title, 0)
+end
+
+function Tab:AddRightGroupbox(title)
+    return newGroupbox(self._container, title, 0.52)
+end
+
+-- ─── Window ────────────────────────────────────────────────────────────────
+local Window = {}
+Window.__index = Window
+
+function Window:AddTab(name)
+    -- botão na tabbar
+    local tabBtn = Create('TextButton', {
+        Parent           = self._tabBar,
+        Size             = UDim2.new(0, 80, 1, -4),
+        BackgroundColor3 = Theme.Surface,
+        Text             = name,
+        TextColor3       = Theme.TextMuted,
+        Font             = Enum.Font.GothamMedium,
+        TextSize          = 12,
+        AutoButtonColor  = false,
+    })
+    MakeCorner(tabBtn, 5)
+
+    -- conteúdo da tab
+    local tabContent = Create('Frame', {
+        Parent           = self._body,
+        Size             = UDim2.new(1, 0, 1, 0),
+        BackgroundTransparency = 1,
+        Visible          = false,
+    })
+
+    local tab = setmetatable({ _container = tabContent }, Tab)
+    table.insert(self._tabs, { btn = tabBtn, content = tabContent, tab = tab })
+
+    tabBtn.MouseButton1Click:Connect(function()
+        self:_selectTab(#self._tabs)
+    end)
+
+    if #self._tabs == 1 then
+        self:_selectTab(1)
+    end
+
+    return tab
+end
+
+function Window:_selectTab(idx)
+    for i, t in ipairs(self._tabs) do
+        local active = (i == idx)
+        t.content.Visible = active
+        Tween(t.btn, {
+            BackgroundColor3 = active and Theme.Accent or Theme.Surface,
+            TextColor3       = active and Color3.fromRGB(255,255,255) or Theme.TextMuted,
+        })
+    end
+    self._activeTab = idx
+end
+
+function Window:SetWatermark(text)
+    if self._watermark then
+        self._watermark.Text = text
+    end
+end
+
+function Window:SetWatermarkVisibility(vis)
+    if self._watermark then
+        self._watermark.Visible = vis
+    end
+end
+
+function Window:Unload()
+    if self._screenGui then
+        self._screenGui:Destroy()
+    end
+    if self._onUnloadFn then self._onUnloadFn() end
+    NexusLib.Unloaded = true
+end
+
+function Window:OnUnload(fn)
+    self._onUnloadFn = fn
+end
+
+-- ─── CreateWindow ──────────────────────────────────────────────────────────
+function NexusLib:CreateWindow(opts)
+    opts = opts or {}
+    local title    = opts.Title    or 'NexusLib'
+    local center   = opts.Center   ~= nil and opts.Center or true
+    local autoShow = opts.AutoShow ~= nil and opts.AutoShow or true
+    local size     = opts.Size     or UDim2.new(0, 560, 0, 380)
+    local position = opts.Position or (center and UDim2.new(0.5, -280, 0.5, -190) or UDim2.new(0.1, 0, 0.1, 0))
+
+    local player    = game:GetService("Players").LocalPlayer
+    local playerGui = player:WaitForChild("PlayerGui")
+
+    local screenGui = Create('ScreenGui', {
+        Parent        = playerGui,
+        Name          = 'NexusLib',
+        ResetOnSpawn  = false,
+        ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
+    })
+
+    -- Main frame
+    local main = Create('Frame', {
+        Parent           = screenGui,
+        Size             = size,
+        Position         = position,
+        BackgroundColor3 = Theme.Background,
+        Visible          = autoShow,
+    })
+    MakeCorner(main, 8)
+    MakeStroke(main, Theme.Border, 1)
+
+    -- Drop shadow (simples)
+    Create('Frame', {
+        Parent           = main,
+        Size             = UDim2.new(1, 6, 1, 6),
+        Position         = UDim2.new(0, -3, 0, 3),
+        BackgroundColor3 = Color3.fromRGB(0,0,0),
+        BackgroundTransparency = 0.7,
+        ZIndex           = -1,
+    })
+
+    -- Title bar
+    local TITLE_H = 36
+    local titleBar = Create('Frame', {
+        Parent           = main,
+        Size             = UDim2.new(1, 0, 0, TITLE_H),
+        BackgroundColor3 = Theme.Surface,
+    })
+    MakeStroke(titleBar, Theme.Border, 1)
+
+    -- Rounded top
+    Create('UICorner', { Parent = titleBar, CornerRadius = UDim.new(0, 8) })
+    -- cover bottom corners of titleBar
+    Create('Frame', {
+        Parent           = titleBar,
+        Size             = UDim2.new(1, 0, 0, 8),
+        Position         = UDim2.new(0, 0, 1, -8),
+        BackgroundColor3 = Theme.Surface,
+        BorderSizePixel  = 0,
+    })
+
+    -- Accent strip
+    Create('Frame', {
+        Parent           = titleBar,
+        Size             = UDim2.new(0, 3, 0.6, 0),
+        Position         = UDim2.new(0, 10, 0.2, 0),
+        BackgroundColor3 = Theme.Accent,
+    })
+    MakeCorner(Create('Frame', { -- dummy for corner ref
+        Parent           = titleBar,
+        Size             = UDim2.new(0, 3, 0.6, 0),
+        Position         = UDim2.new(0, 10, 0.2, 0),
+        BackgroundColor3 = Theme.Accent,
+        Visible          = false,
+    }), 99)
+
+    Create('TextLabel', {
+        Parent           = titleBar,
+        Size             = UDim2.new(1, -80, 1, 0),
+        Position         = UDim2.new(0, 22, 0, 0),
+        BackgroundTransparency = 1,
+        Text             = title,
+        TextColor3       = Theme.Text,
+        Font             = Enum.Font.GothamBold,
+        TextSize         = 14,
+        TextXAlignment   = Enum.TextXAlignment.Left,
+    })
+
+    -- Watermark
+    local watermark = Create('TextLabel', {
+        Parent           = titleBar,
+        Size             = UDim2.new(0.4, 0, 1, 0),
+        Position         = UDim2.new(0.6, 0, 0, 0),
+        BackgroundTransparency = 1,
+        Text             = '',
+        TextColor3       = Theme.TextMuted,
+        Font             = Enum.Font.Gotham,
+        TextSize         = 11,
+        TextXAlignment   = Enum.TextXAlignment.Right,
+        Visible          = false,
+    })
+    MakePadding(watermark, 8)
+
+    -- Tab bar
+    local TAB_BAR_H = 30
+    local tabBar = Create('Frame', {
+        Parent           = main,
+        Size             = UDim2.new(1, 0, 0, TAB_BAR_H),
+        Position         = UDim2.new(0, 0, 0, TITLE_H),
+        BackgroundColor3 = Theme.Background,
+    })
+    Create('UIListLayout', {
+        Parent           = tabBar,
+        FillDirection    = Enum.FillDirection.Horizontal,
+        Padding          = UDim.new(0, 4),
+        VerticalAlignment = Enum.VerticalAlignment.Center,
+    })
+    MakePadding(tabBar, 6)
+    MakeStroke(tabBar, Theme.Border, 1)
+
+    -- Body
+    local body = Create('Frame', {
+        Parent           = main,
+        Size             = UDim2.new(1, 0, 1, -(TITLE_H + TAB_BAR_H)),
+        Position         = UDim2.new(0, 0, 0, TITLE_H + TAB_BAR_H),
+        BackgroundTransparency = 1,
+        ClipsDescendants = true,
+    })
+    MakePadding(body, 8)
+
+    -- Drag
+    local UIS = game:GetService("UserInputService")
+    local dragging, dragStart, startPos = false, nil, nil
+    titleBar.InputBegan:Connect(function(inp)
+        if inp.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging  = true
+            dragStart = inp.Position
+            startPos  = main.Position
+        end
+    end)
+    UIS.InputChanged:Connect(function(inp)
+        if dragging and inp.UserInputType == Enum.UserInputType.MouseMovement then
+            local delta = inp.Position - dragStart
+            main.Position = UDim2.new(
+                startPos.X.Scale, startPos.X.Offset + delta.X,
+                startPos.Y.Scale, startPos.Y.Offset + delta.Y
+            )
+        end
+    end)
+    UIS.InputEnded:Connect(function(inp)
+        if inp.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+
+    local win = setmetatable({
+        _screenGui  = screenGui,
+        _main       = main,
+        _tabBar     = tabBar,
+        _body       = body,
+        _tabs       = {},
+        _activeTab  = 0,
+        _watermark  = watermark,
+    }, Window)
+
+    return win
+end
+
+return NexusLib
