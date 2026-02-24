@@ -1,0 +1,1713 @@
+--[[
+╔══════════════════════════════════════════════════════════════════════╗
+║                                                                      ║
+║   ████████╗ █████╗  ██████╗ ███████╗    ██╗  ██╗██╗   ██╗██████╗   ║
+║   ╚══██╔══╝██╔══██╗██╔════╝ ██╔════╝    ██║  ██║██║   ██║██╔══██╗  ║
+║      ██║   ███████║██║  ███╗█████╗      ███████║██║   ██║██████╔╝  ║
+║      ██║   ██╔══██║██║   ██║██╔══╝      ██╔══██║██║   ██║██╔══██╗  ║
+║      ██║   ██║  ██║╚██████╔╝███████╗    ██║  ██║╚██████╔╝██████╔╝  ║
+║      ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚══════╝    ╚═╝  ╚═╝ ╚═════╝ ╚═════╝   ║
+║                                                                      ║
+║   翠  SageHub UI Library  v2.0.0                                    ║
+║   Estética Japonesa · Verde Sage · Preto Puro                       ║
+║                                                                      ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+    COMPONENTES:
+        Window      → Janela principal arrastável
+        Tab         → Sistema de abas lateral
+        Button      → Botão com efeito hover/ripple
+        Toggle      → Interruptor animado on/off
+        Slider      → Barra deslizante com valor
+        Dropdown    → Menu suspenso multi-opção
+        TextBox     → Campo de entrada de texto
+        Label       → Rótulo de texto
+        Separator   → Divisor de seção
+        Keybind     → Captura de tecla de atalho
+        ColorPicker → Seletor de cor (paleta sage)
+        Notify      → Notificações flutuantes
+
+    USO BÁSICO:
+        local SageHub = loadstring(game:HttpGet("URL"))()
+
+        local Win  = SageHub:CreateWindow({
+            Title    = "Meu Script",
+            SubTitle = "by Autor",
+        })
+
+        local Tab = Win:AddTab({ Name = "Principal", Icon = "花" })
+
+        Tab:AddButton({
+            Name     = "God Mode",
+            Callback = function() print("ativo!") end,
+        })
+
+        Tab:AddToggle({
+            Name     = "Speed Hack",
+            Default  = false,
+            Callback = function(v) print(v) end,
+        })
+
+        Tab:AddSlider({
+            Name     = "WalkSpeed",
+            Min      = 16, Max = 500, Default = 16,
+            Callback = function(v)
+                game.Players.LocalPlayer.Character
+                    .Humanoid.WalkSpeed = v
+            end,
+        })
+--]]
+
+-- ═══════════════════════════════════════════════════════════════
+--  SERVIÇOS
+-- ═══════════════════════════════════════════════════════════════
+local Players          = game:GetService("Players")
+local TweenService     = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local RunService       = game:GetService("RunService")
+local CoreGui          = game:GetService("CoreGui")
+local HttpService      = game:GetService("HttpService")
+
+local LP    = Players.LocalPlayer
+local Mouse = LP:GetMouse()
+
+-- ═══════════════════════════════════════════════════════════════
+--  TEMA  ·  Verde Sage + Preto Puro
+-- ═══════════════════════════════════════════════════════════════
+local Theme = {
+    -- Primárias
+    Sage          = Color3.fromRGB(135, 168, 120),   -- Verde sage principal
+    SageDark      = Color3.fromRGB( 92, 122,  80),   -- Sage escuro (bordas/hover)
+    SageBright    = Color3.fromRGB(160, 195, 145),   -- Sage claro (highlights)
+    SagePale      = Color3.fromRGB(212, 230, 203),   -- Sage muito claro
+
+    -- Fundo (preto puro e variações)
+    Background    = Color3.fromRGB( 10,  10,  10),   -- Preto puro
+    Surface       = Color3.fromRGB( 17,  17,  17),   -- Superfície primária
+    Surface2      = Color3.fromRGB( 24,  24,  24),   -- Superfície elevada
+    Surface3      = Color3.fromRGB( 32,  32,  32),   -- Card / elemento
+    Surface4      = Color3.fromRGB( 42,  42,  42),   -- Elemento hover
+    Border        = Color3.fromRGB( 48,  48,  48),   -- Borda padrão
+    BorderSage    = Color3.fromRGB( 60,  75,  54),   -- Borda sage sutil
+
+    -- Texto
+    TextPrimary   = Color3.fromRGB(232, 232, 232),   -- Texto principal
+    TextSecondary = Color3.fromRGB(160, 160, 160),   -- Texto secundário
+    TextMuted     = Color3.fromRGB(100, 100, 100),   -- Texto desabilitado
+    TextSage      = Color3.fromRGB(135, 168, 120),   -- Texto sage
+
+    -- Acento / Estado
+    Success       = Color3.fromRGB(100, 200, 120),
+    Warning       = Color3.fromRGB(220, 180,  60),
+    Error         = Color3.fromRGB(210,  80,  80),
+    Info          = Color3.fromRGB(100, 160, 220),
+    Gold          = Color3.fromRGB(184, 160, 106),
+}
+
+-- ═══════════════════════════════════════════════════════════════
+--  UTILITÁRIOS INTERNOS
+-- ═══════════════════════════════════════════════════════════════
+local Util = {}
+
+-- Cria tween e reproduz
+function Util.Tween(obj, props, t, style, dir)
+    local info = TweenInfo.new(
+        t     or 0.20,
+        style or Enum.EasingStyle.Quint,
+        dir   or Enum.EasingDirection.Out
+    )
+    local tw = TweenService:Create(obj, info, props)
+    tw:Play()
+    return tw
+end
+
+-- Cria instância com propriedades em batch
+function Util.New(class, props, parent)
+    local obj = Instance.new(class)
+    for k, v in pairs(props) do
+        obj[k] = v
+    end
+    if parent then obj.Parent = parent end
+    return obj
+end
+
+-- Adiciona UICorner
+function Util.Corner(parent, px)
+    return Util.New("UICorner", { CornerRadius = UDim.new(0, px or 6) }, parent)
+end
+
+-- Adiciona UIStroke
+function Util.Stroke(parent, color, thickness, transp)
+    return Util.New("UIStroke", {
+        Color        = color     or Theme.Border,
+        Thickness    = thickness or 1,
+        Transparency = transp    or 0,
+        ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+    }, parent)
+end
+
+-- Adiciona UIGradient horizontal
+function Util.Gradient(parent, c0, c1, rot)
+    return Util.New("UIGradient", {
+        Color    = ColorSequence.new(c0, c1),
+        Rotation = rot or 90,
+    }, parent)
+end
+
+-- Padding simétrico ou individual
+function Util.Padding(parent, top, bot, left, right)
+    return Util.New("UIPadding", {
+        PaddingTop    = UDim.new(0, top   or 0),
+        PaddingBottom = UDim.new(0, bot   or top or 0),
+        PaddingLeft   = UDim.new(0, left  or top or 0),
+        PaddingRight  = UDim.new(0, right or top or 0),
+    }, parent)
+end
+
+-- Lista vertical
+function Util.VList(parent, spacing)
+    return Util.New("UIListLayout", {
+        FillDirection  = Enum.FillDirection.Vertical,
+        Padding        = UDim.new(0, spacing or 6),
+        SortOrder      = Enum.SortOrder.LayoutOrder,
+        HorizontalAlignment = Enum.HorizontalAlignment.Center,
+    }, parent)
+end
+
+-- Lista horizontal
+function Util.HList(parent, spacing)
+    return Util.New("UIListLayout", {
+        FillDirection = Enum.FillDirection.Horizontal,
+        Padding       = UDim.new(0, spacing or 6),
+        SortOrder     = Enum.SortOrder.LayoutOrder,
+        VerticalAlignment = Enum.VerticalAlignment.Center,
+    }, parent)
+end
+
+-- Hover simples com tween de cor de fundo
+function Util.Hover(btn, normalColor, hoverColor, duration)
+    btn.MouseEnter:Connect(function()
+        Util.Tween(btn, { BackgroundColor3 = hoverColor }, duration or 0.15)
+    end)
+    btn.MouseLeave:Connect(function()
+        Util.Tween(btn, { BackgroundColor3 = normalColor }, duration or 0.15)
+    end)
+end
+
+-- Torna um frame arrastável por um handle
+function Util.Draggable(handle, frame)
+    local dragging, start, origin = false, nil, nil
+
+    handle.InputBegan:Connect(function(inp)
+        if inp.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            start    = inp.Position
+            origin   = frame.Position
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(inp)
+        if dragging and inp.UserInputType == Enum.UserInputType.MouseMovement then
+            local d = inp.Position - start
+            local vp = workspace.CurrentCamera.ViewportSize
+            local nx = math.clamp(origin.X.Offset + d.X, 0, vp.X - frame.AbsoluteSize.X)
+            local ny = math.clamp(origin.Y.Offset + d.Y, 0, vp.Y - frame.AbsoluteSize.Y)
+            frame.Position = UDim2.new(0, nx, 0, ny)
+        end
+    end)
+
+    UserInputService.InputEnded:Connect(function(inp)
+        if inp.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+end
+
+-- PCAll seguro com log de erro
+function Util.Safe(fn, ...)
+    local ok, err = pcall(fn, ...)
+    if not ok then
+        warn("[SageHub] Erro no callback: " .. tostring(err))
+    end
+end
+
+-- ═══════════════════════════════════════════════════════════════
+--  SISTEMA DE NOTIFICAÇÕES
+-- ═══════════════════════════════════════════════════════════════
+local NotifyContainer = nil
+
+local function EnsureNotifyContainer(screenGui)
+    if NotifyContainer and NotifyContainer.Parent then return end
+    NotifyContainer = Util.New("Frame", {
+        Name             = "SageHub_Notifications",
+        AnchorPoint      = Vector2.new(1, 1),
+        Position         = UDim2.new(1, -16, 1, -16),
+        Size             = UDim2.new(0, 310, 1, -32),
+        BackgroundTransparency = 1,
+        ZIndex           = 200,
+    }, screenGui)
+    Util.New("UIListLayout", {
+        FillDirection        = Enum.FillDirection.Vertical,
+        VerticalAlignment    = Enum.VerticalAlignment.Bottom,
+        HorizontalAlignment  = Enum.HorizontalAlignment.Right,
+        Padding              = UDim.new(0, 8),
+        SortOrder            = Enum.SortOrder.LayoutOrder,
+    }, NotifyContainer)
+end
+
+--[[
+    Exibe uma notificação flutuante.
+
+    @param opts {
+        Title    : string       -- Título da notificação
+        Message  : string       -- Corpo da mensagem
+        Duration : number|nil   -- Duração em segundos (padrão: 4)
+        Type     : string|nil   -- "success"|"warning"|"error"|"info"
+    }
+--]]
+local function Notify(opts)
+    if not NotifyContainer or not NotifyContainer.Parent then return end
+    opts = opts or {}
+
+    local typeColor = {
+        success = Theme.Success,
+        warning = Theme.Warning,
+        error   = Theme.Error,
+        info    = Theme.Sage,
+    }
+    local accent = typeColor[(opts.Type or "info"):lower()] or Theme.Sage
+    local dur    = opts.Duration or 4
+
+    -- Card
+    local card = Util.New("Frame", {
+        Name             = "Notif_" .. tostring(tick()),
+        Size             = UDim2.new(1, 0, 0, 76),
+        BackgroundColor3 = Theme.Surface2,
+        BackgroundTransparency = 1,
+        ClipsDescendants = true,
+        LayoutOrder      = -math.floor(tick()),
+        ZIndex           = 201,
+    }, NotifyContainer)
+    Util.Corner(card, 8)
+    Util.Stroke(card, Theme.Border, 1)
+
+    -- Barra lateral de acento
+    local bar = Util.New("Frame", {
+        Size             = UDim2.new(0, 3, 1, 0),
+        Position         = UDim2.new(0, 0, 0, 0),
+        BackgroundColor3 = accent,
+        ZIndex           = 202,
+    }, card)
+    Util.Corner(bar, 3)
+
+    -- Título
+    Util.New("TextLabel", {
+        Text             = opts.Title or "Aviso",
+        Font             = Enum.Font.GothamBold,
+        TextSize         = 13,
+        TextColor3       = Theme.TextPrimary,
+        BackgroundTransparency = 1,
+        Position         = UDim2.new(0, 16, 0, 10),
+        Size             = UDim2.new(1, -20, 0, 18),
+        TextXAlignment   = Enum.TextXAlignment.Left,
+        ZIndex           = 202,
+    }, card)
+
+    -- Mensagem
+    Util.New("TextLabel", {
+        Text             = opts.Message or "",
+        Font             = Enum.Font.Gotham,
+        TextSize         = 11,
+        TextColor3       = Theme.TextSecondary,
+        BackgroundTransparency = 1,
+        Position         = UDim2.new(0, 16, 0, 30),
+        Size             = UDim2.new(1, -20, 0, 30),
+        TextXAlignment   = Enum.TextXAlignment.Left,
+        TextWrapped      = true,
+        ZIndex           = 202,
+    }, card)
+
+    -- Barra de progresso de tempo
+    local pgBg = Util.New("Frame", {
+        Position         = UDim2.new(0, 0, 1, -3),
+        Size             = UDim2.new(1, 0, 0, 3),
+        BackgroundColor3 = Theme.Surface3,
+        ZIndex           = 202,
+    }, card)
+    local pg = Util.New("Frame", {
+        Size             = UDim2.new(1, 0, 1, 0),
+        BackgroundColor3 = accent,
+        ZIndex           = 203,
+    }, pgBg)
+    Util.Corner(pgBg, 2)
+    Util.Corner(pg, 2)
+
+    -- Entrada suave
+    Util.Tween(card, { BackgroundTransparency = 0 }, 0.3)
+    -- Progresso drena
+    Util.Tween(pg, { Size = UDim2.new(0, 0, 1, 0) }, dur,
+        Enum.EasingStyle.Linear, Enum.EasingDirection.In)
+
+    task.delay(dur, function()
+        Util.Tween(card, { BackgroundTransparency = 1 }, 0.35)
+        task.wait(0.4)
+        card:Destroy()
+    end)
+end
+
+-- ═══════════════════════════════════════════════════════════════
+--  BIBLIOTECA PRINCIPAL
+-- ═══════════════════════════════════════════════════════════════
+local SageHub    = {}
+SageHub.__index  = SageHub
+SageHub.Theme    = Theme
+SageHub.Notify   = Notify
+SageHub.Version  = "2.0.0"
+
+-- ───────────────────────────────────────────────────────────────
+--  WINDOW
+-- ───────────────────────────────────────────────────────────────
+--[[
+    Cria a janela principal do Hub.
+
+    @param opts {
+        Title     : string       -- Título exibido na topbar
+        SubTitle  : string|nil   -- Subtítulo / autor
+        Size      : UDim2|nil    -- Tamanho (padrão: 560×420)
+        Position  : UDim2|nil    -- Posição inicial (padrão: centro)
+        MinimizeKey : Enum.KeyCode|nil  -- Tecla para minimizar (padrão: RightControl)
+    }
+    @return Window
+--]]
+function SageHub:CreateWindow(opts)
+    opts = opts or {}
+
+    -- ── ScreenGui ───────────────────────────────────────────────
+    local sg = Util.New("ScreenGui", {
+        Name              = "SageHub_" .. (opts.Title or "Window"),
+        ResetOnSpawn      = false,
+        ZIndexBehavior    = Enum.ZIndexBehavior.Sibling,
+        IgnoreGuiInset    = true,
+    })
+
+    -- Tenta usar CoreGui (executors) ou PlayerGui como fallback
+    local ok = pcall(function() sg.Parent = CoreGui end)
+    if not ok then
+        sg.Parent = LP:WaitForChild("PlayerGui")
+    end
+
+    EnsureNotifyContainer(sg)
+
+    -- ── Tamanho e posição ───────────────────────────────────────
+    local W = opts.Size and opts.Size.X.Offset or 560
+    local H = opts.Size and opts.Size.Y.Offset or 440
+
+    local vp = workspace.CurrentCamera.ViewportSize
+    local px = opts.Position and opts.Position.X.Offset or math.floor((vp.X - W) / 2)
+    local py = opts.Position and opts.Position.Y.Offset or math.floor((vp.Y - H) / 2)
+
+    -- ── Janela principal ────────────────────────────────────────
+    local main = Util.New("Frame", {
+        Name             = "MainFrame",
+        Position         = UDim2.new(0, px, 0, py),
+        Size             = UDim2.new(0, W, 0, H),
+        BackgroundColor3 = Theme.Background,
+        ClipsDescendants = true,
+        ZIndex           = 10,
+    }, sg)
+    Util.Corner(main, 10)
+    Util.Stroke(main, Theme.SageDark, 1.5)
+
+    -- Linha de destaque sage no topo
+    local topAccent = Util.New("Frame", {
+        Size             = UDim2.new(1, 0, 0, 2),
+        BackgroundColor3 = Theme.Sage,
+        ZIndex           = 15,
+    }, main)
+    Util.Gradient(topAccent,
+        Color3.fromRGB(0, 0, 0),
+        Theme.Sage,
+        0 -- horizontal
+    )
+
+    -- ── TopBar ──────────────────────────────────────────────────
+    local topBar = Util.New("Frame", {
+        Name             = "TopBar",
+        Position         = UDim2.new(0, 0, 0, 2),
+        Size             = UDim2.new(1, 0, 0, 42),
+        BackgroundColor3 = Theme.Surface,
+        ZIndex           = 12,
+    }, main)
+
+    -- Separador inferior da topbar
+    Util.New("Frame", {
+        Position         = UDim2.new(0, 0, 1, -1),
+        Size             = UDim2.new(1, 0, 0, 1),
+        BackgroundColor3 = Theme.BorderSage,
+        ZIndex           = 13,
+    }, topBar)
+
+    -- Kanji decorativo esquerdo
+    Util.New("TextLabel", {
+        Text             = "翠",
+        Font             = Enum.Font.GothamBlack,
+        TextSize         = 18,
+        TextColor3       = Theme.Sage,
+        BackgroundTransparency = 1,
+        Position         = UDim2.new(0, 12, 0, 0),
+        Size             = UDim2.new(0, 28, 1, 0),
+        TextXAlignment   = Enum.TextXAlignment.Left,
+        ZIndex           = 13,
+    }, topBar)
+
+    -- Título
+    Util.New("TextLabel", {
+        Text             = opts.Title or "SageHub",
+        Font             = Enum.Font.GothamBold,
+        TextSize         = 14,
+        TextColor3       = Theme.TextPrimary,
+        BackgroundTransparency = 1,
+        Position         = UDim2.new(0, 44, 0, 0),
+        Size             = UDim2.new(0, 200, 1, 0),
+        TextXAlignment   = Enum.TextXAlignment.Left,
+        ZIndex           = 13,
+    }, topBar)
+
+    -- Subtítulo / autor
+    if opts.SubTitle then
+        Util.New("TextLabel", {
+            Text           = opts.SubTitle,
+            Font           = Enum.Font.Gotham,
+            TextSize       = 10,
+            TextColor3     = Theme.TextMuted,
+            BackgroundTransparency = 1,
+            Position       = UDim2.new(0, 44, 0, 22),
+            Size           = UDim2.new(0, 200, 0, 14),
+            TextXAlignment = Enum.TextXAlignment.Left,
+            ZIndex         = 13,
+        }, topBar)
+    end
+
+    -- Versão
+    Util.New("TextLabel", {
+        Text             = "v" .. SageHub.Version,
+        Font             = Enum.Font.Gotham,
+        TextSize         = 9,
+        TextColor3       = Theme.Sage,
+        BackgroundTransparency = 1,
+        AnchorPoint      = Vector2.new(0.5, 0.5),
+        Position         = UDim2.new(0.5, 0, 0.5, 0),
+        Size             = UDim2.new(0, 80, 0, 20),
+        ZIndex           = 13,
+    }, topBar)
+
+    -- Botão fechar
+    local closeBtn = Util.New("TextButton", {
+        Text             = "✕",
+        Font             = Enum.Font.GothamBold,
+        TextSize         = 12,
+        TextColor3       = Theme.TextMuted,
+        BackgroundColor3 = Theme.Surface2,
+        AnchorPoint      = Vector2.new(1, 0.5),
+        Position         = UDim2.new(1, -10, 0.5, 0),
+        Size             = UDim2.new(0, 28, 0, 28),
+        ZIndex           = 13,
+    }, topBar)
+    Util.Corner(closeBtn, 6)
+    Util.Hover(closeBtn, Theme.Surface2, Theme.Error)
+
+    -- Botão minimizar
+    local minBtn = Util.New("TextButton", {
+        Text             = "−",
+        Font             = Enum.Font.GothamBold,
+        TextSize         = 16,
+        TextColor3       = Theme.TextMuted,
+        BackgroundColor3 = Theme.Surface2,
+        AnchorPoint      = Vector2.new(1, 0.5),
+        Position         = UDim2.new(1, -44, 0.5, 0),
+        Size             = UDim2.new(0, 28, 0, 28),
+        ZIndex           = 13,
+    }, topBar)
+    Util.Corner(minBtn, 6)
+    Util.Hover(minBtn, Theme.Surface2, Theme.Warning)
+
+    -- Arrastável
+    Util.Draggable(topBar, main)
+
+    -- ── Área de conteúdo ────────────────────────────────────────
+    local content = Util.New("Frame", {
+        Name             = "Content",
+        Position         = UDim2.new(0, 0, 0, 44),
+        Size             = UDim2.new(1, 0, 1, -44),
+        BackgroundColor3 = Theme.Background,
+        ZIndex           = 10,
+    }, main)
+
+    -- ── Sidebar de Abas (esquerda) ──────────────────────────────
+    local sidebarW = 130
+    local sidebar = Util.New("Frame", {
+        Name             = "Sidebar",
+        Size             = UDim2.new(0, sidebarW, 1, 0),
+        BackgroundColor3 = Theme.Surface,
+        ZIndex           = 11,
+    }, content)
+
+    -- Linha divisória direita da sidebar
+    Util.New("Frame", {
+        Position         = UDim2.new(1, -1, 0, 0),
+        Size             = UDim2.new(0, 1, 1, 0),
+        BackgroundColor3 = Theme.BorderSage,
+        ZIndex           = 12,
+    }, sidebar)
+
+    -- Layout das abas
+    local tabListFrame = Util.New("Frame", {
+        Name             = "TabList",
+        Size             = UDim2.new(1, 0, 1, 0),
+        BackgroundTransparency = 1,
+        ZIndex           = 12,
+    }, sidebar)
+    Util.VList(tabListFrame, 4)
+    Util.Padding(tabListFrame, 8, 8, 8, 8)
+
+    -- Kanji decorativo no rodapé da sidebar
+    Util.New("TextLabel", {
+        Text             = "静",
+        Font             = Enum.Font.GothamBlack,
+        TextSize         = 32,
+        TextColor3       = Theme.Sage,
+        BackgroundTransparency = 1,
+        AnchorPoint      = Vector2.new(0.5, 1),
+        Position         = UDim2.new(0.5, 0, 1, -12),
+        Size             = UDim2.new(1, 0, 0, 40),
+        TextXAlignment   = Enum.TextXAlignment.Center,
+        TextTransparency = 0.80,
+        ZIndex           = 12,
+    }, sidebar)
+
+    -- ── Container das páginas ───────────────────────────────────
+    local pageContainer = Util.New("Frame", {
+        Name             = "Pages",
+        Position         = UDim2.new(0, sidebarW, 0, 0),
+        Size             = UDim2.new(1, -sidebarW, 1, 0),
+        BackgroundColor3 = Theme.Background,
+        ClipsDescendants = true,
+        ZIndex           = 10,
+    }, content)
+
+    -- ── Estado da janela ────────────────────────────────────────
+    local Window      = {}
+    local tabEntries  = {}
+    local activeTab   = nil
+    local minimized   = false
+    local fullH       = H
+
+    -- ── Minimizar ───────────────────────────────────────────────
+    local function SetMinimized(val)
+        minimized = val
+        if minimized then
+            Util.Tween(main, { Size = UDim2.new(0, W, 0, 44) }, 0.3)
+        else
+            Util.Tween(main, { Size = UDim2.new(0, W, 0, fullH) }, 0.3)
+        end
+    end
+
+    minBtn.MouseButton1Click:Connect(function()
+        SetMinimized(not minimized)
+    end)
+
+    -- Tecla de minimizar (RightControl por padrão)
+    local minKey = opts.MinimizeKey or Enum.KeyCode.RightControl
+    UserInputService.InputBegan:Connect(function(inp, gpe)
+        if not gpe and inp.KeyCode == minKey then
+            SetMinimized(not minimized)
+        end
+    end)
+
+    -- Fechar
+    closeBtn.MouseButton1Click:Connect(function()
+        Util.Tween(main, { BackgroundTransparency = 1 }, 0.3)
+        Util.Tween(topBar, { BackgroundTransparency = 1 }, 0.3)
+        task.wait(0.35)
+        sg:Destroy()
+    end)
+
+    -- ── Selecionar aba ──────────────────────────────────────────
+    local function SelectTab(name)
+        for _, te in ipairs(tabEntries) do
+            local isActive = (te.Name == name)
+            -- Botão da aba
+            Util.Tween(te.Btn, {
+                BackgroundColor3     = isActive and Theme.Surface3 or Color3.fromRGB(0,0,0),
+                BackgroundTransparency = isActive and 0 or 1,
+            }, 0.15)
+            Util.Tween(te.BtnText, {
+                TextColor3 = isActive and Theme.TextPrimary or Theme.TextMuted,
+            }, 0.15)
+            Util.Tween(te.BtnIcon, {
+                TextColor3 = isActive and Theme.Sage or Theme.TextMuted,
+            }, 0.15)
+            -- Indicador lateral
+            Util.Tween(te.Indicator, {
+                BackgroundTransparency = isActive and 0 or 1,
+            }, 0.15)
+            -- Página
+            te.Page.Visible = isActive
+        end
+        activeTab = name
+    end
+
+    -- ══════════════════════════════════════════════════════════
+    --  MÉTODO: AddTab
+    -- ══════════════════════════════════════════════════════════
+    --[[
+        Cria uma nova aba.
+        @param opts {
+            Name : string      -- Nome da aba
+            Icon : string|nil  -- Kanji/emoji (ex: "花")
+        }
+        @return Tab
+    --]]
+    function Window:AddTab(tabOpts)
+        tabOpts = tabOpts or {}
+        local tName = tabOpts.Name or ("Tab " .. #tabEntries + 1)
+        local tIcon = tabOpts.Icon or "•"
+
+        -- ── Botão da aba ────────────────────────────────────────
+        local btn = Util.New("TextButton", {
+            Name             = "Tab_" .. tName,
+            Text             = "",
+            Size             = UDim2.new(1, 0, 0, 36),
+            BackgroundColor3 = Theme.Surface3,
+            BackgroundTransparency = 1,
+            AutoButtonColor  = false,
+            LayoutOrder      = #tabEntries,
+            ZIndex           = 13,
+        }, tabListFrame)
+        Util.Corner(btn, 6)
+
+        -- Indicador verde à esquerda
+        local indicator = Util.New("Frame", {
+            Position         = UDim2.new(0, 0, 0.15, 0),
+            Size             = UDim2.new(0, 3, 0.70, 0),
+            BackgroundColor3 = Theme.Sage,
+            BackgroundTransparency = 1,
+            ZIndex           = 14,
+        }, btn)
+        Util.Corner(indicator, 3)
+
+        -- Ícone (kanji)
+        local btnIcon = Util.New("TextLabel", {
+            Text             = tIcon,
+            Font             = Enum.Font.GothamBold,
+            TextSize         = 14,
+            TextColor3       = Theme.TextMuted,
+            BackgroundTransparency = 1,
+            Position         = UDim2.new(0, 8, 0, 0),
+            Size             = UDim2.new(0, 24, 1, 0),
+            TextXAlignment   = Enum.TextXAlignment.Center,
+            ZIndex           = 14,
+        }, btn)
+
+        -- Texto da aba
+        local btnText = Util.New("TextLabel", {
+            Text             = tName,
+            Font             = Enum.Font.Gotham,
+            TextSize         = 11,
+            TextColor3       = Theme.TextMuted,
+            BackgroundTransparency = 1,
+            Position         = UDim2.new(0, 36, 0, 0),
+            Size             = UDim2.new(1, -40, 1, 0),
+            TextXAlignment   = Enum.TextXAlignment.Left,
+            ZIndex           = 14,
+        }, btn)
+
+        -- ── Página (ScrollingFrame) ─────────────────────────────
+        local page = Util.New("ScrollingFrame", {
+            Name                       = "Page_" .. tName,
+            Size                       = UDim2.new(1, 0, 1, 0),
+            BackgroundColor3           = Theme.Background,
+            BackgroundTransparency     = 0,
+            BorderSizePixel            = 0,
+            ScrollBarThickness         = 3,
+            ScrollBarImageColor3       = Theme.Sage,
+            ScrollBarImageTransparency = 0.4,
+            ScrollingDirection         = Enum.ScrollingDirection.Y,
+            AutomaticCanvasSize        = Enum.AutomaticSize.Y,
+            CanvasSize                 = UDim2.new(0, 0, 0, 0),
+            Visible                    = false,
+            ZIndex                     = 10,
+        }, pageContainer)
+
+        Util.VList(page, 6)
+        Util.Padding(page, 10, 10, 10, 12)
+
+        -- Registra entrada
+        local entry = {
+            Name      = tName,
+            Btn       = btn,
+            BtnText   = btnText,
+            BtnIcon   = btnIcon,
+            Indicator = indicator,
+            Page      = page,
+        }
+        table.insert(tabEntries, entry)
+
+        -- Hover no botão da aba
+        btn.MouseEnter:Connect(function()
+            if activeTab ~= tName then
+                Util.Tween(btn, { BackgroundTransparency = 0.7,
+                    BackgroundColor3 = Theme.Surface3 }, 0.12)
+            end
+        end)
+        btn.MouseLeave:Connect(function()
+            if activeTab ~= tName then
+                Util.Tween(btn, { BackgroundTransparency = 1 }, 0.12)
+            end
+        end)
+        btn.MouseButton1Click:Connect(function()
+            SelectTab(tName)
+        end)
+
+        -- Seleciona automaticamente a primeira aba
+        if #tabEntries == 1 then SelectTab(tName) end
+
+        -- ════════════════════════════════════════════════════════
+        --  OBJETO TAB  —  contém os métodos dos elementos
+        -- ════════════════════════════════════════════════════════
+        local Tab = {}
+        local elemOrder = 0
+
+        local function nextOrder()
+            elemOrder = elemOrder + 1
+            return elemOrder
+        end
+
+        -- ── Helpers de card ─────────────────────────────────────
+        local function MakeCard(h)
+            local card = Util.New("Frame", {
+                Name             = "Card_" .. nextOrder(),
+                Size             = UDim2.new(1, 0, 0, h or 40),
+                BackgroundColor3 = Theme.Surface2,
+                ZIndex           = 15,
+                LayoutOrder      = elemOrder,
+            }, page)
+            Util.Corner(card, 7)
+            return card
+        end
+
+        -- ─────────────────────────────────────────────────────────
+        --  Button
+        -- ─────────────────────────────────────────────────────────
+        --[[
+            @param opts {
+                Name        : string
+                Description : string|nil
+                Callback    : function|nil
+            }
+        --]]
+        function Tab:AddButton(bOpts)
+            bOpts = bOpts or {}
+            local card = MakeCard(40)
+
+            -- Indicador sage esquerdo
+            local ind = Util.New("Frame", {
+                Position         = UDim2.new(0, 0, 0.20, 0),
+                Size             = UDim2.new(0, 3, 0.60, 0),
+                BackgroundColor3 = Theme.Sage,
+                ZIndex           = 16,
+            }, card)
+            Util.Corner(ind, 3)
+
+            local btn = Util.New("TextButton", {
+                Text             = bOpts.Name or "Button",
+                Font             = Enum.Font.GothamSemibold,
+                TextSize         = 12,
+                TextColor3       = Theme.TextPrimary,
+                BackgroundColor3 = Theme.Surface2,
+                AutoButtonColor  = false,
+                Size             = UDim2.new(1, 0, 1, 0),
+                ZIndex           = 16,
+            }, card)
+            Util.Corner(btn, 7)
+
+            -- Descrição
+            if bOpts.Description then
+                btn.TextSize = 11
+                btn.Position = UDim2.new(0, 0, 0, -5)
+                Util.New("TextLabel", {
+                    Text           = bOpts.Description,
+                    Font           = Enum.Font.Gotham,
+                    TextSize       = 9,
+                    TextColor3     = Theme.TextMuted,
+                    BackgroundTransparency = 1,
+                    Position       = UDim2.new(0, 12, 1, -14),
+                    Size           = UDim2.new(1, -20, 0, 12),
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    ZIndex         = 17,
+                }, card)
+            end
+
+            Util.Hover(btn, Theme.Surface2, Theme.Surface3)
+
+            btn.MouseButton1Click:Connect(function()
+                -- Flash sage
+                Util.Tween(btn, { BackgroundColor3 = Theme.SageDark }, 0.08)
+                task.delay(0.08, function()
+                    Util.Tween(btn, { BackgroundColor3 = Theme.Surface3 }, 0.20)
+                end)
+                if bOpts.Callback then Util.Safe(bOpts.Callback) end
+            end)
+        end
+
+        -- ─────────────────────────────────────────────────────────
+        --  Toggle
+        -- ─────────────────────────────────────────────────────────
+        --[[
+            @param opts {
+                Name        : string
+                Default     : boolean|nil
+                Description : string|nil
+                Callback    : function(bool)|nil
+            }
+            @return { SetValue, GetValue, Toggle }
+        --]]
+        function Tab:AddToggle(tOpts)
+            tOpts = tOpts or {}
+            local state = (tOpts.Default == true)
+            local card  = MakeCard(40)
+
+            Util.New("TextLabel", {
+                Text           = tOpts.Name or "Toggle",
+                Font           = Enum.Font.Gotham,
+                TextSize       = 12,
+                TextColor3     = Theme.TextPrimary,
+                BackgroundTransparency = 1,
+                Position       = UDim2.new(0, 12, 0, 0),
+                Size           = UDim2.new(1, -70, 1, 0),
+                TextXAlignment = Enum.TextXAlignment.Left,
+                ZIndex         = 16,
+            }, card)
+
+            -- Track
+            local track = Util.New("Frame", {
+                AnchorPoint      = Vector2.new(1, 0.5),
+                Position         = UDim2.new(1, -12, 0.5, 0),
+                Size             = UDim2.new(0, 42, 0, 22),
+                BackgroundColor3 = state and Theme.Sage or Theme.Surface4,
+                ZIndex           = 16,
+            }, card)
+            Util.Corner(track, 11)
+            Util.Stroke(track, Theme.Border, 1)
+
+            -- Knob
+            local knob = Util.New("Frame", {
+                AnchorPoint      = Vector2.new(0, 0.5),
+                Position         = UDim2.new(0, state and 22 or 2, 0.5, 0),
+                Size             = UDim2.new(0, 18, 0, 18),
+                BackgroundColor3 = state and Color3.new(1,1,1) or Theme.TextMuted,
+                ZIndex           = 17,
+            }, track)
+            Util.Corner(knob, 9)
+
+            local function SetState(val)
+                state = val
+                Util.Tween(track, { BackgroundColor3 = val and Theme.Sage or Theme.Surface4 }, 0.22)
+                Util.Tween(knob, {
+                    Position         = UDim2.new(0, val and 22 or 2, 0.5, 0),
+                    BackgroundColor3 = val and Color3.new(1,1,1) or Theme.TextMuted,
+                }, 0.22)
+                if tOpts.Callback then Util.Safe(tOpts.Callback, val) end
+            end
+
+            -- Clicar em qualquer parte do card ou do track alterna
+            local function Toggle() SetState(not state) end
+            card.InputBegan:Connect(function(inp)
+                if inp.UserInputType == Enum.UserInputType.MouseButton1 then Toggle() end
+            end)
+
+            return {
+                SetValue = SetState,
+                GetValue = function() return state end,
+                Toggle   = Toggle,
+            }
+        end
+
+        -- ─────────────────────────────────────────────────────────
+        --  Slider
+        -- ─────────────────────────────────────────────────────────
+        --[[
+            @param opts {
+                Name     : string
+                Min      : number
+                Max      : number
+                Default  : number|nil
+                Decimals : number|nil  -- casas decimais (padrão 0)
+                Suffix   : string|nil  -- ex: " km/h"
+                Callback : function(number)|nil
+            }
+            @return { SetValue, GetValue }
+        --]]
+        function Tab:AddSlider(sOpts)
+            sOpts = sOpts or {}
+            local mn   = sOpts.Min      or 0
+            local mx   = sOpts.Max      or 100
+            local decs = sOpts.Decimals or 0
+            local suf  = sOpts.Suffix   or ""
+            local cur  = math.clamp(sOpts.Default or mn, mn, mx)
+
+            local card = MakeCard(56)
+            card.Size  = UDim2.new(1, 0, 0, 56)
+
+            -- Nome
+            Util.New("TextLabel", {
+                Text           = sOpts.Name or "Slider",
+                Font           = Enum.Font.Gotham,
+                TextSize       = 12,
+                TextColor3     = Theme.TextPrimary,
+                BackgroundTransparency = 1,
+                Position       = UDim2.new(0, 12, 0, 7),
+                Size           = UDim2.new(1, -80, 0, 16),
+                TextXAlignment = Enum.TextXAlignment.Left,
+                ZIndex         = 16,
+            }, card)
+
+            -- Valor atual
+            local valLbl = Util.New("TextLabel", {
+                Text           = tostring(cur) .. suf,
+                Font           = Enum.Font.GothamBold,
+                TextSize       = 12,
+                TextColor3     = Theme.Sage,
+                BackgroundTransparency = 1,
+                AnchorPoint    = Vector2.new(1, 0),
+                Position       = UDim2.new(1, -12, 0, 7),
+                Size           = UDim2.new(0, 60, 0, 16),
+                TextXAlignment = Enum.TextXAlignment.Right,
+                ZIndex         = 16,
+            }, card)
+
+            -- Track de fundo
+            local track = Util.New("Frame", {
+                Position         = UDim2.new(0, 12, 0, 36),
+                Size             = UDim2.new(1, -24, 0, 6),
+                BackgroundColor3 = Theme.Surface4,
+                ZIndex           = 16,
+            }, card)
+            Util.Corner(track, 3)
+
+            -- Preenchimento
+            local fill = Util.New("Frame", {
+                Size             = UDim2.new((cur - mn) / (mx - mn), 0, 1, 0),
+                BackgroundColor3 = Theme.Sage,
+                ZIndex           = 17,
+            }, track)
+            Util.Corner(fill, 3)
+
+            -- Thumb
+            local thumb = Util.New("Frame", {
+                AnchorPoint      = Vector2.new(0.5, 0.5),
+                Position         = UDim2.new((cur - mn) / (mx - mn), 0, 0.5, 0),
+                Size             = UDim2.new(0, 14, 0, 14),
+                BackgroundColor3 = Theme.SageBright,
+                ZIndex           = 18,
+            }, track)
+            Util.Corner(thumb, 7)
+            Util.Stroke(thumb, Theme.Background, 2)
+
+            local function SetValue(v)
+                v = math.clamp(v, mn, mx)
+                if decs > 0 then
+                    v = math.floor(v * 10^decs + 0.5) / 10^decs
+                else
+                    v = math.floor(v + 0.5)
+                end
+                cur = v
+                local pct = (cur - mn) / (mx - mn)
+                Util.Tween(fill,  { Size     = UDim2.new(pct, 0, 1, 0) }, 0.06)
+                Util.Tween(thumb, { Position = UDim2.new(pct, 0, 0.5, 0) }, 0.06)
+                valLbl.Text = tostring(cur) .. suf
+                if sOpts.Callback then Util.Safe(sOpts.Callback, cur) end
+            end
+
+            -- Interação de arrastar
+            local sliding = false
+            track.InputBegan:Connect(function(inp)
+                if inp.UserInputType == Enum.UserInputType.MouseButton1 then
+                    sliding = true
+                    local rel = (Mouse.X - track.AbsolutePosition.X) / track.AbsoluteSize.X
+                    SetValue(mn + math.clamp(rel, 0, 1) * (mx - mn))
+                end
+            end)
+            UserInputService.InputEnded:Connect(function(inp)
+                if inp.UserInputType == Enum.UserInputType.MouseButton1 then
+                    sliding = false
+                end
+            end)
+            RunService.Heartbeat:Connect(function()
+                if sliding then
+                    local rel = (Mouse.X - track.AbsolutePosition.X) / track.AbsoluteSize.X
+                    SetValue(mn + math.clamp(rel, 0, 1) * (mx - mn))
+                end
+            end)
+
+            return {
+                SetValue = SetValue,
+                GetValue = function() return cur end,
+            }
+        end
+
+        -- ─────────────────────────────────────────────────────────
+        --  Dropdown
+        -- ─────────────────────────────────────────────────────────
+        --[[
+            @param opts {
+                Name     : string
+                Options  : table    -- { "A", "B", "C" }
+                Default  : string|nil
+                Callback : function(string)|nil
+            }
+            @return { SetValue, GetValue }
+        --]]
+        function Tab:AddDropdown(dOpts)
+            dOpts   = dOpts or {}
+            local opts2  = dOpts.Options or {}
+            local sel    = dOpts.Default or (opts2[1] or "")
+            local isOpen = false
+
+            local card = MakeCard(40)
+
+            Util.New("TextLabel", {
+                Text           = dOpts.Name or "Dropdown",
+                Font           = Enum.Font.Gotham,
+                TextSize       = 12,
+                TextColor3     = Theme.TextPrimary,
+                BackgroundTransparency = 1,
+                Position       = UDim2.new(0, 12, 0, 0),
+                Size           = UDim2.new(0.45, 0, 1, 0),
+                TextXAlignment = Enum.TextXAlignment.Left,
+                ZIndex         = 16,
+            }, card)
+
+            -- Botão de seleção
+            local selBtn = Util.New("TextButton", {
+                Text             = sel,
+                Font             = Enum.Font.Gotham,
+                TextSize         = 11,
+                TextColor3       = Theme.Sage,
+                BackgroundColor3 = Theme.Surface3,
+                AutoButtonColor  = false,
+                AnchorPoint      = Vector2.new(1, 0.5),
+                Position         = UDim2.new(1, -10, 0.5, 0),
+                Size             = UDim2.new(0.50, 0, 0, 26),
+                ZIndex           = 16,
+            }, card)
+            Util.Corner(selBtn, 5)
+            Util.Stroke(selBtn, Theme.Border, 1)
+
+            -- Seta
+            Util.New("TextLabel", {
+                Text             = "▾",
+                Font             = Enum.Font.GothamBold,
+                TextSize         = 11,
+                TextColor3       = Theme.TextMuted,
+                BackgroundTransparency = 1,
+                AnchorPoint      = Vector2.new(1, 0.5),
+                Position         = UDim2.new(1, -4, 0.5, 0),
+                Size             = UDim2.new(0, 14, 0, 14),
+                ZIndex           = 17,
+            }, selBtn)
+
+            -- Lista popup (zIndex alto para ficar acima de outros elementos)
+            local itemH  = 28
+            local totalH = #opts2 * (itemH + 2) + 8
+
+            local dropList = Util.New("Frame", {
+                Position         = UDim2.new(0, 0, 1, 4),
+                Size             = UDim2.new(1, 0, 0, 0),
+                BackgroundColor3 = Theme.Surface2,
+                ClipsDescendants = true,
+                Visible          = false,
+                ZIndex           = 50,
+            }, card)
+            Util.Corner(dropList, 6)
+            Util.Stroke(dropList, Theme.BorderSage, 1)
+
+            local dl = Util.VList(dropList, 2)
+            Util.Padding(dropList, 4, 4, 4, 4)
+
+            for i, opt in ipairs(opts2) do
+                local item = Util.New("TextButton", {
+                    Text             = opt,
+                    Font             = Enum.Font.Gotham,
+                    TextSize         = 11,
+                    TextColor3       = Theme.TextSecondary,
+                    BackgroundColor3 = Theme.Surface2,
+                    AutoButtonColor  = false,
+                    Size             = UDim2.new(1, 0, 0, itemH),
+                    LayoutOrder      = i,
+                    ZIndex           = 51,
+                }, dropList)
+                Util.Corner(item, 4)
+                Util.Hover(item, Theme.Surface2, Theme.Surface3)
+
+                item.MouseButton1Click:Connect(function()
+                    sel        = opt
+                    selBtn.Text = opt
+                    isOpen     = false
+                    Util.Tween(dropList, { Size = UDim2.new(1, 0, 0, 0) }, 0.18)
+                    task.delay(0.2, function() dropList.Visible = false end)
+                    if dOpts.Callback then Util.Safe(dOpts.Callback, opt) end
+                end)
+            end
+
+            selBtn.MouseButton1Click:Connect(function()
+                isOpen = not isOpen
+                if isOpen then
+                    dropList.Visible = true
+                    dropList.Size    = UDim2.new(1, 0, 0, 0)
+                    Util.Tween(dropList, { Size = UDim2.new(1, 0, 0, totalH) }, 0.20)
+                else
+                    Util.Tween(dropList, { Size = UDim2.new(1, 0, 0, 0) }, 0.18)
+                    task.delay(0.2, function() dropList.Visible = false end)
+                end
+            end)
+
+            return {
+                SetValue = function(v)
+                    sel         = v
+                    selBtn.Text = v
+                end,
+                GetValue = function() return sel end,
+            }
+        end
+
+        -- ─────────────────────────────────────────────────────────
+        --  TextBox
+        -- ─────────────────────────────────────────────────────────
+        --[[
+            @param opts {
+                Name        : string
+                Default     : string|nil
+                Placeholder : string|nil
+                Numeric     : boolean|nil
+                Callback    : function(text, enterPressed)|nil
+            }
+            @return { SetValue, GetValue }
+        --]]
+        function Tab:AddTextBox(txOpts)
+            txOpts = txOpts or {}
+            local card = MakeCard(40)
+
+            Util.New("TextLabel", {
+                Text           = txOpts.Name or "Input",
+                Font           = Enum.Font.Gotham,
+                TextSize       = 12,
+                TextColor3     = Theme.TextPrimary,
+                BackgroundTransparency = 1,
+                Position       = UDim2.new(0, 12, 0, 0),
+                Size           = UDim2.new(0.40, 0, 1, 0),
+                TextXAlignment = Enum.TextXAlignment.Left,
+                ZIndex         = 16,
+            }, card)
+
+            local box = Util.New("TextBox", {
+                Text             = txOpts.Default or "",
+                PlaceholderText  = txOpts.Placeholder or "Digite aqui...",
+                PlaceholderColor3 = Theme.TextMuted,
+                Font             = Enum.Font.Gotham,
+                TextSize         = 11,
+                TextColor3       = Theme.TextPrimary,
+                BackgroundColor3 = Theme.Surface3,
+                ClearTextOnFocus = false,
+                AnchorPoint      = Vector2.new(1, 0.5),
+                Position         = UDim2.new(1, -10, 0.5, 0),
+                Size             = UDim2.new(0.55, 0, 0, 26),
+                TextXAlignment   = Enum.TextXAlignment.Left,
+                ZIndex           = 16,
+            }, card)
+            Util.Corner(box, 5)
+            Util.Stroke(box, Theme.Border, 1)
+            Util.Padding(box, 0, 0, 8, 8)
+
+            -- Foco: destaca borda sage
+            box.Focused:Connect(function()
+                Util.Tween(box, { BackgroundColor3 = Theme.Surface }, 0.15)
+            end)
+            box.FocusLost:Connect(function(enter)
+                Util.Tween(box, { BackgroundColor3 = Theme.Surface3 }, 0.15)
+                if txOpts.Callback then
+                    Util.Safe(txOpts.Callback, box.Text, enter)
+                end
+            end)
+
+            return {
+                SetValue = function(v) box.Text = v end,
+                GetValue = function()  return box.Text end,
+            }
+        end
+
+        -- ─────────────────────────────────────────────────────────
+        --  Label
+        -- ─────────────────────────────────────────────────────────
+        --[[
+            @param opts {
+                Text  : string
+                Color : Color3|nil
+            }
+            @return Instance (TextLabel)
+        --]]
+        function Tab:AddLabel(lOpts)
+            lOpts = lOpts or {}
+            local card = MakeCard(32)
+            card.BackgroundTransparency = 1
+
+            local lbl = Util.New("TextLabel", {
+                Text           = lOpts.Text or "",
+                Font           = Enum.Font.Gotham,
+                TextSize       = 11,
+                TextColor3     = lOpts.Color or Theme.TextSecondary,
+                BackgroundTransparency = 1,
+                Position       = UDim2.new(0, 12, 0, 0),
+                Size           = UDim2.new(1, -20, 1, 0),
+                TextXAlignment = Enum.TextXAlignment.Left,
+                TextWrapped    = true,
+                ZIndex         = 16,
+            }, card)
+
+            return {
+                SetText  = function(t) lbl.Text      = t end,
+                SetColor = function(c) lbl.TextColor3 = c end,
+            }
+        end
+
+        -- ─────────────────────────────────────────────────────────
+        --  Separator
+        -- ─────────────────────────────────────────────────────────
+        --[[
+            @param opts {
+                Text : string|nil
+            }
+        --]]
+        function Tab:AddSeparator(sepOpts)
+            sepOpts = sepOpts or {}
+            local card = MakeCard(22)
+            card.BackgroundTransparency = 1
+
+            -- Linha
+            local line = Util.New("Frame", {
+                AnchorPoint      = Vector2.new(0, 0.5),
+                Position         = UDim2.new(0, 12, 0.5, 0),
+                Size             = UDim2.new(1, -24, 0, 1),
+                BackgroundColor3 = Theme.BorderSage,
+                ZIndex           = 16,
+            }, card)
+
+            if sepOpts.Text and sepOpts.Text ~= "" then
+                -- Texto sobre a linha
+                local txt = Util.New("TextLabel", {
+                    Text             = "  " .. sepOpts.Text .. "  ",
+                    Font             = Enum.Font.GothamBold,
+                    TextSize         = 9,
+                    TextColor3       = Theme.Sage,
+                    BackgroundColor3 = Theme.Background,
+                    BackgroundTransparency = 0,
+                    AnchorPoint      = Vector2.new(0, 0.5),
+                    Position         = UDim2.new(0, 20, 0.5, 0),
+                    AutomaticSize    = Enum.AutomaticSize.X,
+                    Size             = UDim2.new(0, 0, 0, 14),
+                    TextXAlignment   = Enum.TextXAlignment.Left,
+                    ZIndex           = 17,
+                }, card)
+            end
+        end
+
+        -- ─────────────────────────────────────────────────────────
+        --  Keybind
+        -- ─────────────────────────────────────────────────────────
+        --[[
+            @param opts {
+                Name     : string
+                Default  : Enum.KeyCode|nil
+                Callback : function()|nil   -- chamado quando tecla pressionada
+                OnChange : function(key)|nil -- chamado quando tecla muda
+            }
+            @return { GetKey, SetKey }
+        --]]
+        function Tab:AddKeybind(kOpts)
+            kOpts    = kOpts or {}
+            local key    = kOpts.Default or Enum.KeyCode.Unknown
+            local binding = false
+
+            local card = MakeCard(40)
+
+            Util.New("TextLabel", {
+                Text           = kOpts.Name or "Keybind",
+                Font           = Enum.Font.Gotham,
+                TextSize       = 12,
+                TextColor3     = Theme.TextPrimary,
+                BackgroundTransparency = 1,
+                Position       = UDim2.new(0, 12, 0, 0),
+                Size           = UDim2.new(0.55, 0, 1, 0),
+                TextXAlignment = Enum.TextXAlignment.Left,
+                ZIndex         = 16,
+            }, card)
+
+            local keyBtn = Util.New("TextButton", {
+                Text             = key == Enum.KeyCode.Unknown and "Nenhum" or key.Name,
+                Font             = Enum.Font.GothamBold,
+                TextSize         = 10,
+                TextColor3       = Theme.Sage,
+                BackgroundColor3 = Theme.Surface3,
+                AutoButtonColor  = false,
+                AnchorPoint      = Vector2.new(1, 0.5),
+                Position         = UDim2.new(1, -10, 0.5, 0),
+                Size             = UDim2.new(0, 78, 0, 26),
+                ZIndex           = 16,
+            }, card)
+            Util.Corner(keyBtn, 5)
+            Util.Stroke(keyBtn, Theme.BorderSage, 1)
+
+            -- Clique: entra em modo de escuta
+            keyBtn.MouseButton1Click:Connect(function()
+                binding         = true
+                keyBtn.Text     = "..."
+                keyBtn.TextColor3 = Theme.Warning
+            end)
+
+            -- Escuta global de teclas
+            UserInputService.InputBegan:Connect(function(inp, gpe)
+                if binding then
+                    if inp.UserInputType == Enum.UserInputType.Keyboard then
+                        binding          = false
+                        key              = inp.KeyCode
+                        keyBtn.Text      = key.Name
+                        keyBtn.TextColor3 = Theme.Sage
+                        if kOpts.OnChange then Util.Safe(kOpts.OnChange, key) end
+                    end
+                else
+                    -- Executa callback quando a tecla registrada for pressionada
+                    if not gpe and inp.KeyCode == key and kOpts.Callback then
+                        Util.Safe(kOpts.Callback)
+                    end
+                end
+            end)
+
+            return {
+                GetKey = function() return key end,
+                SetKey = function(k)
+                    key         = k
+                    keyBtn.Text = k.Name
+                end,
+            }
+        end
+
+        -- ─────────────────────────────────────────────────────────
+        --  ColorPicker  (paleta sage pré-definida)
+        -- ─────────────────────────────────────────────────────────
+        --[[
+            @param opts {
+                Name     : string
+                Default  : Color3|nil
+                Callback : function(Color3)|nil
+            }
+            @return { GetValue, SetValue }
+        --]]
+        function Tab:AddColorPicker(cpOpts)
+            cpOpts = cpOpts or {}
+            local color = cpOpts.Default or Theme.Sage
+
+            local presets = {
+                Color3.fromRGB(135,168,120),  -- sage
+                Color3.fromRGB(160,195,145),  -- sage claro
+                Color3.fromRGB( 92,122, 80),  -- sage escuro
+                Color3.fromRGB(210, 80, 80),  -- vermelho
+                Color3.fromRGB( 80,150,210),  -- azul
+                Color3.fromRGB(220,180, 60),  -- dourado
+                Color3.fromRGB(180,100,220),  -- roxo
+                Color3.fromRGB(232,232,232),  -- branco
+                Color3.fromRGB( 50, 50, 50),  -- cinza
+                Color3.fromRGB(100,200,120),  -- verde claro
+                Color3.fromRGB(220,130, 80),  -- laranja
+                Color3.fromRGB( 80,200,200),  -- ciano
+            }
+
+            local card = MakeCard(40)
+            local isOpen = false
+
+            Util.New("TextLabel", {
+                Text           = cpOpts.Name or "Color",
+                Font           = Enum.Font.Gotham,
+                TextSize       = 12,
+                TextColor3     = Theme.TextPrimary,
+                BackgroundTransparency = 1,
+                Position       = UDim2.new(0, 12, 0, 0),
+                Size           = UDim2.new(0.55, 0, 1, 0),
+                TextXAlignment = Enum.TextXAlignment.Left,
+                ZIndex         = 16,
+            }, card)
+
+            -- Preview de cor
+            local preview = Util.New("TextButton", {
+                Text             = "",
+                AnchorPoint      = Vector2.new(1, 0.5),
+                Position         = UDim2.new(1, -12, 0.5, 0),
+                Size             = UDim2.new(0, 30, 0, 26),
+                BackgroundColor3 = color,
+                AutoButtonColor  = false,
+                ZIndex           = 16,
+            }, card)
+            Util.Corner(preview, 6)
+            Util.Stroke(preview, Theme.BorderSage, 1)
+
+            -- Paleta popup
+            local dotW  = 20
+            local cols  = 6
+            local rows  = math.ceil(#presets / cols)
+            local palH  = rows * (dotW + 4) + 8
+
+            local palette = Util.New("Frame", {
+                Position         = UDim2.new(0, 0, 1, 4),
+                Size             = UDim2.new(1, 0, 0, 0),
+                BackgroundColor3 = Theme.Surface2,
+                ClipsDescendants = true,
+                Visible          = false,
+                ZIndex           = 50,
+            }, card)
+            Util.Corner(palette, 6)
+            Util.Stroke(palette, Theme.BorderSage, 1)
+
+            local grid = Util.New("UIGridLayout", {
+                CellSize    = UDim2.new(0, dotW, 0, dotW),
+                CellPadding = UDim2.new(0, 4, 0, 4),
+                SortOrder   = Enum.SortOrder.LayoutOrder,
+            }, palette)
+            Util.Padding(palette, 4)
+
+            for i, pc in ipairs(presets) do
+                local dot = Util.New("TextButton", {
+                    Text             = "",
+                    BackgroundColor3 = pc,
+                    AutoButtonColor  = false,
+                    LayoutOrder      = i,
+                    ZIndex           = 51,
+                }, palette)
+                Util.Corner(dot, 5)
+                dot.MouseButton1Click:Connect(function()
+                    color           = pc
+                    preview.BackgroundColor3 = pc
+                    isOpen          = false
+                    Util.Tween(palette, { Size = UDim2.new(1, 0, 0, 0) }, 0.18)
+                    task.delay(0.2, function() palette.Visible = false end)
+                    if cpOpts.Callback then Util.Safe(cpOpts.Callback, pc) end
+                end)
+            end
+
+            preview.MouseButton1Click:Connect(function()
+                isOpen = not isOpen
+                if isOpen then
+                    palette.Visible = true
+                    palette.Size    = UDim2.new(1, 0, 0, 0)
+                    Util.Tween(palette, { Size = UDim2.new(1, 0, 0, palH) }, 0.20)
+                else
+                    Util.Tween(palette, { Size = UDim2.new(1, 0, 0, 0) }, 0.18)
+                    task.delay(0.2, function() palette.Visible = false end)
+                end
+            end)
+
+            return {
+                GetValue = function() return color end,
+                SetValue = function(c)
+                    color                    = c
+                    preview.BackgroundColor3 = c
+                end,
+            }
+        end
+
+        -- ─────────────────────────────────────────────────────────
+        --  Paragraph (bloco de texto longo)
+        -- ─────────────────────────────────────────────────────────
+        --[[
+            @param opts {
+                Title : string
+                Body  : string
+            }
+        --]]
+        function Tab:AddParagraph(pOpts)
+            pOpts = pOpts or {}
+
+            local textLines = math.max(1, math.ceil(#(pOpts.Body or "") / 48))
+            local h = 24 + textLines * 14 + 16
+            local card = MakeCard(h)
+
+            if pOpts.Title and pOpts.Title ~= "" then
+                Util.New("TextLabel", {
+                    Text           = pOpts.Title,
+                    Font           = Enum.Font.GothamBold,
+                    TextSize       = 11,
+                    TextColor3     = Theme.Sage,
+                    BackgroundTransparency = 1,
+                    Position       = UDim2.new(0, 12, 0, 6),
+                    Size           = UDim2.new(1, -20, 0, 16),
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    ZIndex         = 16,
+                }, card)
+            end
+
+            Util.New("TextLabel", {
+                Text           = pOpts.Body or "",
+                Font           = Enum.Font.Gotham,
+                TextSize       = 10,
+                TextColor3     = Theme.TextSecondary,
+                BackgroundTransparency = 1,
+                Position       = UDim2.new(0, 12, 0, 24),
+                Size           = UDim2.new(1, -20, 1, -28),
+                TextXAlignment = Enum.TextXAlignment.Left,
+                TextWrapped    = true,
+                ZIndex         = 16,
+            }, card)
+        end
+
+        -- ─────────────────────────────────────────────────────────
+        --  Retorno da aba
+        -- ─────────────────────────────────────────────────────────
+        return Tab
+    end -- AddTab
+
+    -- ── Expõe Notify pela janela também ─────────────────────────
+    function Window:Notify(nOpts)
+        Notify(nOpts)
+    end
+
+    return Window
+end -- CreateWindow
+
+-- ═══════════════════════════════════════════════════════════════
+--  RETORNO FINAL DA BIBLIOTECA
+-- ═══════════════════════════════════════════════════════════════
+return SageHub
+
+--[[
+══════════════════════════════════════════════════════════════════
+  EXEMPLO COMPLETO DE USO
+══════════════════════════════════════════════════════════════════
+
+local SageHub = loadstring(game:HttpGet("URL_AQUI"))()
+
+-- Janela
+local Win = SageHub:CreateWindow({
+    Title    = "Meu Hub",
+    SubTitle = "by ShotaKitten",
+    MinimizeKey = Enum.KeyCode.RightControl,
+})
+
+-- ── Aba principal ───────────────────────────────────────────────
+local Main = Win:AddTab({ Name = "Principal", Icon = "花" })
+
+Main:AddSeparator({ Text = "MOVIMENTO" })
+
+local speedSlider = Main:AddSlider({
+    Name     = "WalkSpeed",
+    Min      = 16, Max = 500,
+    Default  = 16,
+    Suffix   = " u/s",
+    Callback = function(v)
+        local char = game.Players.LocalPlayer.Character
+        if char then char.Humanoid.WalkSpeed = v end
+    end,
+})
+
+local jumpSlider = Main:AddSlider({
+    Name     = "JumpPower",
+    Min      = 50, Max = 500,
+    Default  = 50,
+    Callback = function(v)
+        local char = game.Players.LocalPlayer.Character
+        if char then char.Humanoid.JumpPower = v end
+    end,
+})
+
+Main:AddSeparator({ Text = "COMBAT" })
+
+Main:AddToggle({
+    Name     = "God Mode",
+    Default  = false,
+    Callback = function(v)
+        -- lógica de god mode
+    end,
+})
+
+Main:AddButton({
+    Name        = "Teleportar para Spawn",
+    Description = "Volta para o ponto inicial",
+    Callback    = function()
+        local char = game.Players.LocalPlayer.Character
+        if char then
+            char:MoveTo(Vector3.new(0, 5, 0))
+        end
+        SageHub.Notify({
+            Title   = "Teleportado!",
+            Message = "Retornado ao spawn.",
+            Type    = "success",
+        })
+    end,
+})
+
+-- ── Aba de config ───────────────────────────────────────────────
+local Config = Win:AddTab({ Name = "Config", Icon = "設" })
+
+Config:AddKeybind({
+    Name     = "Toggle Speed",
+    Default  = Enum.KeyCode.F,
+    Callback = function()
+        print("Speed ativado!")
+    end,
+    OnChange = function(key)
+        SageHub.Notify({
+            Title   = "Keybind alterado",
+            Message = "Nova tecla: " .. key.Name,
+            Type    = "info",
+        })
+    end,
+})
+
+Config:AddDropdown({
+    Name     = "Servidor",
+    Options  = { "BR-East", "US-West", "EU-Central" },
+    Default  = "BR-East",
+    Callback = function(opt)
+        print("Servidor:", opt)
+    end,
+})
+
+Config:AddColorPicker({
+    Name     = "Cor do ESP",
+    Default  = Color3.fromRGB(135, 168, 120),
+    Callback = function(c)
+        print("Cor:", c)
+    end,
+})
+
+Config:AddTextBox({
+    Name        = "PlayerName",
+    Placeholder = "Nome do jogador alvo",
+    Callback    = function(text, enter)
+        if enter then
+            SageHub.Notify({
+                Title   = "Alvo definido",
+                Message = text,
+                Type    = "warning",
+            })
+        end
+    end,
+})
+
+-- Notificação de boas-vindas
+SageHub.Notify({
+    Title    = "翠 SageHub",
+    Message  = "Carregado com sucesso! Pressione RCtrl para minimizar.",
+    Type     = "success",
+    Duration = 5,
+})
+
+══════════════════════════════════════════════════════════════════
+]]
