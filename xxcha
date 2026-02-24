@@ -1,0 +1,1301 @@
+--// SageHubLinoria.lua  (Executor / Roblox)
+--// Linoria-like API + SageHub 3-column skin + Save/Theme + Console/Notify
+--// by ChatGPT (drop-in single file)
+
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local HttpService = game:GetService("HttpService")
+local RunService = game:GetService("RunService")
+
+local LP = Players.LocalPlayer
+local PG = LP:WaitForChild("PlayerGui")
+
+--========================
+-- Utils
+--========================
+local function CanFS()
+	return type(writefile)=="function" and type(readfile)=="function" and type(isfile)=="function" and type(isfolder)=="function"
+end
+
+local function EnsureFolder(path)
+	if not CanFS() then return false end
+	if not isfolder(path) then makefolder(path) end
+	return true
+end
+
+local function JSONEncode(t) return HttpService:JSONEncode(t) end
+local function JSONDecode(s) return HttpService:JSONDecode(s) end
+
+local function Signal()
+	local be = Instance.new("BindableEvent")
+	local s = {}
+	function s:Connect(fn) return be.Event:Connect(fn) end
+	function s:Fire(...) be:Fire(...) end
+	function s:Destroy() be:Destroy() end
+	return s
+end
+
+local function Tween(obj, ti, props)
+	local t = TweenService:Create(obj, ti, props)
+	t:Play()
+	return t
+end
+
+local function Round(n, r)
+	r = r or 1
+	return math.floor(n / r + 0.5) * r
+end
+
+local function Clamp(n, a, b)
+	if n < a then return a end
+	if n > b then return b end
+	return n
+end
+
+local function UDim2Offset(x,y) return UDim2.new(0,x,0,y) end
+
+--========================
+-- Theme (SageHub tokens)
+--========================
+local Theme = {
+	Colors = {
+		Sage = Color3.fromRGB(135,168,120),
+		Ink = Color3.fromRGB(10,10,10),
+		Ink2 = Color3.fromRGB(14,14,14),
+		Glass = Color3.fromRGB(16,16,16),
+		Text = Color3.fromRGB(232,232,232),
+		Sub = Color3.fromRGB(180,180,180),
+		Muted = Color3.fromRGB(120,120,120),
+		Warn = Color3.fromRGB(255,180,80),
+		Bad  = Color3.fromRGB(255,95,95),
+		Good = Color3.fromRGB(120,255,160),
+	},
+	Radius = 12,
+	StrokeTransparency = 0.72,
+	GlassTransparency = 0.18,
+	Anim = 0.15,
+	TextSize = 13,
+	MonoTextSize = 12,
+}
+
+local function Corner(parent, r)
+	local c = Instance.new("UICorner")
+	c.CornerRadius = UDim.new(0, r or Theme.Radius)
+	c.Parent = parent
+	return c
+end
+
+local function Stroke(parent, color, tr, th)
+	local s = Instance.new("UIStroke")
+	s.Color = color or Theme.Colors.Sage
+	s.Transparency = tr ~= nil and tr or Theme.StrokeTransparency
+	s.Thickness = th or 1
+	s.Parent = parent
+	return s
+end
+
+local function Padding(parent, l,t,r,b)
+	local p = Instance.new("UIPadding")
+	p.PaddingLeft = UDim.new(0, l or 0)
+	p.PaddingTop = UDim.new(0, t or 0)
+	p.PaddingRight = UDim.new(0, r or 0)
+	p.PaddingBottom = UDim.new(0, b or 0)
+	p.Parent = parent
+	return p
+end
+
+local function ListLayout(parent, fill, paddingPx)
+	local ll = Instance.new("UIListLayout")
+	ll.FillDirection = fill or Enum.FillDirection.Vertical
+	ll.SortOrder = Enum.SortOrder.LayoutOrder
+	ll.Padding = UDim.new(0, paddingPx or 8)
+	ll.Parent = parent
+	return ll
+end
+
+local function MakeLabel(parent, text, size, color, mono)
+	local t = Instance.new("TextLabel")
+	t.BackgroundTransparency = 1
+	t.Text = text or ""
+	t.TextXAlignment = Enum.TextXAlignment.Left
+	t.TextYAlignment = Enum.TextYAlignment.Center
+	t.TextSize = size or Theme.TextSize
+	t.TextColor3 = color or Theme.Colors.Text
+	t.Font = mono and Enum.Font.Code or Enum.Font.Gotham
+	t.Parent = parent
+	return t
+end
+
+local function MakeButtonBase(parent)
+	local b = Instance.new("TextButton")
+	b.AutoButtonColor = false
+	b.Text = ""
+	b.BackgroundColor3 = Theme.Colors.Glass
+	b.BackgroundTransparency = Theme.GlassTransparency
+	b.Parent = parent
+	Corner(b)
+	local st = Stroke(b, Theme.Colors.Sage, Theme.StrokeTransparency)
+	return b, st
+end
+
+local function MakePanel(parent)
+	local f = Instance.new("Frame")
+	f.BackgroundColor3 = Theme.Colors.Glass
+	f.BackgroundTransparency = Theme.GlassTransparency
+	f.Parent = parent
+	Corner(f)
+	Stroke(f, Theme.Colors.Sage, Theme.StrokeTransparency)
+	return f
+end
+
+--========================
+-- Option base (Linoria-ish)
+--========================
+local BaseOption = {}
+BaseOption.__index = BaseOption
+
+function BaseOption.new(id, default)
+	local self = setmetatable({}, BaseOption)
+	self.Id = id
+	self.Value = default
+	self.Changed = Signal()
+	self.Disabled = false
+	return self
+end
+
+function BaseOption:SetValue(v)
+	if self.Disabled then return end
+	if self.Value == v then return end
+	self.Value = v
+	if self._sync then self:_sync(v) end
+	self.Changed:Fire(v)
+end
+
+function BaseOption:OnChanged(fn)
+	return self.Changed:Connect(fn)
+end
+
+function BaseOption:SetDisabled(v)
+	self.Disabled = v and true or false
+	if self._setDisabled then self:_setDisabled(self.Disabled) end
+end
+
+--========================
+-- Library object
+--========================
+local Library = {
+	Toggles = {},
+	Options = {},
+	Theme = Theme,
+	Open = true,
+	Folder = "SageHubLinoria",
+	ProfilesFolder = "SageHubLinoria/Profiles",
+	ThemesFolder = "SageHubLinoria/Themes",
+	WatermarkText = "SageHub",
+	Bind = Enum.KeyCode.RightShift,
+}
+
+--========================
+-- UI: Notify + Console
+--========================
+local function Timestamp()
+	local t = os.date("*t")
+	return string.format("%02d:%02d:%02d", t.hour, t.min, t.sec)
+end
+
+local function CreateNotifySystem(root)
+	local holder = Instance.new("Frame")
+	holder.BackgroundTransparency = 1
+	holder.Size = UDim2.new(0, 320, 1, 0)
+	holder.Position = UDim2.new(1, -330, 0, 10)
+	holder.Parent = root
+	ListLayout(holder, Enum.FillDirection.Vertical, 8)
+
+	local function Notify(text, dur, kind)
+		dur = dur or 3
+		local item = MakePanel(holder)
+		item.Size = UDim2.new(1, 0, 0, 52)
+		item.BackgroundTransparency = 0.12
+
+		local accent = Theme.Colors.Sage
+		if kind == "warn" then accent = Theme.Colors.Warn end
+		if kind == "bad" then accent = Theme.Colors.Bad end
+		if kind == "good" then accent = Theme.Colors.Good end
+
+		for _,c in ipairs(item:GetChildren()) do
+			if c:IsA("UIStroke") then c.Color = accent; c.Transparency = 0.45 end
+		end
+
+		Padding(item, 12, 10, 12, 10)
+		local txt = MakeLabel(item, tostring(text), 13, Theme.Colors.Text, false)
+		txt.Size = UDim2.new(1, 0, 1, 0)
+
+		item.BackgroundTransparency = 1
+		for _,c in ipairs(item:GetChildren()) do
+			if c:IsA("UIStroke") then c.Transparency = 1 end
+		end
+		Tween(item, TweenInfo.new(Theme.Anim), {BackgroundTransparency = 0.12})
+		for _,c in ipairs(item:GetChildren()) do
+			if c:IsA("UIStroke") then Tween(c, TweenInfo.new(Theme.Anim), {Transparency = 0.45}) end
+		end
+
+		task.delay(dur, function()
+			if not item.Parent then return end
+			Tween(item, TweenInfo.new(Theme.Anim), {BackgroundTransparency = 1})
+			for _,c in ipairs(item:GetChildren()) do
+				if c:IsA("UIStroke") then Tween(c, TweenInfo.new(Theme.Anim), {Transparency = 1}) end
+			end
+			task.wait(Theme.Anim + 0.05)
+			if item then item:Destroy() end
+		end)
+	end
+
+	return Notify
+end
+
+local function CreateConsole(panel)
+	local header = Instance.new("Frame")
+	header.BackgroundTransparency = 1
+	header.Size = UDim2.new(1,0,0,28)
+	header.Parent = panel
+
+	local title = MakeLabel(header, "Console", 14, Theme.Colors.Text, false)
+	title.Size = UDim2.new(1,0,1,0)
+
+	local list = Instance.new("ScrollingFrame")
+	list.BackgroundTransparency = 1
+	list.BorderSizePixel = 0
+	list.Size = UDim2.new(1,0,1,-28-36)
+	list.Position = UDim2.new(0,0,0,28)
+	list.ScrollBarThickness = 3
+	list.Parent = panel
+	Padding(list, 0, 0, 6, 0)
+	local ll = ListLayout(list, Enum.FillDirection.Vertical, 6)
+
+	local inputHolder = Instance.new("Frame")
+	inputHolder.BackgroundTransparency = 1
+	inputHolder.Size = UDim2.new(1,0,0,36)
+	inputHolder.Position = UDim2.new(0,0,1,-36)
+	inputHolder.Parent = panel
+
+	local box, st = MakeButtonBase(inputHolder)
+	box.Size = UDim2.new(1,0,1,0)
+	box.BackgroundTransparency = 0.10
+	st.Transparency = 0.65
+
+	local tb = Instance.new("TextBox")
+	tb.BackgroundTransparency = 1
+	tb.Text = ""
+	tb.PlaceholderText = "command..."
+	tb.TextXAlignment = Enum.TextXAlignment.Left
+	tb.TextSize = Theme.MonoTextSize
+	tb.TextColor3 = Theme.Colors.Text
+	tb.PlaceholderColor3 = Theme.Colors.Muted
+	tb.Font = Enum.Font.Code
+	tb.ClearTextOnFocus = false
+	tb.Size = UDim2.new(1,-16,1,0)
+	tb.Position = UDim2.new(0,8,0,0)
+	tb.Parent = box
+
+	local function pushLine(msg, kind)
+		local line = Instance.new("TextLabel")
+		line.BackgroundTransparency = 1
+		line.TextXAlignment = Enum.TextXAlignment.Left
+		line.TextYAlignment = Enum.TextYAlignment.Top
+		line.RichText = true
+		line.TextWrapped = true
+		line.AutomaticSize = Enum.AutomaticSize.Y
+		line.Size = UDim2.new(1, -8, 0, 0)
+		line.Font = Enum.Font.Code
+		line.TextSize = Theme.MonoTextSize
+		line.TextColor3 = Theme.Colors.Sub
+
+		local tag = "INFO"
+		local col = Theme.Colors.Sage
+		if kind == "warn" then tag="WARN"; col=Theme.Colors.Warn end
+		if kind == "bad" then tag="ERR"; col=Theme.Colors.Bad end
+		if kind == "good" then tag="OK"; col=Theme.Colors.Good end
+
+		local rgb = string.format("rgb(%d,%d,%d)", math.floor(col.R*255), math.floor(col.G*255), math.floor(col.B*255))
+		line.Text = string.format('<font color="rgb(160,160,160)">[%s]</font> <font color="%s">[%s]</font> %s',
+			Timestamp(), rgb, tag, tostring(msg))
+
+		line.Parent = list
+		task.defer(function()
+			list.CanvasSize = UDim2.new(0,0,0,ll.AbsoluteContentSize.Y+8)
+			list.CanvasPosition = Vector2.new(0, math.max(0, ll.AbsoluteContentSize.Y))
+		end)
+	end
+
+	tb.FocusLost:Connect(function(enter)
+		if not enter then return end
+		local cmd = tb.Text
+		if cmd == "" then return end
+		tb.Text = ""
+		pushLine("> "..cmd, "info")
+		-- você pode plugar parser aqui se quiser
+	end)
+
+	return pushLine
+end
+
+--========================
+-- Window / Tabs / Groupboxes
+--========================
+local Window = {}
+Window.__index = Window
+
+local function NewScroll(parent)
+	local s = Instance.new("ScrollingFrame")
+	s.BackgroundTransparency = 1
+	s.BorderSizePixel = 0
+	s.ScrollBarThickness = 3
+	s.Parent = parent
+	return s
+end
+
+local function MakeGroupbox(parent, titleText)
+	local box = MakePanel(parent)
+	box.BackgroundTransparency = 0.10
+	Padding(box, 10, 10, 10, 10)
+
+	local title = MakeLabel(box, titleText or "Groupbox", 13, Theme.Colors.Text, false)
+	title.Size = UDim2.new(1,0,0,18)
+
+	local content = Instance.new("Frame")
+	content.BackgroundTransparency = 1
+	content.Size = UDim2.new(1,0,1,-18)
+	content.Position = UDim2.new(0,0,0,20)
+	content.Parent = box
+
+	ListLayout(content, Enum.FillDirection.Vertical, 8)
+
+	return box, content
+end
+
+function Window:AddTab(name)
+	local tab = {}
+	tab.Name = name
+	tab.Groups = {}
+	tab._visible = false
+
+	-- left tab button
+	local btn, st = MakeButtonBase(self.LeftTabs)
+	btn.Size = UDim2.new(1,0,0,38)
+	btn.BackgroundTransparency = 0.12
+	st.Transparency = 0.80
+
+	Padding(btn, 10, 0, 10, 0)
+	local t = MakeLabel(btn, name, 13, Theme.Colors.Text, false)
+	t.Size = UDim2.new(1,0,1,0)
+
+	-- center page
+	local page = Instance.new("Frame")
+	page.BackgroundTransparency = 1
+	page.Size = UDim2.new(1,0,1,0)
+	page.Visible = false
+	page.Parent = self.CenterPages
+
+	local leftCol = Instance.new("Frame")
+	leftCol.BackgroundTransparency = 1
+	leftCol.Size = UDim2.new(0.5, -6, 1, 0)
+	leftCol.Parent = page
+	ListLayout(leftCol, Enum.FillDirection.Vertical, 10)
+
+	local rightCol = Instance.new("Frame")
+	rightCol.BackgroundTransparency = 1
+	rightCol.Size = UDim2.new(0.5, -6, 1, 0)
+	rightCol.Position = UDim2.new(0.5, 6, 0, 0)
+	rightCol.Parent = page
+	ListLayout(rightCol, Enum.FillDirection.Vertical, 10)
+
+	function tab:Show()
+		for _,tb in ipairs(self._window.Tabs) do
+			tb.Page.Visible = false
+			tb.ButtonStroke.Transparency = 0.85
+		end
+		page.Visible = true
+		st.Transparency = 0.35
+	end
+
+	tab.Button = btn
+	tab.ButtonStroke = st
+	tab.Page = page
+	tab.LeftCol = leftCol
+	tab.RightCol = rightCol
+	tab._window = self
+	table.insert(self.Tabs, tab)
+
+	btn.MouseButton1Click:Connect(function()
+		tab:Show()
+	end)
+
+	function tab:AddLeftGroupbox(title)
+		local box, content = MakeGroupbox(leftCol, title)
+		local gb = self._window:_wrapGroupbox(content)
+		gb._box = box
+		return gb
+	end
+
+	function tab:AddRightGroupbox(title)
+		local box, content = MakeGroupbox(rightCol, title)
+		local gb = self._window:_wrapGroupbox(content)
+		gb._box = box
+		return gb
+	end
+
+	return tab
+end
+
+function Window:_wrapGroupbox(container)
+	local gb = {}
+	gb.Container = container
+	gb.Window = self
+
+	-- Common builders:
+	function gb:AddLabel(text)
+		local l = MakeLabel(container, text or "", 13, Theme.Colors.Sub, false)
+		l.Size = UDim2.new(1,0,0,18)
+		local o = BaseOption.new("_label_"..tostring(math.random(1,1e9)), text)
+		o._sync = function(v) l.Text = tostring(v) end
+		return o
+	end
+
+	function gb:AddDivider()
+		local d = Instance.new("Frame")
+		d.BackgroundColor3 = Theme.Colors.Sage
+		d.BackgroundTransparency = 0.75
+		d.Size = UDim2.new(1,0,0,1)
+		d.Parent = container
+		return d
+	end
+
+	function gb:AddParagraph(title, text)
+		local f = Instance.new("Frame")
+		f.BackgroundTransparency = 1
+		f.Size = UDim2.new(1,0,0,0)
+		f.AutomaticSize = Enum.AutomaticSize.Y
+		f.Parent = container
+
+		local t1 = MakeLabel(f, title or "Paragraph", 13, Theme.Colors.Text, false)
+		t1.Size = UDim2.new(1,0,0,18)
+
+		local t2 = Instance.new("TextLabel")
+		t2.BackgroundTransparency = 1
+		t2.TextXAlignment = Enum.TextXAlignment.Left
+		t2.TextYAlignment = Enum.TextYAlignment.Top
+		t2.TextWrapped = true
+		t2.AutomaticSize = Enum.AutomaticSize.Y
+		t2.Size = UDim2.new(1,0,0,0)
+		t2.Position = UDim2.new(0,0,0,20)
+		t2.TextSize = 12
+		t2.TextColor3 = Theme.Colors.Sub
+		t2.Font = Enum.Font.Gotham
+		t2.Text = text or ""
+		t2.Parent = f
+
+		local o = BaseOption.new("_para_"..tostring(math.random(1,1e9)), {title=title,text=text})
+		o._sync = function(v)
+			t1.Text = tostring(v.title or "")
+			t2.Text = tostring(v.text or "")
+		end
+		return o
+	end
+
+	function gb:AddButton(idOrText, cbOrOpts, cbMaybe)
+		local id, opts, cb
+		if type(cbOrOpts) == "function" then
+			id = tostring(idOrText)
+			opts = {Text = id}
+			cb = cbOrOpts
+		else
+			id = tostring(idOrText)
+			opts = cbOrOpts or {}
+			cb = cbMaybe
+		end
+
+		local b, st = MakeButtonBase(container)
+		b.Size = UDim2.new(1,0,0,34)
+		b.BackgroundTransparency = 0.10
+		st.Transparency = 0.65
+		Padding(b, 10, 0, 10, 0)
+		local txt = MakeLabel(b, opts.Text or id, 13, Theme.Colors.Text, false)
+		txt.Size = UDim2.new(1,0,1,0)
+
+		b.MouseEnter:Connect(function()
+			Tween(st, TweenInfo.new(Theme.Anim), {Transparency = 0.35})
+		end)
+		b.MouseLeave:Connect(function()
+			Tween(st, TweenInfo.new(Theme.Anim), {Transparency = 0.65})
+		end)
+
+		b.MouseButton1Click:Connect(function()
+			if cb then task.spawn(cb) end
+		end)
+
+		local o = BaseOption.new(id, false)
+		-- button não precisa ser Options, mas Linoria às vezes retorna objeto.
+		return o
+	end
+
+	function gb:AddToggle(id, opts)
+		opts = opts or {}
+		local o = BaseOption.new(id, opts.Default or false)
+
+		local row = Instance.new("Frame")
+		row.BackgroundTransparency = 1
+		row.Size = UDim2.new(1,0,0,34)
+		row.Parent = container
+
+		local click, st = MakeButtonBase(row)
+		click.Size = UDim2.new(1,0,1,0)
+		click.BackgroundTransparency = 0.10
+		st.Transparency = 0.70
+
+		Padding(click, 10, 0, 10, 0)
+
+		local label = MakeLabel(click, opts.Text or id, 13, Theme.Colors.Text, false)
+		label.Size = UDim2.new(1,-54,1,0)
+
+		local pill = Instance.new("Frame")
+		pill.Size = UDim2.new(0,42,0,20)
+		pill.Position = UDim2.new(1,-42,0.5,-10)
+		pill.BackgroundColor3 = Theme.Colors.Ink2
+		pill.BackgroundTransparency = 0.1
+		pill.Parent = click
+		Corner(pill, 999)
+		Stroke(pill, Theme.Colors.Sage, 0.7)
+
+		local knob = Instance.new("Frame")
+		knob.Size = UDim2.new(0,16,0,16)
+		knob.Position = UDim2.new(0,2,0.5,-8)
+		knob.BackgroundColor3 = Theme.Colors.Muted
+		knob.BackgroundTransparency = 0.0
+		knob.Parent = pill
+		Corner(knob, 999)
+
+		local function render(v)
+			if v then
+				Tween(knob, TweenInfo.new(Theme.Anim), {Position = UDim2.new(1,-18,0.5,-8), BackgroundColor3 = Theme.Colors.Sage})
+			else
+				Tween(knob, TweenInfo.new(Theme.Anim), {Position = UDim2.new(0,2,0.5,-8), BackgroundColor3 = Theme.Colors.Muted})
+			end
+		end
+
+		o._sync = render
+		o:_sync(o.Value)
+
+		click.MouseButton1Click:Connect(function()
+			o:SetValue(not o.Value)
+		end)
+
+		Library.Toggles[id] = o
+		return o
+	end
+
+	function gb:AddSlider(id, opts)
+		opts = opts or {}
+		local min = opts.Min or 0
+		local max = opts.Max or 100
+		local round = opts.Rounding or 0
+		local default = opts.Default or min
+
+		local o = BaseOption.new(id, default)
+
+		local wrap = Instance.new("Frame")
+		wrap.BackgroundTransparency = 1
+		wrap.Size = UDim2.new(1,0,0,52)
+		wrap.Parent = container
+
+		local top = Instance.new("Frame")
+		top.BackgroundTransparency = 1
+		top.Size = UDim2.new(1,0,0,18)
+		top.Parent = wrap
+
+		local label = MakeLabel(top, opts.Text or id, 13, Theme.Colors.Text, false)
+		label.Size = UDim2.new(1,-70,1,0)
+
+		local val = MakeLabel(top, tostring(default), 12, Theme.Colors.Sub, true)
+		val.Size = UDim2.new(0,70,1,0)
+		val.TextXAlignment = Enum.TextXAlignment.Right
+		val.Position = UDim2.new(1,-70,0,0)
+
+		local bar, st = MakeButtonBase(wrap)
+		bar.Position = UDim2.new(0,0,0,24)
+		bar.Size = UDim2.new(1,0,0,24)
+		bar.BackgroundTransparency = 0.12
+		st.Transparency = 0.75
+
+		local fill = Instance.new("Frame")
+		fill.BackgroundColor3 = Theme.Colors.Sage
+		fill.BackgroundTransparency = 0.35
+		fill.Size = UDim2.new(0,0,1,0)
+		fill.Parent = bar
+		Corner(fill, Theme.Radius)
+
+		local dragging = false
+		local function setFromX(x)
+			local rel = Clamp((x - bar.AbsolutePosition.X) / bar.AbsoluteSize.X, 0, 1)
+			local raw = min + (max - min) * rel
+			if round and round > 0 then raw = Round(raw, 10^(-round)) end
+			if opts.Rounding == 0 then raw = math.floor(raw + 0.5) end
+			o:SetValue(raw)
+		end
+
+		bar.InputBegan:Connect(function(inp)
+			if inp.UserInputType == Enum.UserInputType.MouseButton1 then
+				dragging = true
+				setFromX(inp.Position.X)
+			end
+		end)
+		bar.InputEnded:Connect(function(inp)
+			if inp.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end
+		end)
+		UserInputService.InputChanged:Connect(function(inp)
+			if dragging and inp.UserInputType == Enum.UserInputType.MouseMovement then
+				setFromX(inp.Position.X)
+			end
+		end)
+
+		o._sync = function(v)
+			local rel = (v - min) / (max - min)
+			rel = Clamp(rel, 0, 1)
+			fill.Size = UDim2.new(rel, 0, 1, 0)
+			val.Text = tostring(v)
+		end
+		o:_sync(o.Value)
+
+		Library.Options[id] = o
+		return o
+	end
+
+	function gb:AddInput(id, opts)
+		opts = opts or {}
+		local o = BaseOption.new(id, opts.Default or "")
+
+		local row = Instance.new("Frame")
+		row.BackgroundTransparency = 1
+		row.Size = UDim2.new(1,0,0,52)
+		row.Parent = container
+
+		local label = MakeLabel(row, opts.Text or id, 13, Theme.Colors.Text, false)
+		label.Size = UDim2.new(1,0,0,18)
+
+		local box, st = MakeButtonBase(row)
+		box.Size = UDim2.new(1,0,0,28)
+		box.Position = UDim2.new(0,0,0,22)
+		box.BackgroundTransparency = 0.12
+		st.Transparency = 0.75
+
+		local tb = Instance.new("TextBox")
+		tb.BackgroundTransparency = 1
+		tb.Text = tostring(o.Value)
+		tb.PlaceholderText = opts.Placeholder or ""
+		tb.TextXAlignment = Enum.TextXAlignment.Left
+		tb.TextSize = 13
+		tb.TextColor3 = Theme.Colors.Text
+		tb.PlaceholderColor3 = Theme.Colors.Muted
+		tb.Font = Enum.Font.Gotham
+		tb.ClearTextOnFocus = opts.ClearOnFocus or false
+		tb.Size = UDim2.new(1,-16,1,0)
+		tb.Position = UDim2.new(0,8,0,0)
+		tb.Parent = box
+
+		tb.FocusLost:Connect(function()
+			o:SetValue(tb.Text)
+		end)
+
+		o._sync = function(v) tb.Text = tostring(v) end
+
+		Library.Options[id] = o
+		return o
+	end
+
+	-- Dropdown (single/multi) com modal simples
+	function gb:AddDropdown(id, opts)
+		opts = opts or {}
+		local values = opts.Values or {}
+		local multi = opts.Multi or false
+		local default = opts.Default
+		if multi then
+			default = default or {}
+		else
+			if type(default) ~= "number" then default = 1 end
+			default = values[default] or values[1]
+		end
+		local o = BaseOption.new(id, default)
+
+		local row = Instance.new("Frame")
+		row.BackgroundTransparency = 1
+		row.Size = UDim2.new(1,0,0,52)
+		row.Parent = container
+
+		local label = MakeLabel(row, opts.Text or id, 13, Theme.Colors.Text, false)
+		label.Size = UDim2.new(1,0,0,18)
+
+		local btn, st = MakeButtonBase(row)
+		btn.Size = UDim2.new(1,0,0,28)
+		btn.Position = UDim2.new(0,0,0,22)
+		btn.BackgroundTransparency = 0.12
+		st.Transparency = 0.75
+		Padding(btn, 10, 0, 10, 0)
+
+		local valueLbl = MakeLabel(btn, "", 12, Theme.Colors.Sub, false)
+		valueLbl.Size = UDim2.new(1,0,1,0)
+
+		local function render(v)
+			if multi then
+				local picked = {}
+				for k,val in pairs(v) do
+					if val then table.insert(picked, k) end
+				end
+				table.sort(picked)
+				valueLbl.Text = (#picked>0) and table.concat(picked, ", ") or "(none)"
+			else
+				valueLbl.Text = tostring(v or "")
+			end
+		end
+
+		o._sync = render
+		o:_sync(o.Value)
+
+		btn.MouseButton1Click:Connect(function()
+			-- open modal list
+			local modal = self.Modal
+			modal.Overlay.Visible = true
+			modal.BoxTitle.Text = (opts.Text or id) .. (multi and " (multi)" or "")
+
+			-- clear list
+			for _,c in ipairs(modal.List:GetChildren()) do
+				if c:IsA("TextButton") then c:Destroy() end
+			end
+
+			for _,v in ipairs(values) do
+				local item, ist = MakeButtonBase(modal.List)
+				item.Size = UDim2.new(1,0,0,32)
+				item.BackgroundTransparency = 0.10
+				ist.Transparency = 0.80
+				Padding(item, 10, 0, 10, 0)
+
+				local t = MakeLabel(item, tostring(v), 13, Theme.Colors.Text, false)
+				t.Size = UDim2.new(1,0,1,0)
+
+				local function setSel(sel)
+					if sel then
+						ist.Transparency = 0.35
+					else
+						ist.Transparency = 0.80
+					end
+				end
+
+				if multi then
+					setSel(o.Value[tostring(v)] == true)
+				else
+					setSel(o.Value == v)
+				end
+
+				item.MouseButton1Click:Connect(function()
+					if multi then
+						local nv = {}
+						for k,val in pairs(o.Value) do nv[k]=val end
+						nv[tostring(v)] = not nv[tostring(v)]
+						o:SetValue(nv)
+						setSel(nv[tostring(v)] == true)
+					else
+						o:SetValue(v)
+						modal.Overlay.Visible = false
+					end
+				end)
+			end
+		end)
+
+		Library.Options[id] = o
+		return o
+	end
+
+	-- KeyPicker (Toggle/Hold/Always)
+	function gb:AddKeyPicker(id, opts)
+		opts = opts or {}
+		local mode = opts.Mode or "Toggle" -- Toggle / Hold / Always
+		local default = opts.Default or "F"
+		local key = Enum.KeyCode[default] or Enum.KeyCode.F
+
+		local o = BaseOption.new(id, {Key = key, Mode = mode, Active = false})
+
+		local row = Instance.new("Frame")
+		row.BackgroundTransparency = 1
+		row.Size = UDim2.new(1,0,0,52)
+		row.Parent = container
+
+		local label = MakeLabel(row, opts.Text or id, 13, Theme.Colors.Text, false)
+		label.Size = UDim2.new(1,0,0,18)
+
+		local btn, st = MakeButtonBase(row)
+		btn.Size = UDim2.new(1,0,0,28)
+		btn.Position = UDim2.new(0,0,0,22)
+		btn.BackgroundTransparency = 0.12
+		st.Transparency = 0.75
+		Padding(btn, 10, 0, 10, 0)
+
+		local valueLbl = MakeLabel(btn, "", 12, Theme.Colors.Sub, true)
+		valueLbl.Size = UDim2.new(1,0,1,0)
+
+		local waiting = false
+		local function render(v)
+			valueLbl.Text = string.format("%s  |  %s  |  %s",
+				(v.Key and v.Key.Name or "?"),
+				v.Mode,
+				v.Active and "ON" or "OFF")
+		end
+		o._sync = render
+		o:_sync(o.Value)
+
+		btn.MouseButton1Click:Connect(function()
+			if waiting then return end
+			waiting = true
+			valueLbl.Text = "Press a key..."
+			local conn
+			conn = UserInputService.InputBegan:Connect(function(inp, gp)
+				if gp then return end
+				if inp.KeyCode ~= Enum.KeyCode.Unknown then
+					local v = o.Value
+					v.Key = inp.KeyCode
+					o:SetValue(v)
+					waiting = false
+					conn:Disconnect()
+				end
+			end)
+		end)
+
+		-- activation loop:
+		UserInputService.InputBegan:Connect(function(inp, gp)
+			if gp then return end
+			local v = o.Value
+			if inp.KeyCode == v.Key then
+				if v.Mode == "Toggle" then
+					v.Active = not v.Active
+					o:SetValue(v)
+				elseif v.Mode == "Hold" then
+					v.Active = true
+					o:SetValue(v)
+				end
+			end
+		end)
+		UserInputService.InputEnded:Connect(function(inp, gp)
+			if gp then return end
+			local v = o.Value
+			if inp.KeyCode == v.Key and v.Mode == "Hold" then
+				v.Active = false
+				o:SetValue(v)
+			end
+		end)
+
+		Library.Options[id] = o
+		return o
+	end
+
+	-- ColorPicker simples (modal com presets + RGB sliders)
+	function gb:AddColorPicker(id, opts)
+		opts = opts or {}
+		local default = opts.Default or Theme.Colors.Sage
+		local o = BaseOption.new(id, default)
+
+		local row = Instance.new("Frame")
+		row.BackgroundTransparency = 1
+		row.Size = UDim2.new(1,0,0,52)
+		row.Parent = container
+
+		local label = MakeLabel(row, opts.Text or id, 13, Theme.Colors.Text, false)
+		label.Size = UDim2.new(1,0,0,18)
+
+		local btn, st = MakeButtonBase(row)
+		btn.Size = UDim2.new(1,0,0,28)
+		btn.Position = UDim2.new(0,0,0,22)
+		btn.BackgroundTransparency = 0.12
+		st.Transparency = 0.75
+		Padding(btn, 10, 0, 10, 0)
+
+		local swatch = Instance.new("Frame")
+		swatch.Size = UDim2.new(0,18,0,18)
+		swatch.Position = UDim2.new(1,-28,0.5,-9)
+		swatch.BackgroundColor3 = o.Value
+		swatch.Parent = btn
+		Corner(swatch, 6)
+		Stroke(swatch, Theme.Colors.Sage, 0.6)
+
+		local valueLbl = MakeLabel(btn, "", 12, Theme.Colors.Sub, true)
+		valueLbl.Size = UDim2.new(1,-40,1,0)
+
+		local function render(c)
+			swatch.BackgroundColor3 = c
+			valueLbl.Text = string.format("rgb(%d,%d,%d)", math.floor(c.R*255), math.floor(c.G*255), math.floor(c.B*255))
+		end
+		o._sync = render
+		o:_sync(o.Value)
+
+		btn.MouseButton1Click:Connect(function()
+			local modal = self.Modal
+			modal.Overlay.Visible = true
+			modal.BoxTitle.Text = (opts.Text or id) .. " (Color)"
+
+			for _,c in ipairs(modal.List:GetChildren()) do
+				if c:IsA("TextButton") then c:Destroy() end
+			end
+
+			local presets = {
+				Theme.Colors.Sage, Theme.Colors.Good, Theme.Colors.Warn, Theme.Colors.Bad,
+				Color3.fromRGB(255,255,255), Color3.fromRGB(0,0,0),
+				Color3.fromRGB(120,170,255), Color3.fromRGB(220,120,255),
+			}
+
+			for _,pc in ipairs(presets) do
+				local item, ist = MakeButtonBase(modal.List)
+				item.Size = UDim2.new(1,0,0,32)
+				item.BackgroundTransparency = 0.10
+				ist.Transparency = 0.80
+				Padding(item, 10, 0, 10, 0)
+
+				local box = Instance.new("Frame")
+				box.Size = UDim2.new(0,16,0,16)
+				box.Position = UDim2.new(0,0,0.5,-8)
+				box.BackgroundColor3 = pc
+				box.Parent = item
+				Corner(box, 4)
+				Stroke(box, Theme.Colors.Sage, 0.6)
+
+				local t = MakeLabel(item, string.format("rgb(%d,%d,%d)", pc.R*255, pc.G*255, pc.B*255), 12, Theme.Colors.Text, true)
+				t.Position = UDim2.new(0,24,0,0)
+				t.Size = UDim2.new(1,-24,1,0)
+
+				item.MouseButton1Click:Connect(function()
+					o:SetValue(pc)
+					modal.Overlay.Visible = false
+				end)
+			end
+		end)
+
+		Library.Options[id] = o
+		return o
+	end
+
+	return gb
+end
+
+function Window:SetVisible(v)
+	self.Gui.Enabled = v and true or false
+	Library.Open = self.Gui.Enabled
+end
+
+--========================
+-- Modal (shared for dropdown/color/etc)
+--========================
+local function CreateModal(root)
+	local overlay = Instance.new("Frame")
+	overlay.BackgroundColor3 = Theme.Colors.Ink
+	overlay.BackgroundTransparency = 0.15
+	overlay.Size = UDim2.new(1,0,1,0)
+	overlay.Visible = false
+	overlay.Parent = root
+
+	local close = Instance.new("TextButton")
+	close.Text = ""
+	close.AutoButtonColor = false
+	close.BackgroundTransparency = 1
+	close.Size = UDim2.new(1,0,1,0)
+	close.Parent = overlay
+
+	local box = MakePanel(overlay)
+	box.Size = UDim2.new(0, 420, 0, 360)
+	box.Position = UDim2.new(0.5,-210,0.5,-180)
+	box.BackgroundTransparency = 0.08
+	for _,c in ipairs(box:GetChildren()) do
+		if c:IsA("UIStroke") then c.Transparency = 0.35 end
+	end
+	Padding(box, 12, 10, 12, 12)
+
+	local title = Instance.new("TextLabel")
+	title.BackgroundTransparency = 1
+	title.Font = Enum.Font.GothamBold
+	title.TextSize = 14
+	title.TextColor3 = Theme.Colors.Text
+	title.TextXAlignment = Enum.TextXAlignment.Left
+	title.Size = UDim2.new(1,0,0,22)
+	title.Text = "Modal"
+	title.Parent = box
+
+	local list = NewScroll(box)
+	list.Size = UDim2.new(1,0,1,-28)
+	list.Position = UDim2.new(0,0,0,28)
+	Padding(list, 0, 0, 6, 6)
+	local ll = ListLayout(list, Enum.FillDirection.Vertical, 8)
+
+	close.MouseButton1Click:Connect(function()
+		overlay.Visible = false
+	end)
+
+	-- auto canvas
+	RunService.Heartbeat:Connect(function()
+		if list.Parent then
+			list.CanvasSize = UDim2.new(0,0,0,ll.AbsoluteContentSize.Y + 8)
+		end
+	end)
+
+	return {
+		Overlay = overlay,
+		Box = box,
+		BoxTitle = title,
+		List = list,
+	}
+end
+
+--========================
+-- CreateWindow (SageHub layout)
+--========================
+function Library:CreateWindow(opts)
+	opts = opts or {}
+	self.WatermarkText = opts.Title or self.WatermarkText
+	if opts.ToggleKey then self.Bind = opts.ToggleKey end
+
+	-- folders for managers
+	EnsureFolder(self.Folder)
+	EnsureFolder(self.ProfilesFolder)
+	EnsureFolder(self.ThemesFolder)
+
+	local gui = Instance.new("ScreenGui")
+	gui.Name = "SageHubLinoria"
+	gui.ResetOnSpawn = false
+	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+	gui.Parent = PG
+
+	local root = Instance.new("Frame")
+	root.Size = UDim2.new(1,0,1,0)
+	root.BackgroundColor3 = Theme.Colors.Ink
+	root.Parent = gui
+
+	-- Topbar
+	local top = Instance.new("Frame")
+	top.Size = UDim2.new(1,0,0,48)
+	top.BackgroundColor3 = Theme.Colors.Ink2
+	top.BackgroundTransparency = 0.08
+	top.Parent = root
+	Stroke(top, Theme.Colors.Sage, 0.75)
+	Padding(top, 14, 0, 14, 0)
+
+	local title = Instance.new("TextLabel")
+	title.BackgroundTransparency = 1
+	title.Font = Enum.Font.GothamBold
+	title.TextSize = 15
+	title.TextColor3 = Theme.Colors.Text
+	title.TextXAlignment = Enum.TextXAlignment.Left
+	title.Size = UDim2.new(1,0,1,0)
+	title.Text = self.WatermarkText
+	title.Parent = top
+
+	local watermark = Instance.new("TextLabel")
+	watermark.BackgroundTransparency = 1
+	watermark.Font = Enum.Font.Code
+	watermark.TextSize = 12
+	watermark.TextColor3 = Theme.Colors.Sub
+	watermark.TextXAlignment = Enum.TextXAlignment.Right
+	watermark.Size = UDim2.new(0,260,1,0)
+	watermark.Position = UDim2.new(1,-260,0,0)
+	watermark.Text = "RightShift | "..self.WatermarkText
+	watermark.Parent = top
+
+	-- bottom status
+	local bottom = Instance.new("Frame")
+	bottom.Size = UDim2.new(1,0,0,40)
+	bottom.Position = UDim2.new(0,0,1,-40)
+	bottom.BackgroundColor3 = Theme.Colors.Ink2
+	bottom.BackgroundTransparency = 0.12
+	bottom.Parent = root
+	Stroke(bottom, Theme.Colors.Sage, 0.80)
+	Padding(bottom, 14, 0, 14, 0)
+
+	local status = MakeLabel(bottom, "ready", 12, Theme.Colors.Sub, true)
+	status.Size = UDim2.new(1,0,1,0)
+
+	-- columns
+	local body = Instance.new("Frame")
+	body.BackgroundTransparency = 1
+	body.Position = UDim2.new(0,0,0,48)
+	body.Size = UDim2.new(1,0,1,-48-40)
+	body.Parent = root
+
+	-- left tabs panel
+	local left = MakePanel(body)
+	left.Size = UDim2.new(0, 220, 1, 0)
+	left.BackgroundTransparency = 0.10
+	Padding(left, 10, 10, 10, 10)
+
+	local leftTitle = MakeLabel(left, "Navigation", 12, Theme.Colors.Sub, false)
+	leftTitle.Size = UDim2.new(1,0,0,18)
+
+	local tabsList = Instance.new("Frame")
+	tabsList.BackgroundTransparency = 1
+	tabsList.Size = UDim2.new(1,0,1,-18)
+	tabsList.Position = UDim2.new(0,0,0,22)
+	tabsList.Parent = left
+	ListLayout(tabsList, Enum.FillDirection.Vertical, 8)
+
+	-- right console panel
+	local right = MakePanel(body)
+	right.Size = UDim2.new(0, 240, 1, 0)
+	right.Position = UDim2.new(1,-240,0,0)
+	right.BackgroundTransparency = 0.10
+	Padding(right, 10, 10, 10, 10)
+
+	-- center content
+	local center = Instance.new("Frame")
+	center.BackgroundTransparency = 1
+	center.Position = UDim2.new(0, 220+12, 0, 0)
+	center.Size = UDim2.new(1, -(220+12) - (240+12), 1, 0)
+	center.Parent = body
+
+	local pages = Instance.new("Frame")
+	pages.BackgroundTransparency = 1
+	pages.Size = UDim2.new(1,0,1,0)
+	pages.Parent = center
+
+	-- scanline (visualzinho)
+	local scan = Instance.new("Frame")
+	scan.BackgroundColor3 = Theme.Colors.Sage
+	scan.BackgroundTransparency = 0.92
+	scan.Size = UDim2.new(1,0,0,2)
+	scan.Position = UDim2.new(0,0,0,0)
+	scan.Parent = root
+	task.spawn(function()
+		while scan.Parent do
+			scan.Position = UDim2.new(0,0,0,48)
+			Tween(scan, TweenInfo.new(2.8, Enum.EasingStyle.Linear), {Position = UDim2.new(0,0,1,-40)})
+			task.wait(2.8)
+		end
+	end)
+
+	-- modal + notify + console
+	local modal = CreateModal(root)
+	local notify = CreateNotifySystem(root)
+	local log = CreateConsole(right)
+
+	-- key toggle
+	UserInputService.InputBegan:Connect(function(inp, gp)
+		if gp then return end
+		if inp.KeyCode == Library.Bind then
+			gui.Enabled = not gui.Enabled
+			Library.Open = gui.Enabled
+		end
+	end)
+
+	-- build window
+	local selfWin = setmetatable({
+		Gui = gui,
+		Root = root,
+		Tabs = {},
+		LeftTabs = tabsList,
+		CenterPages = pages,
+		Modal = modal,
+		StatusLabel = status,
+		NotifyFn = notify,
+		LogFn = log,
+	}, Window)
+
+	-- wire library methods to UI
+	function Library:Notify(text, dur, kind)
+		selfWin.NotifyFn(text, dur, kind)
+	end
+	function Library:Log(text, kind)
+		selfWin.LogFn(text, kind)
+	end
+	function Library:SetWatermark(text)
+		self.WatermarkText = text
+		title.Text = text
+		watermark.Text = (Library.Bind.Name).." | "..text
+	end
+	function Library:SetStatus(text)
+		status.Text = tostring(text)
+	end
+
+	-- default tab
+	selfWin:AddTab("Main"):Show()
+
+	return selfWin
+end
+
+--========================
+-- SaveManager / ThemeManager (Linoria-ish)
+--========================
+Library.SaveManager = {}
+Library.ThemeManager = {}
+
+function Library.SaveManager:SetLibrary(lib)
+	self.Library = lib
+end
+
+function Library.SaveManager:IgnoreThemeSettings()
+	-- placeholder compat
+end
+
+function Library.SaveManager:IgnoreGameSettings()
+	-- placeholder compat
+end
+
+function Library.SaveManager:BuildConfigSection(tabOrGroupbox)
+	-- if you pass a groupbox, add save/load controls
+	local gb = tabOrGroupbox
+	gb:AddLabel("Config")
+	gb:AddDivider()
+	gb:AddInput("ProfileName", {Text="Profile", Default="default"})
+	gb:AddButton("SaveProfile", {Text="Save"}, function()
+		local name = Library.Options.ProfileName and Library.Options.ProfileName.Value or "default"
+		local ok, err = self:Save(name)
+		if ok then Library:Notify("Saved: "..name, 2, "good") else Library:Notify("Save fail: "..tostring(err), 3, "bad") end
+	end)
+	gb:AddButton("LoadProfile", {Text="Load"}, function()
+		local name = Library.Options.ProfileName and Library.Options.ProfileName.Value or "default"
+		local ok, err = self:Load(name)
+		if ok then Library:Notify("Loaded: "..name, 2, "good") else Library:Notify("Load fail: "..tostring(err), 3, "bad") end
+	end)
+end
+
+function Library.SaveManager:Save(profileName)
+	if not CanFS() then return false, "filesystem not available" end
+	local data = {Toggles={}, Options={}}
+	for id,t in pairs(Library.Toggles) do data.Toggles[id] = t.Value end
+	for id,o in pairs(Library.Options) do
+		if id ~= "ProfileName" then data.Options[id] = o.Value end
+	end
+	writefile(string.format("%s/%s.json", Library.ProfilesFolder, profileName), JSONEncode(data))
+	return true
+end
+
+function Library.SaveManager:Load(profileName)
+	if not CanFS() then return false, "filesystem not available" end
+	local path = string.format("%s/%s.json", Library.ProfilesFolder, profileName)
+	if not isfile(path) then return false, "profile not found" end
+	local ok, decoded = pcall(function() return JSONDecode(readfile(path)) end)
+	if not ok then return false, "bad json" end
+	for id,v in pairs(decoded.Toggles or {}) do
+		if Library.Toggles[id] then Library.Toggles[id]:SetValue(v) end
+	end
+	for id,v in pairs(decoded.Options or {}) do
+		if Library.Options[id] then Library.Options[id]:SetValue(v) end
+	end
+	return true
+end
+
+function Library.ThemeManager:SetLibrary(lib) self.Library = lib end
+function Library.ThemeManager:ApplyToTab(tabOrGroupbox)
+	local gb = tabOrGroupbox
+	gb:AddLabel("Theme")
+	gb:AddDivider()
+	gb:AddColorPicker("Accent", {Text="Accent", Default=Theme.Colors.Sage}):OnChanged(function(c)
+		Theme.Colors.Sage = c
+		Library:Notify("Accent atualizado", 2, "good")
+	end)
+end
+
+--========================
+-- Return Library
+--========================
+return Library
