@@ -262,6 +262,7 @@ function Groupbox:AddSlider(idx, info)
     })
 
     local yOff = 0
+    local valLabel = nil  -- referência no escopo local, não na Instance
     if not compact then
         local labelRow = Create('Frame', {
             Parent           = container,
@@ -278,7 +279,7 @@ function Groupbox:AddSlider(idx, info)
             TextSize         = 13,
             TextXAlignment   = Enum.TextXAlignment.Left,
         })
-        local valLabel = Create('TextLabel', {
+        valLabel = Create('TextLabel', {
             Parent           = labelRow,
             Size             = UDim2.new(0.3, 0, 1, 0),
             Position         = UDim2.new(0.7, 0, 0, 0),
@@ -290,8 +291,6 @@ function Groupbox:AddSlider(idx, info)
             TextXAlignment   = Enum.TextXAlignment.Right,
         })
         yOff = 20
-        -- store for later
-        container._valLabel = valLabel
     end
 
     local trackH = 6
@@ -336,8 +335,8 @@ function Groupbox:AddSlider(idx, info)
     local function updateVisual(pct)
         fill.Size = UDim2.new(pct, 0, 1, 0)
         knobFrame.Position = UDim2.new(pct, -knobR, 0.5, -knobR)
-        if container._valLabel then
-            container._valLabel.Text = tostring(sliderObj.Value)
+        if valLabel then
+            valLabel.Text = tostring(sliderObj.Value)
         end
     end
 
@@ -830,3 +829,5 @@ function NexusLib:CreateWindow(opts)
 end
 
 return NexusLib
+
+----
