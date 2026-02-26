@@ -344,11 +344,21 @@ function BarbiUI:CreateWindow(config)
         Parent = CoreGui,
     })
 
-    -- Blur effect
-    local blur = Create("BlurEffect", {
-        Size = 0,
-        Parent = game:GetService("Lighting"),
-    })
+    -- Blur effect (protected — many executors don't support BlurEffect)
+    local blur = nil
+    pcall(function()
+        blur = Instance.new("BlurEffect")
+        blur.Size = 0
+        blur.Parent = game:GetService("Lighting")
+    end)
+
+    local function TweenBlur(targetSize, duration)
+        if blur then
+            pcall(function()
+                Tween(blur, { Size = targetSize }, duration or 0.3)
+            end)
+        end
+    end
 
     -- Main Window Frame
     local windowFrame = Create("Frame", {
@@ -386,7 +396,6 @@ function BarbiUI:CreateWindow(config)
             Parent = windowFrame,
         })
         AddCorner(orb, 999)
-        Create("UIBlurEffect", { Size = 40, Parent = orb }):Destroy() -- placeholder, real blur on lighting
     end
 
     -- ── TITLEBAR ──
@@ -521,11 +530,11 @@ function BarbiUI:CreateWindow(config)
     end
 
     WindowControl("×", Theme.Error, -28, function()
-        Tween(blur, { Size = 0 }, 0.3)
+        TweenBlur(0, 0.3)
         Tween(windowFrame, { Size = UDim2.new(0, 860, 0, 0), Position = UDim2.new(0.5, -430, 0.5, 0), BackgroundTransparency = 1 }, 0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In)
         task.wait(0.35)
         sg:Destroy()
-        blur:Destroy()
+        if blur then pcall(function() blur:Destroy() end) end
     end)
 
     local minimized = false
@@ -573,9 +582,9 @@ function BarbiUI:CreateWindow(config)
                 windowFrame.Visible = true
                 windowFrame.Size = UDim2.new(0, 860, 0, 20)
                 Tween(windowFrame, { Size = UDim2.new(0, 860, 0, 520) }, 0.4, Enum.EasingStyle.Back)
-                Tween(blur, { Size = 8 }, 0.3)
+                TweenBlur(8, 0.3)
             else
-                Tween(blur, { Size = 0 }, 0.3)
+                TweenBlur(0, 0.3)
                 Tween(windowFrame, { Size = UDim2.new(0, 860, 0, 20) }, 0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
                 task.wait(0.35)
                 windowFrame.Visible = false
@@ -588,7 +597,7 @@ function BarbiUI:CreateWindow(config)
     windowFrame.BackgroundTransparency = 1
     task.wait(0.05)
     Tween(windowFrame, { Size = UDim2.new(0, 860, 0, 520), BackgroundTransparency = 0 }, 0.45, Enum.EasingStyle.Back)
-    Tween(blur, { Size = 8 }, 0.45)
+    TweenBlur(8, 0.45)
 
     -- ── BODY ──
     local body = Create("Frame", {
