@@ -1,0 +1,1989 @@
+--[[
+╔══════════════════════════════════════════════════════════════════╗
+║                    BarbiUI Library v3.0                          ║
+║                  Dark-Luxury AAA-Grade UI Library                ║
+║                                                                  ║
+║  Melhorias v3.0:                                                 ║
+║  • Arquitetura OOP robusta com metatables                        ║
+║  • Sistema de temas configurável                                  ║
+║  • Console integrado (pulsante, scrollável)                      ║
+║  • Badges coloridos nos tabs                                      ║
+║  • Correção: memory leaks nos InputChanged globais               ║
+║  • Correção: dropdown ZIndex no scroll                           ║
+║  • Correção: color picker posicionamento                         ║
+║  • Correção: drag com ClipsDescendants                           ║
+║  • Layout 2-col estável com AutomaticSize                        ║
+║  • Notificações com fila e limite máximo                         ║
+║  • Suporte a múltiplas janelas simultâneas                       ║
+╚══════════════════════════════════════════════════════════════════╝
+]]
+
+-- ══════════════════════════════════════════════════════════════════
+-- SERVIÇOS & LOCALS
+-- ══════════════════════════════════════════════════════════════════
+local Players          = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local TweenService     = game:GetService("TweenService")
+local RunService       = game:GetService("RunService")
+local CoreGui          = game:GetService("CoreGui")
+local TextService      = game:GetService("TextService")
+
+local LocalPlayer = Players.LocalPlayer
+local Mouse       = LocalPlayer:GetMouse()
+
+-- ══════════════════════════════════════════════════════════════════
+-- SISTEMA DE TEMAS
+-- ══════════════════════════════════════════════════════════════════
+local Themes = {}
+
+Themes.Default = {
+    -- Backgrounds
+    BG0        = Color3.fromRGB(10,  6,  18),
+    BG1        = Color3.fromRGB(15,  9,  26),
+    BG2        = Color3.fromRGB(22, 13,  38),
+    BG3        = Color3.fromRGB(30, 18,  50),
+    BG4        = Color3.fromRGB(42, 25,  66),
+    Sidebar    = Color3.fromRGB(18, 10,  32),
+    TitleBar   = Color3.fromRGB(13,  7,  22),
+
+    -- Accent / Pink
+    Pink       = Color3.fromRGB(255, 105, 180),
+    PinkLight  = Color3.fromRGB(255, 160, 210),
+    PinkMute   = Color3.fromRGB(200,  90, 145),
+    PinkDark   = Color3.fromRGB(180,  60, 120),
+    PinkGlow   = Color3.fromRGB(255,  80, 160),
+
+    -- Text
+    TxtPri     = Color3.fromRGB(255, 242, 250),
+    TxtSec     = Color3.fromRGB(185, 155, 180),
+    TxtMute    = Color3.fromRGB(120,  95, 125),
+    TxtAcct    = Color3.fromRGB(255, 140, 200),
+
+    -- Status
+    Success    = Color3.fromRGB( 80, 220, 140),
+    Warning    = Color3.fromRGB(255, 200,  70),
+    Error      = Color3.fromRGB(255,  80,  80),
+    Info       = Color3.fromRGB(100, 180, 255),
+
+    -- Misc
+    Border     = Color3.fromRGB( 70,  35,  90),
+    BorderHov  = Color3.fromRGB(140,  60, 120),
+    Shadow     = Color3.fromRGB(  0,   0,   0),
+
+    -- Fonts
+    FntBold    = Enum.Font.GothamBold,
+    FntBody    = Enum.Font.Gotham,
+    FntMono    = Enum.Font.Code,
+    FntTitle   = Enum.Font.GothamBold,
+}
+
+-- Active theme (pode ser trocado via BarbiUI:SetTheme(name))
+local T = Themes.Default
+
+-- ══════════════════════════════════════════════════════════════════
+-- UTILITÁRIOS INTERNOS
+-- ══════════════════════════════════════════════════════════════════
+local Utils = {}
+
+-- Tween seguro
+function Utils.Tween(obj, props, t, style, dir)
+    if not obj or not obj.Parent then return end
+    local ok, err = pcall(function()
+        TweenService:Create(
+            obj,
+            TweenInfo.new(t or 0.25, style or Enum.EasingStyle.Quart, dir or Enum.EasingDirection.Out),
+            props
+        ):Play()
+    end)
+    if not ok then warn("[BarbiUI] Tween error:", err) end
+end
+
+-- Criação de instância segura
+function Utils.New(cls, props)
+    local ok, obj = pcall(Instance.new, cls)
+    if not ok then warn("[BarbiUI] Failed to create:", cls) return nil end
+    for k, v in pairs(props or {}) do
+        if k ~= "Parent" then
+            local s, e = pcall(function() obj[k] = v end)
+            if not s then warn("[BarbiUI] Property error", k, e) end
+        end
+    end
+    if props and props.Parent then
+        pcall(function() obj.Parent = props.Parent end)
+    end
+    return obj
+end
+
+function Utils.Corner(parent, radius)
+    return Utils.New("UICorner", { CornerRadius = UDim.new(0, radius or 8), Parent = parent })
+end
+
+function Utils.Stroke(parent, color, thickness, transparency)
+    return Utils.New("UIStroke", {
+        Color        = color or T.Border,
+        Thickness    = thickness or 1,
+        Transparency = transparency or 0,
+        Parent       = parent,
+    })
+end
+
+function Utils.Pad(parent, top, right, bottom, left)
+    return Utils.New("UIPadding", {
+        PaddingTop    = UDim.new(0, top    or 8),
+        PaddingRight  = UDim.new(0, right  or 8),
+        PaddingBottom = UDim.new(0, bottom or 8),
+        PaddingLeft   = UDim.new(0, left   or 8),
+        Parent        = parent,
+    })
+end
+
+function Utils.Gradient(parent, colors, rotation)
+    local kps = {}
+    for i, c in ipairs(colors) do
+        kps[i] = ColorSequenceKeypoint.new((i-1)/(#colors-1), c)
+    end
+    return Utils.New("UIGradient", {
+        Color    = ColorSequence.new(kps),
+        Rotation = rotation or 0,
+        Parent   = parent,
+    })
+end
+
+-- Efeito ripple no clique
+function Utils.Ripple(btn, x, y)
+    if not btn or not btn.AbsolutePosition then return end
+    local lx = x - btn.AbsolutePosition.X - 8
+    local ly = y - btn.AbsolutePosition.Y - 8
+    local r = Utils.New("Frame", {
+        BackgroundColor3      = Color3.new(1, 1, 1),
+        BackgroundTransparency = 0.75,
+        Position              = UDim2.new(0, lx, 0, ly),
+        Size                  = UDim2.new(0, 16, 0, 16),
+        ZIndex                = btn.ZIndex + 5,
+        ClipsDescendants      = true,
+        Parent                = btn,
+    })
+    if r then
+        Utils.Corner(r, 999)
+        local s = btn.AbsoluteSize.X * 2.5
+        Utils.Tween(r, {
+            Size = UDim2.new(0, s, 0, s),
+            Position = UDim2.new(0.5, -s/2, 0.5, -s/2),
+            BackgroundTransparency = 1,
+        }, 0.5)
+        task.delay(0.55, function() if r and r.Parent then r:Destroy() end end)
+    end
+end
+
+-- Formatar tempo
+function Utils.GetTime()
+    local t = os.time and os.time() or 0
+    return os.date and os.date("%H:%M:%S", t) or "00:00:00"
+end
+
+-- ══════════════════════════════════════════════════════════════════
+-- SISTEMA DE NOTIFICAÇÕES
+-- ══════════════════════════════════════════════════════════════════
+local NotifSystem = {
+    holder     = nil,
+    screenGui  = nil,
+    count      = 0,
+    queue      = {},
+    maxVisible = 5,
+    active     = 0,
+}
+
+function NotifSystem:Init()
+    if self.screenGui and self.screenGui.Parent then return end
+    local sg = Utils.New("ScreenGui", {
+        Name              = "BarbiUI_Notifications",
+        ResetOnSpawn      = false,
+        ZIndexBehavior    = Enum.ZIndexBehavior.Global,
+        IgnoreGuiInset    = true,
+        Parent            = CoreGui,
+    })
+    self.screenGui = sg
+    local holder = Utils.New("Frame", {
+        BackgroundTransparency = 1,
+        Size                   = UDim2.new(0, 320, 1, 0),
+        Position               = UDim2.new(1, -335, 0, 0),
+        Parent                 = sg,
+    })
+    Utils.New("UIListLayout", {
+        SortOrder          = Enum.SortOrder.LayoutOrder,
+        VerticalAlignment  = Enum.VerticalAlignment.Bottom,
+        Padding            = UDim.new(0, 6),
+        Parent             = holder,
+    })
+    Utils.Pad(holder, 12, 0, 12, 0)
+    self.holder = holder
+end
+
+function NotifSystem:Send(cfg)
+    self:Init()
+    cfg = cfg or {}
+
+    local title  = cfg.Title    or "Notification"
+    local msg    = cfg.Message  or ""
+    local ntype  = cfg.Type     or "info"
+    local dur    = cfg.Duration or 4
+
+    local typeMap = {
+        info    = { color = T.Info,    icon = "i" },
+        success = { color = T.Success, icon = "+" },
+        warning = { color = T.Warning, icon = "!" },
+        error   = { color = T.Error,   icon = "×" },
+    }
+    local tm  = typeMap[ntype] or typeMap.info
+    local col = tm.color
+    local icn = tm.icon
+
+    self.count  = self.count + 1
+    self.active = self.active + 1
+
+    -- Card
+    local card = Utils.New("Frame", {
+        BackgroundColor3   = T.BG3,
+        Size               = UDim2.new(1, 0, 0, 72),
+        LayoutOrder        = self.count,
+        ClipsDescendants   = true,
+        Parent             = self.holder,
+    })
+    Utils.Corner(card, 10)
+    Utils.Stroke(card, col, 1, 0.6)
+
+    -- Barra lateral colorida
+    Utils.New("Frame", {
+        BackgroundColor3 = col,
+        Size             = UDim2.new(0, 3, 1, 0),
+        Parent           = card,
+    })
+
+    -- Ícone
+    local iconBg = Utils.New("Frame", {
+        BackgroundColor3      = col,
+        BackgroundTransparency = 0.75,
+        Size                  = UDim2.new(0, 28, 0, 28),
+        Position              = UDim2.new(0, 12, 0.5, -14),
+        Parent                = card,
+    })
+    Utils.Corner(iconBg, 999)
+    Utils.New("TextLabel", {
+        BackgroundTransparency = 1,
+        Size                   = UDim2.new(1, 0, 1, 0),
+        Text                   = icn,
+        TextColor3             = col,
+        Font                   = T.FntBold,
+        TextSize               = 13,
+        Parent                 = iconBg,
+    })
+
+    -- Título
+    Utils.New("TextLabel", {
+        BackgroundTransparency = 1,
+        Position               = UDim2.new(0, 50, 0, 9),
+        Size                   = UDim2.new(1, -65, 0, 16),
+        Text                   = title,
+        TextColor3             = T.TxtPri,
+        Font                   = T.FntBold,
+        TextSize               = 11,
+        TextXAlignment         = Enum.TextXAlignment.Left,
+        Parent                 = card,
+    })
+
+    -- Mensagem
+    Utils.New("TextLabel", {
+        BackgroundTransparency = 1,
+        Position               = UDim2.new(0, 50, 0, 27),
+        Size                   = UDim2.new(1, -65, 0, 32),
+        Text                   = msg,
+        TextColor3             = T.TxtSec,
+        Font                   = T.FntBody,
+        TextSize               = 9,
+        TextXAlignment         = Enum.TextXAlignment.Left,
+        TextWrapped            = true,
+        Parent                 = card,
+    })
+
+    -- Barra de progresso
+    local pgBg = Utils.New("Frame", {
+        BackgroundColor3 = T.BG4,
+        Size             = UDim2.new(1, 0, 0, 3),
+        Position         = UDim2.new(0, 0, 1, -3),
+        Parent           = card,
+    })
+    local pgFill = Utils.New("Frame", {
+        BackgroundColor3 = col,
+        Size             = UDim2.new(1, 0, 1, 0),
+        Parent           = pgBg,
+    })
+
+    -- Botão fechar
+    local closeBtn = Utils.New("TextButton", {
+        BackgroundTransparency = 1,
+        Position               = UDim2.new(1, -20, 0, 5),
+        Size                   = UDim2.new(0, 15, 0, 15),
+        Text                   = "×",
+        TextColor3             = T.TxtMute,
+        Font                   = T.FntBold,
+        TextSize               = 14,
+        ZIndex                 = 5,
+        Parent                 = card,
+    })
+
+    -- Animação entrada
+    card.Position              = UDim2.new(1, 15, 0, 0)
+    card.BackgroundTransparency = 1
+    Utils.Tween(card, { Position = UDim2.new(0, 0, 0, 0), BackgroundTransparency = 0 }, 0.35, Enum.EasingStyle.Back)
+    Utils.Tween(pgFill, { Size = UDim2.new(0, 0, 1, 0) }, dur, Enum.EasingStyle.Linear)
+
+    local dismissed = false
+    local function Dismiss()
+        if dismissed then return end
+        dismissed = true
+        self.active = math.max(0, self.active - 1)
+        Utils.Tween(card, { Position = UDim2.new(1, 15, 0, 0), BackgroundTransparency = 1 }, 0.28)
+        task.delay(0.32, function() if card and card.Parent then card:Destroy() end end)
+    end
+
+    task.delay(dur, Dismiss)
+    closeBtn.MouseButton1Click:Connect(Dismiss)
+
+    -- Hover para pausar
+    card.MouseEnter:Connect(function() Utils.Tween(card, { BackgroundColor3 = T.BG4 }, 0.2) end)
+    card.MouseLeave:Connect(function() Utils.Tween(card, { BackgroundColor3 = T.BG3 }, 0.2) end)
+end
+
+-- ══════════════════════════════════════════════════════════════════
+-- MÓDULO PRINCIPAL
+-- ══════════════════════════════════════════════════════════════════
+local BarbiUI      = {}
+BarbiUI.__index    = BarbiUI
+BarbiUI._windows   = {}
+BarbiUI._theme     = T
+BarbiUI._version   = "3.0"
+
+function BarbiUI:SetTheme(name)
+    if Themes[name] then
+        T = Themes[name]
+        self._theme = T
+    else
+        warn("[BarbiUI] Theme not found:", name)
+    end
+end
+
+function BarbiUI:Notify(cfg)
+    NotifSystem:Send(cfg)
+end
+
+-- ══════════════════════════════════════════════════════════════════
+-- CRIAÇÃO DE JANELA
+-- ══════════════════════════════════════════════════════════════════
+function BarbiUI:CreateWindow(cfg)
+    cfg = cfg or {}
+    local title     = cfg.Title      or "BarbiUI"
+    local key       = cfg.Key        or Enum.KeyCode.RightShift
+    local winWidth  = cfg.Width      or 920
+    local winHeight = cfg.Height     or 560
+    local showConsole = cfg.Console  ~= false  -- padrão true
+    local consoleH  = showConsole and 100 or 0
+
+    -- ScreenGui
+    local sg = Utils.New("ScreenGui", {
+        Name              = "BarbiUI_" .. title,
+        ResetOnSpawn      = false,
+        ZIndexBehavior    = Enum.ZIndexBehavior.Global,
+        IgnoreGuiInset    = true,
+        Parent            = CoreGui,
+    })
+
+    -- Blur (opcional, seguro)
+    local blur = nil
+    pcall(function()
+        blur = Instance.new("BlurEffect")
+        blur.Size   = 0
+        blur.Parent = game:GetService("Lighting")
+    end)
+    local function TwBlur(sz, t)
+        if blur then pcall(function() Utils.Tween(blur, { Size = sz }, t or 0.3) end) end
+    end
+
+    -- ──────────────────────────────────────────────────────────────
+    -- JANELA PRINCIPAL
+    -- ──────────────────────────────────────────────────────────────
+    local win = Utils.New("Frame", {
+        Name             = "Window",
+        BackgroundColor3 = Color3.fromRGB(28, 12, 45),
+        BackgroundTransparency = 0.25,  -- glass base
+        Size             = UDim2.new(0, winWidth, 0, winHeight),
+        Position         = UDim2.new(0.5, -winWidth/2, 0.5, -winHeight/2),
+        ClipsDescendants = false,
+        Parent           = sg,
+    })
+    Utils.Corner(win, 14)
+    -- Borda glass: sutil, luminosa
+    Utils.New("UIStroke", {
+        Color        = Color3.fromRGB(200, 100, 180),
+        Thickness    = 1,
+        Transparency = 0.65,
+        Parent       = win,
+    })
+
+    -- Sombra decorativa
+    local shadow = Utils.New("ImageLabel", {
+        BackgroundTransparency = 1,
+        Image                  = "rbxassetid://6014261993",
+        ImageColor3            = Color3.new(0, 0, 0),
+        ImageTransparency      = 0.5,
+        ScaleType              = Enum.ScaleType.Slice,
+        SliceCenter            = Rect.new(49, 49, 450, 450),
+        Size                   = UDim2.new(1, 50, 1, 50),
+        Position               = UDim2.new(0, -25, 0, -25),
+        ZIndex                 = -1,
+        Parent                 = win,
+    })
+
+    -- Gradiente glass de fundo
+    Utils.New("UIGradient", {
+        Color    = ColorSequence.new({
+            ColorSequenceKeypoint.new(0,   Color3.fromRGB(38, 15, 62)),
+            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(22, 8,  40)),
+            ColorSequenceKeypoint.new(1,   Color3.fromRGB(14, 5,  28)),
+        }),
+        Rotation = 145,
+        Parent   = win,
+    })
+
+    -- ──────────────────────────────────────────────────────────────
+    -- TITLEBAR
+    -- ──────────────────────────────────────────────────────────────
+    local titleH = 46
+    local tb = Utils.New("Frame", {
+        BackgroundColor3      = Color3.fromRGB(20, 8, 35),
+        BackgroundTransparency = 0.3,   -- glass
+        Size                  = UDim2.new(1, 0, 0, titleH),
+        ZIndex                = 10,
+        ClipsDescendants      = false,
+        Parent                = win,
+    })
+    Utils.Corner(tb, 14)
+    -- Cobre cantos inferiores
+    Utils.New("Frame", {
+        BackgroundColor3      = Color3.fromRGB(20, 8, 35),
+        BackgroundTransparency = 0.3,
+        Size                  = UDim2.new(1, 0, 0, 14),
+        Position              = UDim2.new(0, 0, 1, -14),
+        ZIndex                = 10,
+        Parent                = tb,
+    })
+    -- Linha separadora
+    Utils.New("Frame", {
+        BackgroundColor3      = T.Border,
+        BackgroundTransparency = 0.3,
+        Size                  = UDim2.new(1, 0, 0, 1),
+        Position              = UDim2.new(0, 0, 1, -1),
+        ZIndex                = 11,
+        Parent                = tb,
+    })
+
+    -- Logo / Ícone decorativo
+    local logoFrame = Utils.New("Frame", {
+        BackgroundColor3      = Color3.fromRGB(255, 105, 180),
+        BackgroundTransparency = 0.7,   -- glass pink
+        Size                  = UDim2.new(0, 26, 0, 26),
+        Position              = UDim2.new(0, 12, 0.5, -13),
+        ZIndex                = 12,
+        Parent                = tb,
+    })
+    Utils.Corner(logoFrame, 6)
+    Utils.New("UIStroke", {
+        Color        = Color3.fromRGB(255, 105, 180),
+        Thickness    = 1,
+        Transparency = 0.4,
+        Parent       = logoFrame,
+    })
+    Utils.New("TextLabel", {
+        BackgroundTransparency = 1,
+        Size                   = UDim2.new(1, 0, 1, 0),
+        Text                   = "B",
+        TextColor3             = T.Pink,
+        Font                   = T.FntBold,
+        TextSize               = 14,
+        ZIndex                 = 13,
+        Parent                 = logoFrame,
+    })
+
+    -- Título
+    Utils.New("TextLabel", {
+        BackgroundTransparency = 1,
+        Position               = UDim2.new(0, 46, 0.5, -9),
+        Size                   = UDim2.new(0, 250, 0, 18),
+        Text                   = string.upper(title),
+        TextColor3             = T.TxtPri,
+        Font                   = T.FntTitle,
+        TextSize               = 13,
+        TextXAlignment         = Enum.TextXAlignment.Left,
+        ZIndex                 = 11,
+        Parent                 = tb,
+    })
+
+    -- Status dots (INJECTED / BYPASSED)
+    local function StatusDot(label, color, xOffset)
+        local container = Utils.New("Frame", {
+            BackgroundTransparency = 1,
+            Position               = UDim2.new(1, xOffset, 0.5, -8),
+            Size                   = UDim2.new(0, 100, 0, 16),
+            ZIndex                 = 11,
+            Parent                 = tb,
+        })
+        local dot = Utils.New("Frame", {
+            BackgroundColor3 = color,
+            Size             = UDim2.new(0, 6, 0, 6),
+            Position         = UDim2.new(0, 0, 0.5, -3),
+            ZIndex           = 12,
+            Parent           = container,
+        })
+        Utils.Corner(dot, 999)
+        Utils.New("TextLabel", {
+            BackgroundTransparency = 1,
+            Position               = UDim2.new(0, 11, 0, 0),
+            Size                   = UDim2.new(1, -11, 1, 0),
+            Text                   = label,
+            TextColor3             = T.TxtMute,
+            Font                   = T.FntMono,
+            TextSize               = 8,
+            TextXAlignment         = Enum.TextXAlignment.Left,
+            ZIndex                 = 12,
+            Parent                 = container,
+        })
+        -- Pulse animation
+        task.spawn(function()
+            while dot and dot.Parent do
+                Utils.Tween(dot, { BackgroundTransparency = 0.7, Size = UDim2.new(0, 5, 0, 5) }, 0.9)
+                task.wait(0.9)
+                Utils.Tween(dot, { BackgroundTransparency = 0, Size = UDim2.new(0, 6, 0, 6) }, 0.9)
+                task.wait(0.9)
+            end
+        end)
+        return container
+    end
+
+    StatusDot("INJECTED",  T.Pink,    -310)
+    StatusDot("BYPASSED",  T.Success, -210)
+    StatusDot("ANTICHEAT", T.Warning, -110)
+
+    -- Relógio em tempo real
+    local clock = Utils.New("TextLabel", {
+        BackgroundTransparency = 1,
+        Position               = UDim2.new(1, -62, 0.5, -8),
+        Size                   = UDim2.new(0, 55, 0, 16),
+        Text                   = Utils.GetTime(),
+        TextColor3             = T.TxtMute,
+        Font                   = T.FntMono,
+        TextSize               = 9,
+        TextXAlignment         = Enum.TextXAlignment.Right,
+        ZIndex                 = 11,
+        Parent                 = tb,
+    })
+    task.spawn(function()
+        while clock and clock.Parent do
+            clock.Text = Utils.GetTime()
+            task.wait(1)
+        end
+    end)
+
+    -- ──────────────────────────────────────────────────────────────
+    -- BOTÕES DE CONTROLE (fechar / minimizar)
+    -- ──────────────────────────────────────────────────────────────
+    local function CtrlBtn(symbol, hoverColor, xOffset, callback)
+        local b = Utils.New("TextButton", {
+            BackgroundColor3      = Color3.fromRGB(35, 15, 55),
+            BackgroundTransparency = 0.45,  -- glass
+            Position              = UDim2.new(1, xOffset, 0.5, -10),
+            Size                  = UDim2.new(0, 20, 0, 20),
+            Text                  = symbol,
+            TextColor3            = T.TxtMute,
+            Font                  = T.FntBold,
+            TextSize              = 11,
+            ZIndex                = 15,
+            Parent                = tb,
+        })
+        Utils.Corner(b, 999)
+        Utils.New("UIStroke", {
+            Color        = Color3.fromRGB(150, 60, 120),
+            Thickness    = 1,
+            Transparency = 0.6,
+            Parent       = b,
+        })
+        b.MouseEnter:Connect(function()
+            Utils.Tween(b, { BackgroundColor3 = hoverColor, TextColor3 = Color3.new(1,1,1), BackgroundTransparency = 0 }, 0.15)
+        end)
+        b.MouseLeave:Connect(function()
+            Utils.Tween(b, { BackgroundColor3 = T.BG4, TextColor3 = T.TxtMute, BackgroundTransparency = 0.4 }, 0.15)
+        end)
+        b.MouseButton1Click:Connect(callback)
+        return b
+    end
+
+    CtrlBtn("×", T.Error, -30, function()
+        TwBlur(0, 0.3)
+        Utils.Tween(win, { Size = UDim2.new(0, winWidth, 0, 0), BackgroundTransparency = 1 }, 0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In)
+        task.wait(0.38)
+        sg:Destroy()
+        if blur then pcall(function() blur:Destroy() end) end
+    end)
+
+    local minimized = false
+    CtrlBtn("−", T.Warning, -56, function()
+        minimized = not minimized
+        if minimized then
+            Utils.Tween(win, { Size = UDim2.new(0, winWidth, 0, titleH) }, 0.3, Enum.EasingStyle.Quart)
+        else
+            Utils.Tween(win, { Size = UDim2.new(0, winWidth, 0, winHeight) }, 0.4, Enum.EasingStyle.Back)
+        end
+    end)
+
+    -- ──────────────────────────────────────────────────────────────
+    -- DRAG (com conexões limpas)
+    -- ──────────────────────────────────────────────────────────────
+    local dragging, dragStart, startPos
+    local inputConn, endConn
+
+    tb.InputBegan:Connect(function(i)
+        if i.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging  = true
+            dragStart = i.Position
+            startPos  = win.Position
+        end
+    end)
+
+    inputConn = UserInputService.InputChanged:Connect(function(i)
+        if dragging and i.UserInputType == Enum.UserInputType.MouseMovement then
+            local delta = i.Position - dragStart
+            win.Position = UDim2.new(
+                startPos.X.Scale, startPos.X.Offset + delta.X,
+                startPos.Y.Scale, startPos.Y.Offset + delta.Y
+            )
+        end
+    end)
+
+    endConn = UserInputService.InputEnded:Connect(function(i)
+        if i.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+
+    -- ──────────────────────────────────────────────────────────────
+    -- TOGGLE (tecla)
+    -- ──────────────────────────────────────────────────────────────
+    local visible = true
+    UserInputService.InputBegan:Connect(function(i, gameProcessed)
+        if gameProcessed then return end
+        if i.KeyCode == key then
+            visible = not visible
+            if visible then
+                win.Visible = true
+                win.Size    = UDim2.new(0, winWidth, 0, 20)
+                Utils.Tween(win, { Size = UDim2.new(0, winWidth, 0, winHeight) }, 0.4, Enum.EasingStyle.Back)
+                TwBlur(8, 0.3)
+            else
+                TwBlur(0, 0.3)
+                Utils.Tween(win, { Size = UDim2.new(0, winWidth, 0, 20) }, 0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
+                task.wait(0.38)
+                win.Visible = false
+            end
+        end
+    end)
+
+    -- ──────────────────────────────────────────────────────────────
+    -- CORPO PRINCIPAL
+    -- ──────────────────────────────────────────────────────────────
+    local bodyTop    = titleH
+    local bodyBottom = consoleH
+    local body = Utils.New("Frame", {
+        BackgroundTransparency = 1,
+        Position               = UDim2.new(0, 0, 0, bodyTop),
+        Size                   = UDim2.new(1, 0, 1, -(bodyTop + bodyBottom)),
+        ClipsDescendants       = true,
+        Parent                 = win,
+    })
+
+    -- ──────────────────────────────────────────────────────────────
+    -- SIDEBAR (Navegação)
+    -- ──────────────────────────────────────────────────────────────
+    local sideW = 175
+    local sidebar = Utils.New("ScrollingFrame", {
+        BackgroundColor3      = Color3.fromRGB(18, 8, 32),
+        BackgroundTransparency = 0.35,  -- glass
+        BorderSizePixel       = 0,
+        Size                  = UDim2.new(0, sideW, 1, 0),
+        ScrollBarThickness    = 2,
+        ScrollBarImageColor3  = T.PinkMute,
+        CanvasSize            = UDim2.new(0, 0, 0, 0),
+        AutomaticCanvasSize   = Enum.AutomaticSize.Y,
+        ClipsDescendants      = true,
+        Parent                = body,
+    })
+    Utils.New("UIListLayout", {
+        SortOrder = Enum.SortOrder.LayoutOrder,
+        Padding   = UDim.new(0, 2),
+        Parent    = sidebar,
+    })
+    Utils.Pad(sidebar, 10, 8, 12, 8)
+
+    -- "NAVIGATION" header
+    Utils.New("TextLabel", {
+        BackgroundTransparency = 1,
+        Size                   = UDim2.new(1, 0, 0, 16),
+        Text                   = "  NAVIGATION",
+        TextColor3             = T.TxtMute,
+        Font                   = T.FntBold,
+        TextSize               = 8,
+        TextXAlignment         = Enum.TextXAlignment.Left,
+        LayoutOrder            = 0,
+        Parent                 = sidebar,
+    })
+    Utils.New("Frame", {
+        BackgroundColor3      = T.Border,
+        BackgroundTransparency = 0.5,
+        Size                  = UDim2.new(1, 0, 0, 1),
+        LayoutOrder           = 1,
+        Parent                = sidebar,
+    })
+
+    -- Indicador ativo
+    local indicator = Utils.New("Frame", {
+        BackgroundColor3 = T.Pink,
+        Size             = UDim2.new(0, 3, 0, 28),
+        AnchorPoint      = Vector2.new(1, 0.5),
+        Position         = UDim2.new(1, 0, 0, 60),
+        ZIndex           = 20,
+        Parent           = sidebar,
+    })
+    Utils.Corner(indicator, 4)
+
+    -- Divisor lateral (sombra)
+    Utils.New("Frame", {
+        BackgroundColor3 = T.Border,
+        Size             = UDim2.new(0, 1, 1, 0),
+        Position         = UDim2.new(0, sideW, 0, 0),
+        ZIndex           = 5,
+        Parent           = body,
+    })
+
+    -- ──────────────────────────────────────────────────────────────
+    -- CONTENT AREA
+    -- ──────────────────────────────────────────────────────────────
+    local contentArea = Utils.New("Frame", {
+        BackgroundTransparency = 1,
+        Position               = UDim2.new(0, sideW + 1, 0, 0),
+        Size                   = UDim2.new(1, -(sideW + 1), 1, 0),
+        ClipsDescendants       = true,
+        Parent                 = body,
+    })
+
+    -- ──────────────────────────────────────────────────────────────
+    -- CONSOLE (opcional)
+    -- ──────────────────────────────────────────────────────────────
+    local consoleLog = {}
+    local consoleLabel = nil
+
+    if showConsole then
+        local consoleFrame = Utils.New("Frame", {
+            BackgroundColor3      = Color3.fromRGB(12, 5, 22),
+            BackgroundTransparency = 0.3,   -- glass
+            Position              = UDim2.new(0, 0, 1, -bodyBottom),
+            Size                  = UDim2.new(1, 0, 0, bodyBottom),
+            ZIndex                = 8,
+            Parent                = win,
+        })
+        Utils.New("UIStroke", {
+            Color        = Color3.fromRGB(120, 45, 100),
+            Thickness    = 1,
+            Transparency = 0.6,
+            Parent       = consoleFrame,
+        })
+
+        -- Header do console
+        local consoleHeader = Utils.New("Frame", {
+            BackgroundColor3      = Color3.fromRGB(20, 8, 35),
+            BackgroundTransparency = 0.4,
+            Size                  = UDim2.new(1, 0, 0, 22),
+            ZIndex                = 9,
+            Parent                = consoleFrame,
+        })
+        Utils.New("TextLabel", {
+            BackgroundTransparency = 1,
+            Position               = UDim2.new(0, 10, 0, 0),
+            Size                   = UDim2.new(1, 0, 1, 0),
+            Text                   = "  CONSOLE",
+            TextColor3             = T.TxtMute,
+            Font                   = T.FntBold,
+            TextSize               = 8,
+            TextXAlignment         = Enum.TextXAlignment.Left,
+            ZIndex                 = 10,
+            Parent                 = consoleHeader,
+        })
+
+        -- ScrollingFrame do console
+        local consoleScroll = Utils.New("ScrollingFrame", {
+            BackgroundTransparency = 1,
+            Position               = UDim2.new(0, 8, 0, 24),
+            Size                   = UDim2.new(1, -16, 1, -30),
+            ScrollBarThickness     = 2,
+            ScrollBarImageColor3   = T.PinkMute,
+            CanvasSize             = UDim2.new(0, 0, 0, 0),
+            AutomaticCanvasSize    = Enum.AutomaticSize.Y,
+            ZIndex                 = 9,
+            Parent                 = consoleFrame,
+        })
+        Utils.New("UIListLayout", {
+            SortOrder = Enum.SortOrder.LayoutOrder,
+            Padding   = UDim.new(0, 2),
+            Parent    = consoleScroll,
+        })
+
+        -- Função pública para log no console
+        local logOrder = 0
+        consoleLog.Print = function(msg, logType)
+            logOrder = logOrder + 1
+            local prefixes = { ok = "[OK]", sys = "[SYS]", err = "[ERR]", warn = "[WRN]" }
+            local colors   = { ok = T.Success, sys = T.Info, err = T.Error, warn = T.Warning }
+            local lt     = logType or "ok"
+            local prefix = prefixes[lt] or "[LOG]"
+            local col    = colors[lt] or T.TxtSec
+
+            local row = Utils.New("Frame", {
+                BackgroundTransparency = 1,
+                Size                   = UDim2.new(1, 0, 0, 14),
+                LayoutOrder            = logOrder,
+                Parent                 = consoleScroll,
+            })
+            Utils.New("TextLabel", {
+                BackgroundTransparency = 1,
+                Size                   = UDim2.new(0, 38, 1, 0),
+                Text                   = prefix,
+                TextColor3             = col,
+                Font                   = T.FntMono,
+                TextSize               = 8,
+                TextXAlignment         = Enum.TextXAlignment.Left,
+                Parent                 = row,
+            })
+            Utils.New("TextLabel", {
+                BackgroundTransparency = 1,
+                Position               = UDim2.new(0, 40, 0, 0),
+                Size                   = UDim2.new(1, -40, 1, 0),
+                Text                   = tostring(msg),
+                TextColor3             = T.TxtSec,
+                Font                   = T.FntMono,
+                TextSize               = 8,
+                TextXAlignment         = Enum.TextXAlignment.Left,
+                Parent                 = row,
+            })
+            -- Auto-scroll
+            task.defer(function()
+                if consoleScroll then
+                    consoleScroll.CanvasPosition = Vector2.new(0, math.huge)
+                end
+            end)
+        end
+    end
+
+    -- ──────────────────────────────────────────────────────────────
+    -- OBJETO WINDOW (API pública)
+    -- ──────────────────────────────────────────────────────────────
+    local Win = {
+        _tabs    = {},
+        _btns    = {},
+        _active  = nil,
+        _order   = 2,  -- 0 = header label, 1 = divisor
+        Console  = consoleLog,
+    }
+
+    -- ──────────────────────────────────────────────────────────────
+    -- MÉTODO: AddTab
+    -- ──────────────────────────────────────────────────────────────
+    function Win:AddTab(tc)
+        tc = tc or {}
+        local name  = tc.Name   or ("Tab " .. (#self._tabs + 1))
+        local badge = tc.Badge  -- string/number, opcional
+        local icon  = tc.Icon   -- símbolo de texto, opcional
+
+        self._order = self._order + 1
+        local lo    = self._order
+
+        -- ── Botão no sidebar ──
+        local btn = Utils.New("TextButton", {
+            BackgroundColor3      = T.BG4,
+            BackgroundTransparency = 1,
+            Size                  = UDim2.new(1, 0, 0, 34),
+            Text                  = "",
+            LayoutOrder           = lo,
+            ClipsDescendants      = true,
+            Parent                = sidebar,
+        })
+        Utils.Corner(btn, 7)
+
+        -- Barra decorativa esquerda
+        local accentBar = Utils.New("Frame", {
+            BackgroundColor3 = T.Pink,
+            Size             = UDim2.new(0, 2, 0.5, 0),
+            Position         = UDim2.new(0, 6, 0.25, 0),
+            BackgroundTransparency = 0.6,
+            Parent           = btn,
+        })
+        Utils.Corner(accentBar, 2)
+
+        -- Ícone opcional
+        local labelXOffset = 14
+        if icon then
+            local iconLbl = Utils.New("TextLabel", {
+                BackgroundTransparency = 1,
+                Position               = UDim2.new(0, 14, 0.5, -7),
+                Size                   = UDim2.new(0, 14, 0, 14),
+                Text                   = icon,
+                TextColor3             = T.TxtMute,
+                Font                   = T.FntBold,
+                TextSize               = 11,
+                ZIndex                 = 2,
+                Parent                 = btn,
+            })
+            labelXOffset = 32
+        end
+
+        local nameLbl = Utils.New("TextLabel", {
+            BackgroundTransparency = 1,
+            Position               = UDim2.new(0, labelXOffset, 0.5, -8),
+            Size                   = UDim2.new(1, -(labelXOffset + 30), 0, 16),
+            Text                   = string.upper(name),
+            TextColor3             = T.TxtSec,
+            Font                   = T.FntBody,
+            TextSize               = 10,
+            TextXAlignment         = Enum.TextXAlignment.Left,
+            ZIndex                 = 2,
+            Parent                 = btn,
+        })
+
+        -- Badge
+        if badge then
+            local bFrame = Utils.New("Frame", {
+                BackgroundColor3 = T.Pink,
+                Position         = UDim2.new(1, -28, 0.5, -9),
+                Size             = UDim2.new(0, 22, 0, 18),
+                ZIndex           = 3,
+                Parent           = btn,
+            })
+            Utils.Corner(bFrame, 5)
+            Utils.New("TextLabel", {
+                BackgroundTransparency = 1,
+                Size                   = UDim2.new(1, 0, 1, 0),
+                Text                   = tostring(badge),
+                TextColor3             = Color3.new(1, 1, 1),
+                Font                   = T.FntBold,
+                TextSize               = 9,
+                ZIndex                 = 4,
+                Parent                 = bFrame,
+            })
+        end
+
+        -- ── Página de conteúdo ──
+        local page = Utils.New("ScrollingFrame", {
+            BackgroundTransparency = 1,
+            Size                   = UDim2.new(1, 0, 1, 0),
+            ScrollBarThickness     = 2,
+            ScrollBarImageColor3   = T.PinkMute,
+            CanvasSize             = UDim2.new(0, 0, 0, 0),
+            AutomaticCanvasSize    = Enum.AutomaticSize.Y,
+            Visible                = false,
+            Parent                 = contentArea,
+        })
+        Utils.Pad(page, 14, 14, 14, 14)
+        Utils.New("UIListLayout", {
+            SortOrder = Enum.SortOrder.LayoutOrder,
+            Padding   = UDim.new(0, 10),
+            Parent    = page,
+        })
+
+        -- Header da página
+        local pageHeader = Utils.New("Frame", {
+            BackgroundTransparency = 1,
+            Size                   = UDim2.new(1, 0, 0, 30),
+            LayoutOrder            = 0,
+            Parent                 = page,
+        })
+        Utils.New("TextLabel", {
+            BackgroundTransparency = 1,
+            Size                   = UDim2.new(0.5, 0, 1, 0),
+            Text                   = string.upper(name),
+            TextColor3             = T.TxtPri,
+            Font                   = T.FntBold,
+            TextSize               = 16,
+            TextXAlignment         = Enum.TextXAlignment.Left,
+            Parent                 = pageHeader,
+        })
+        Utils.New("Frame", {
+            BackgroundColor3      = T.Border,
+            BackgroundTransparency = 0.4,
+            Size                  = UDim2.new(1, 0, 0, 1),
+            Position              = UDim2.new(0, 0, 1, -1),
+            Parent                = pageHeader,
+        })
+
+        -- ── Grid 2 colunas ──
+        local grid = Utils.New("Frame", {
+            BackgroundTransparency = 1,
+            Size                   = UDim2.new(1, 0, 0, 0),
+            AutomaticSize          = Enum.AutomaticSize.Y,
+            LayoutOrder            = 1,
+            Parent                 = page,
+        })
+        local colL = Utils.New("Frame", {
+            BackgroundTransparency = 1,
+            Position               = UDim2.new(0, 0, 0, 0),
+            Size                   = UDim2.new(0.5, -5, 0, 0),
+            AutomaticSize          = Enum.AutomaticSize.Y,
+            Parent                 = grid,
+        })
+        Utils.New("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 8), Parent = colL })
+        local colR = Utils.New("Frame", {
+            BackgroundTransparency = 1,
+            Position               = UDim2.new(0.5, 5, 0, 0),
+            Size                   = UDim2.new(0.5, -5, 0, 0),
+            AutomaticSize          = Enum.AutomaticSize.Y,
+            Parent                 = grid,
+        })
+        Utils.New("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 8), Parent = colR })
+        local colIdx = 0
+
+        -- ── Ativar tab ──
+        local function Activate(instant)
+            -- Desativar todos
+            for _, item in ipairs(Win._btns) do
+                Utils.Tween(item.btn, { BackgroundTransparency = 1 }, 0.2)
+                Utils.Tween(item.lbl, { TextColor3 = T.TxtSec }, 0.2)
+                if item.bar then Utils.Tween(item.bar, { BackgroundTransparency = 0.6 }, 0.2) end
+            end
+            for _, pg in ipairs(Win._tabs) do pg.Visible = false end
+
+            -- Ativar este
+            Utils.Tween(btn, { BackgroundTransparency = 0.75, BackgroundColor3 = T.BG3 }, 0.2)
+            Utils.Tween(nameLbl, { TextColor3 = T.Pink }, 0.2)
+            Utils.Tween(accentBar, { BackgroundTransparency = 0 }, 0.2)
+
+            local yp = btn.AbsolutePosition.Y - sidebar.AbsolutePosition.Y + btn.AbsoluteSize.Y / 2
+            if instant then
+                indicator.Position = UDim2.new(1, 0, 0, yp - 14)
+            else
+                Utils.Tween(indicator, { Position = UDim2.new(1, 0, 0, yp - 14) }, 0.3, Enum.EasingStyle.Quart)
+            end
+
+            page.Visible   = true
+            Win._active    = page
+        end
+
+        table.insert(Win._tabs, page)
+        table.insert(Win._btns, { btn = btn, lbl = nameLbl, bar = accentBar })
+
+        btn.MouseEnter:Connect(function()
+            if Win._active ~= page then
+                Utils.Tween(btn, { BackgroundTransparency = 0.88, BackgroundColor3 = T.BG3 }, 0.15)
+            end
+        end)
+        btn.MouseLeave:Connect(function()
+            if Win._active ~= page then
+                Utils.Tween(btn, { BackgroundTransparency = 1 }, 0.15)
+            end
+        end)
+        btn.MouseButton1Click:Connect(function()
+            Utils.Ripple(btn, Mouse.X, Mouse.Y)
+            Activate()
+        end)
+
+        if #Win._tabs == 1 then task.defer(function() Activate(true) end) end
+
+        -- ──────────────────────────────────────────────────────────
+        -- API DA TAB
+        -- ──────────────────────────────────────────────────────────
+        local Tab = {}
+
+        function Tab:AddSection(sname)
+            colIdx = colIdx + 1
+            local col = (colIdx % 2 == 1) and colL or colR
+
+            -- Card da seção
+            local card = Utils.New("Frame", {
+                BackgroundColor3      = Color3.fromRGB(38, 18, 60),
+                BackgroundTransparency = 0.45,  -- glass
+                Size                  = UDim2.new(1, 0, 0, 0),
+                AutomaticSize         = Enum.AutomaticSize.Y,
+                LayoutOrder           = colIdx,
+                Parent                = col,
+            })
+            Utils.Corner(card, 12)
+            -- Borda glass luminosa
+            Utils.New("UIStroke", {
+                Color        = Color3.fromRGB(180, 80, 160),
+                Thickness    = 1,
+                Transparency = 0.72,
+                Parent       = card,
+            })
+            Utils.New("UIListLayout", {
+                SortOrder = Enum.SortOrder.LayoutOrder,
+                Padding   = UDim.new(0, 0),
+                Parent    = card,
+            })
+            Utils.Pad(card, 0, 10, 10, 10)
+
+            -- Header da seção
+            local secHeader = Utils.New("Frame", {
+                BackgroundTransparency = 1,
+                Size                   = UDim2.new(1, 0, 0, 34),
+                LayoutOrder            = 0,
+                Parent                 = card,
+            })
+            -- Dot pulsante
+            local dot = Utils.New("Frame", {
+                BackgroundColor3 = T.Pink,
+                Size             = UDim2.new(0, 6, 0, 6),
+                Position         = UDim2.new(0, 0, 0.5, -3),
+                Parent           = secHeader,
+            })
+            Utils.Corner(dot, 999)
+            task.spawn(function()
+                while dot and dot.Parent do
+                    Utils.Tween(dot, { BackgroundTransparency = 0.7, Size = UDim2.new(0, 4, 0, 4) }, 1.0)
+                    task.wait(1.0)
+                    Utils.Tween(dot, { BackgroundTransparency = 0, Size = UDim2.new(0, 6, 0, 6) }, 1.0)
+                    task.wait(1.0)
+                end
+            end)
+            Utils.New("TextLabel", {
+                BackgroundTransparency = 1,
+                Position               = UDim2.new(0, 13, 0.5, -8),
+                Size                   = UDim2.new(1, -13, 0, 16),
+                Text                   = string.upper(sname),
+                TextColor3             = T.TxtAcct,
+                Font                   = T.FntBold,
+                TextSize               = 10,
+                TextXAlignment         = Enum.TextXAlignment.Left,
+                Parent                 = secHeader,
+            })
+            -- Linha separadora
+            Utils.New("Frame", {
+                BackgroundColor3      = T.Border,
+                BackgroundTransparency = 0.3,
+                Size                  = UDim2.new(1, 20, 0, 1),
+                Position              = UDim2.new(0, -10, 1, -1),
+                Parent                = secHeader,
+            })
+
+            -- ──────────────────────────────────────────────────────
+            -- API DA SEÇÃO
+            -- ──────────────────────────────────────────────────────
+            local Sec    = {}
+            local iOrder = 0
+
+            -- Helper: linha padrão
+            local function Row(label, height)
+                iOrder = iOrder + 1
+                local r = Utils.New("Frame", {
+                    BackgroundTransparency = 1,
+                    Size                   = UDim2.new(1, 0, 0, height or 34),
+                    LayoutOrder            = iOrder,
+                    Parent                 = card,
+                })
+                Utils.New("TextLabel", {
+                    BackgroundTransparency = 1,
+                    Position               = UDim2.new(0, 2, 0.5, -8),
+                    Size                   = UDim2.new(0.55, -4, 0, 16),
+                    Text                   = label,
+                    TextColor3             = T.TxtPri,
+                    Font                   = T.FntBody,
+                    TextSize               = 10,
+                    TextXAlignment         = Enum.TextXAlignment.Left,
+                    Parent                 = r,
+                })
+                return r
+            end
+
+            -- ── TOGGLE ──
+            function Sec:AddToggle(c)
+                c = c or {}
+                local row    = Row(c.Name or "Toggle")
+                local state  = c.Default or false
+                local cb     = c.Callback or function() end
+
+                local track = Utils.New("Frame", {
+                    BackgroundColor3      = Color3.fromRGB(30, 15, 50),
+                    BackgroundTransparency = 0.3,  -- glass
+                    Position              = UDim2.new(1, -50, 0.5, -10),
+                    Size                  = UDim2.new(0, 44, 0, 20),
+                    Parent                = row,
+                })
+                Utils.Corner(track, 999)
+                Utils.New("UIStroke", {
+                    Color        = Color3.fromRGB(120, 50, 100),
+                    Thickness    = 1,
+                    Transparency = 0.5,
+                    Parent       = track,
+                })
+
+                local fill = Utils.New("Frame", {
+                    BackgroundColor3 = T.Pink,
+                    Size             = UDim2.new(0, 0, 1, 0),
+                    ClipsDescendants = true,
+                    Parent           = track,
+                })
+                Utils.Corner(fill, 999)
+
+                local thumb = Utils.New("Frame", {
+                    BackgroundColor3 = Color3.new(1, 1, 1),
+                    Position         = UDim2.new(0, 2, 0.5, -7),
+                    Size             = UDim2.new(0, 14, 0, 14),
+                    ZIndex           = 3,
+                    Parent           = track,
+                })
+                Utils.Corner(thumb, 999)
+
+                local function UpdateToggle(s, animate)
+                    if s then
+                        if animate then
+                            Utils.Tween(fill,  { Size = UDim2.new(1, 0, 1, 0) }, 0.2)
+                            Utils.Tween(thumb, { Position = UDim2.new(1, -16, 0.5, -7), BackgroundColor3 = T.PinkLight }, 0.2)
+                            Utils.Tween(track, { BackgroundColor3 = T.PinkDark }, 0.2)
+                        else
+                            fill.Size             = UDim2.new(1, 0, 1, 0)
+                            thumb.Position        = UDim2.new(1, -16, 0.5, -7)
+                            thumb.BackgroundColor3 = T.PinkLight
+                            track.BackgroundColor3 = T.PinkDark
+                        end
+                    else
+                        if animate then
+                            Utils.Tween(fill,  { Size = UDim2.new(0, 0, 1, 0) }, 0.2)
+                            Utils.Tween(thumb, { Position = UDim2.new(0, 2, 0.5, -7), BackgroundColor3 = Color3.new(1, 1, 1) }, 0.2)
+                            Utils.Tween(track, { BackgroundColor3 = T.BG4 }, 0.2)
+                        else
+                            fill.Size              = UDim2.new(0, 0, 1, 0)
+                            thumb.Position         = UDim2.new(0, 2, 0.5, -7)
+                            thumb.BackgroundColor3 = Color3.new(1, 1, 1)
+                            track.BackgroundColor3 = T.BG4
+                        end
+                    end
+                end
+                UpdateToggle(state, false)
+
+                local hit = Utils.New("TextButton", {
+                    BackgroundTransparency = 1,
+                    Size                   = UDim2.new(1, 0, 1, 0),
+                    Text                   = "",
+                    ZIndex                 = 5,
+                    Parent                 = row,
+                })
+                hit.MouseButton1Click:Connect(function()
+                    state = not state
+                    UpdateToggle(state, true)
+                    cb(state)
+                end)
+
+                local obj = {}
+                function obj:Set(v, silent)
+                    state = v
+                    UpdateToggle(v, true)
+                    if not silent then cb(v) end
+                end
+                function obj:Get() return state end
+                return obj
+            end
+
+            -- ── SLIDER ──
+            function Sec:AddSlider(c)
+                c = c or {}
+                local mn    = c.Min     or 0
+                local mx    = c.Max     or 100
+                local def   = c.Default or mn
+                local cb    = c.Callback or function() end
+                local sfx   = c.Suffix  or ""
+                local isInt = c.Integer or false
+
+                iOrder = iOrder + 1
+                local row = Utils.New("Frame", {
+                    BackgroundTransparency = 1,
+                    Size                   = UDim2.new(1, 0, 0, 48),
+                    LayoutOrder            = iOrder,
+                    Parent                 = card,
+                })
+
+                Utils.New("TextLabel", {
+                    BackgroundTransparency = 1,
+                    Position               = UDim2.new(0, 2, 0, 4),
+                    Size                   = UDim2.new(0.6, 0, 0, 14),
+                    Text                   = c.Name or "Slider",
+                    TextColor3             = T.TxtPri,
+                    Font                   = T.FntBody,
+                    TextSize               = 10,
+                    TextXAlignment         = Enum.TextXAlignment.Left,
+                    Parent                 = row,
+                })
+
+                local valLabel = Utils.New("TextLabel", {
+                    BackgroundTransparency = 1,
+                    Position               = UDim2.new(0.6, 0, 0, 4),
+                    Size                   = UDim2.new(0.4, -2, 0, 14),
+                    Text                   = tostring(def) .. sfx,
+                    TextColor3             = T.PinkLight,
+                    Font                   = T.FntMono,
+                    TextSize               = 9,
+                    TextXAlignment         = Enum.TextXAlignment.Right,
+                    Parent                 = row,
+                })
+
+                local track = Utils.New("Frame", {
+                    BackgroundColor3      = Color3.fromRGB(30, 14, 50),
+                    BackgroundTransparency = 0.3,  -- glass
+                    Position              = UDim2.new(0, 2, 0, 27),
+                    Size                  = UDim2.new(1, -4, 0, 8),
+                    Parent                = row,
+                })
+                Utils.Corner(track, 999)
+                Utils.New("UIStroke", {
+                    Color        = Color3.fromRGB(120, 50, 100),
+                    Thickness    = 1,
+                    Transparency = 0.55,
+                    Parent       = track,
+                })
+
+                local fillBar = Utils.New("Frame", {
+                    BackgroundColor3 = T.Pink,
+                    Size             = UDim2.new((def - mn) / (mx - mn), 0, 1, 0),
+                    ClipsDescendants = true,
+                    Parent           = track,
+                })
+                Utils.Corner(fillBar, 999)
+                Utils.Gradient(fillBar, { T.PinkMute, T.Pink }, 0)
+
+                local thumb = Utils.New("Frame", {
+                    BackgroundColor3 = Color3.new(1, 1, 1),
+                    AnchorPoint      = Vector2.new(0.5, 0.5),
+                    Position         = UDim2.new((def - mn) / (mx - mn), 0, 0.5, 0),
+                    Size             = UDim2.new(0, 14, 0, 14),
+                    ZIndex           = 4,
+                    Parent           = track,
+                })
+                Utils.Corner(thumb, 999)
+                Utils.Stroke(thumb, T.Pink, 2)
+
+                local currentVal = def
+                local draggingSlider = false
+
+                local function UpdateSlider(v)
+                    v = math.clamp(v, mn, mx)
+                    if isInt then v = math.round(v) end
+                    currentVal = v
+                    local pct = (v - mn) / (mx - mn)
+                    Utils.Tween(fillBar, { Size = UDim2.new(pct, 0, 1, 0) }, 0.05)
+                    Utils.Tween(thumb,   { Position = UDim2.new(pct, 0, 0.5, 0) }, 0.05)
+                    valLabel.Text = tostring(isInt and v or math.round(v * 10) / 10) .. sfx
+                    cb(v)
+                end
+
+                track.InputBegan:Connect(function(i)
+                    if i.UserInputType == Enum.UserInputType.MouseButton1 then
+                        draggingSlider = true
+                        local pct = math.clamp((i.Position.X - track.AbsolutePosition.X) / track.AbsoluteSize.X, 0, 1)
+                        UpdateSlider(mn + (mx - mn) * pct)
+                    end
+                end)
+
+                -- Conexões locais para evitar leak global
+                local sliderMove = UserInputService.InputChanged:Connect(function(i)
+                    if draggingSlider and i.UserInputType == Enum.UserInputType.MouseMovement then
+                        local pct = math.clamp((i.Position.X - track.AbsolutePosition.X) / track.AbsoluteSize.X, 0, 1)
+                        UpdateSlider(mn + (mx - mn) * pct)
+                    end
+                end)
+                local sliderEnd = UserInputService.InputEnded:Connect(function(i)
+                    if i.UserInputType == Enum.UserInputType.MouseButton1 then
+                        draggingSlider = false
+                    end
+                end)
+                -- Limpar quando o card for destruído
+                card.AncestryChanged:Connect(function()
+                    if not card.Parent then
+                        sliderMove:Disconnect()
+                        sliderEnd:Disconnect()
+                    end
+                end)
+
+                local obj = {}
+                function obj:Set(v) UpdateSlider(v) end
+                function obj:Get() return currentVal end
+                return obj
+            end
+
+            -- ── BUTTON ──
+            function Sec:AddButton(c)
+                c = c or {}
+                iOrder = iOrder + 1
+                local rowH = c.Description and 52 or 34
+                local row = Utils.New("Frame", {
+                    BackgroundTransparency = 1,
+                    Size                   = UDim2.new(1, 0, 0, rowH),
+                    LayoutOrder            = iOrder,
+                    Parent                 = card,
+                })
+                local btn2 = Utils.New("TextButton", {
+                    BackgroundColor3      = Color3.fromRGB(55, 22, 80),
+                    BackgroundTransparency = 0.35,  -- glass
+                    Position              = UDim2.new(0, 2, 0, c.Description and 4 or 5),
+                    Size                  = UDim2.new(1, -4, 0, 24),
+                    Text                  = "",
+                    ClipsDescendants      = true,
+                    Parent                = row,
+                })
+                Utils.Corner(btn2, 6)
+                Utils.New("UIStroke", {
+                    Color        = Color3.fromRGB(200, 80, 160),
+                    Thickness    = 1,
+                    Transparency = 0.6,
+                    Parent       = btn2,
+                })
+
+                Utils.New("TextLabel", {
+                    BackgroundTransparency = 1,
+                    Size                   = UDim2.new(1, 0, 1, 0),
+                    Text                   = c.Name or "Button",
+                    TextColor3             = T.PinkLight,
+                    Font                   = T.FntBold,
+                    TextSize               = 10,
+                    Parent                 = btn2,
+                })
+
+                if c.Description then
+                    Utils.New("TextLabel", {
+                        BackgroundTransparency = 1,
+                        Position               = UDim2.new(0, 2, 0, 30),
+                        Size                   = UDim2.new(1, -4, 0, 14),
+                        Text                   = c.Description,
+                        TextColor3             = T.TxtMute,
+                        Font                   = T.FntBody,
+                        TextSize               = 8,
+                        TextXAlignment         = Enum.TextXAlignment.Center,
+                        Parent                 = row,
+                    })
+                end
+
+                btn2.MouseEnter:Connect(function()
+                    Utils.Tween(btn2, { BackgroundColor3 = Color3.fromRGB(80, 30, 110), BackgroundTransparency = 0.2 }, 0.15)
+                end)
+                btn2.MouseLeave:Connect(function()
+                    Utils.Tween(btn2, { BackgroundColor3 = Color3.fromRGB(55, 22, 80), BackgroundTransparency = 0.35 }, 0.15)
+                end)
+                btn2.MouseButton1Click:Connect(function()
+                    Utils.Ripple(btn2, Mouse.X, Mouse.Y)
+                    Utils.Tween(btn2, { BackgroundColor3 = T.Pink }, 0.06)
+                    task.wait(0.09)
+                    Utils.Tween(btn2, { BackgroundColor3 = T.BG4 }, 0.3)
+                    ;(c.Callback or function() end)()
+                end)
+            end
+
+            -- ── KEYBIND ──
+            function Sec:AddBind(c)
+                c = c or {}
+                local row       = Row(c.Name or "Keybind")
+                local boundKey  = c.Default
+                local listening = false
+                local cb        = c.Callback or function() end
+
+                local chip = Utils.New("TextButton", {
+                    BackgroundColor3      = Color3.fromRGB(32, 14, 52),
+                    BackgroundTransparency = 0.35,
+                    Position              = UDim2.new(1, -76, 0.5, -11),
+                    Size                  = UDim2.new(0, 72, 0, 22),
+                    Text                  = boundKey and boundKey.Name or "None",
+                    TextColor3            = boundKey and T.PinkLight or T.TxtMute,
+                    Font                  = T.FntMono,
+                    TextSize              = 9,
+                    ClipsDescendants      = true,
+                    Parent                = row,
+                })
+                Utils.Corner(chip, 5)
+                Utils.New("UIStroke", {
+                    Color        = Color3.fromRGB(140, 55, 110),
+                    Thickness    = 1,
+                    Transparency = 0.55,
+                    Parent       = chip,
+                })
+
+                chip.MouseButton1Click:Connect(function()
+                    if listening then return end
+                    listening      = true
+                    chip.Text      = "..."
+                    chip.TextColor3 = T.Pink
+                    local con
+                    con = UserInputService.InputBegan:Connect(function(i, gp)
+                        if gp then return end
+                        if i.UserInputType == Enum.UserInputType.Keyboard then
+                            if i.KeyCode == Enum.KeyCode.Escape then
+                                boundKey        = nil
+                                chip.Text       = "None"
+                                chip.TextColor3 = T.TxtMute
+                            else
+                                boundKey        = i.KeyCode
+                                chip.Text       = i.KeyCode.Name
+                                chip.TextColor3 = T.PinkLight
+                            end
+                            listening = false
+                            con:Disconnect()
+                        end
+                    end)
+                end)
+
+                UserInputService.InputBegan:Connect(function(i, gp)
+                    if not gp and boundKey and i.KeyCode == boundKey then cb() end
+                end)
+
+                local obj = {}
+                function obj:Set(v)
+                    boundKey        = v
+                    chip.Text       = v and v.Name or "None"
+                    chip.TextColor3 = v and T.PinkLight or T.TxtMute
+                end
+                function obj:Get() return boundKey end
+                return obj
+            end
+
+            -- ── DROPDOWN ──
+            function Sec:AddDropdown(c)
+                c = c or {}
+                local row     = Row(c.Name or "Dropdown", 34)
+                local options = c.Options  or {}
+                local sel     = c.Default  or options[1]
+                local cb      = c.Callback or function() end
+                local isOpen  = false
+
+                local dropBtn = Utils.New("TextButton", {
+                    BackgroundColor3      = Color3.fromRGB(32, 14, 52),
+                    BackgroundTransparency = 0.35,  -- glass
+                    Position              = UDim2.new(0.42, 0, 0.5, -11),
+                    Size                  = UDim2.new(0.58, -2, 0, 22),
+                    Text                  = "",
+                    ClipsDescendants      = false,
+                    Parent                = row,
+                })
+                Utils.Corner(dropBtn, 5)
+                Utils.New("UIStroke", {
+                    Color        = Color3.fromRGB(140, 55, 110),
+                    Thickness    = 1,
+                    Transparency = 0.55,
+                    Parent       = dropBtn,
+                })
+
+                local selLabel = Utils.New("TextLabel", {
+                    BackgroundTransparency = 1,
+                    Position               = UDim2.new(0, 7, 0, 0),
+                    Size                   = UDim2.new(1, -22, 1, 0),
+                    Text                   = tostring(sel or ""),
+                    TextColor3             = T.TxtPri,
+                    Font                   = T.FntBody,
+                    TextSize               = 9,
+                    TextXAlignment         = Enum.TextXAlignment.Left,
+                    Parent                 = dropBtn,
+                })
+
+                local chevron = Utils.New("TextLabel", {
+                    BackgroundTransparency = 1,
+                    Position               = UDim2.new(1, -16, 0.5, -7),
+                    Size                   = UDim2.new(0, 12, 0, 14),
+                    Text                   = "v",
+                    TextColor3             = T.PinkLight,
+                    Font                   = T.FntBold,
+                    TextSize               = 9,
+                    Parent                 = dropBtn,
+                })
+
+                -- Lista flutuante glass
+                local dropList = Utils.New("Frame", {
+                    BackgroundColor3      = Color3.fromRGB(22, 10, 38),
+                    BackgroundTransparency = 0.2,
+                    Position              = UDim2.new(0, 0, 1, 4),
+                    Size                  = UDim2.new(1, 0, 0, 0),
+                    ZIndex                = 100,
+                    ClipsDescendants      = true,
+                    Visible               = false,
+                    Parent                = dropBtn,
+                })
+                Utils.Corner(dropList, 7)
+                Utils.New("UIStroke", {
+                    Color        = Color3.fromRGB(180, 80, 160),
+                    Thickness    = 1,
+                    Transparency = 0.55,
+                    Parent       = dropList,
+                })
+                Utils.New("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, Parent = dropList })
+
+                for i, opt in ipairs(options) do
+                    local ob = Utils.New("TextButton", {
+                        BackgroundColor3      = T.BG4,
+                        BackgroundTransparency = (opt == sel) and 0.5 or 1,
+                        Size                  = UDim2.new(1, 0, 0, 26),
+                        Text                  = "",
+                        LayoutOrder           = i,
+                        ZIndex                = 101,
+                        Parent                = dropList,
+                    })
+                    Utils.New("TextLabel", {
+                        BackgroundTransparency = 1,
+                        Position               = UDim2.new(0, 9, 0, 0),
+                        Size                   = UDim2.new(1, -9, 1, 0),
+                        Text                   = tostring(opt),
+                        TextColor3             = (opt == sel) and T.PinkLight or T.TxtPri,
+                        Font                   = T.FntBody,
+                        TextSize               = 9,
+                        TextXAlignment         = Enum.TextXAlignment.Left,
+                        ZIndex                 = 102,
+                        Parent                 = ob,
+                    })
+                    ob.MouseEnter:Connect(function() Utils.Tween(ob, { BackgroundTransparency = 0.6, BackgroundColor3 = T.BG4 }, 0.1) end)
+                    ob.MouseLeave:Connect(function() Utils.Tween(ob, { BackgroundTransparency = opt == sel and 0.5 or 1 }, 0.1) end)
+                    ob.MouseButton1Click:Connect(function()
+                        sel           = opt
+                        selLabel.Text = tostring(opt)
+                        isOpen        = false
+                        Utils.Tween(chevron,  { Rotation = 0 }, 0.2)
+                        Utils.Tween(dropList, { Size = UDim2.new(1, 0, 0, 0) }, 0.2)
+                        task.wait(0.22)
+                        dropList.Visible = false
+                        cb(sel)
+                    end)
+                end
+
+                local totalH = #options * 26
+                dropBtn.MouseButton1Click:Connect(function()
+                    isOpen = not isOpen
+                    if isOpen then
+                        dropList.Visible = true
+                        dropList.Size    = UDim2.new(1, 0, 0, 0)
+                        Utils.Tween(dropList, { Size = UDim2.new(1, 0, 0, totalH) }, 0.28, Enum.EasingStyle.Back)
+                        Utils.Tween(chevron,  { Rotation = 180 }, 0.2)
+                    else
+                        Utils.Tween(chevron,  { Rotation = 0 }, 0.2)
+                        Utils.Tween(dropList, { Size = UDim2.new(1, 0, 0, 0) }, 0.2)
+                        task.wait(0.22)
+                        dropList.Visible = false
+                    end
+                end)
+
+                local obj = {}
+                function obj:Set(v)  sel = v selLabel.Text = tostring(v) end
+                function obj:Get()  return sel end
+                return obj
+            end
+
+            -- ── TEXTBOX ──
+            function Sec:AddTextBox(c)
+                c = c or {}
+                local row     = Row(c.Name or "Input", 34)
+                local cb      = c.Callback  or function() end
+                local numOnly = c.NumberOnly or false
+
+                local box = Utils.New("TextBox", {
+                    BackgroundColor3      = Color3.fromRGB(32, 14, 52),
+                    BackgroundTransparency = 0.35,  -- glass
+                    Position              = UDim2.new(0.42, 0, 0.5, -11),
+                    Size                  = UDim2.new(0.58, -2, 0, 22),
+                    Text                  = c.Default     or "",
+                    PlaceholderText       = c.Placeholder  or "...",
+                    TextColor3            = T.TxtPri,
+                    PlaceholderColor3     = T.TxtMute,
+                    Font                  = T.FntBody,
+                    TextSize              = 9,
+                    ClearTextOnFocus      = false,
+                    Parent                = row,
+                })
+                Utils.Corner(box, 5)
+                local boxStroke = Utils.New("UIStroke", {
+                    Color        = Color3.fromRGB(140, 55, 110),
+                    Thickness    = 1,
+                    Transparency = 0.55,
+                    Parent       = box,
+                })
+
+                box.Focused:Connect(function()
+                    Utils.Tween(boxStroke, { Color = T.Pink, Transparency = 0.1 }, 0.2)
+                    Utils.Tween(box, { BackgroundColor3 = Color3.fromRGB(55, 20, 80), BackgroundTransparency = 0.2 }, 0.2)
+                end)
+                box.FocusLost:Connect(function(enter)
+                    Utils.Tween(boxStroke, { Color = Color3.fromRGB(140, 55, 110), Transparency = 0.55 }, 0.2)
+                    Utils.Tween(box, { BackgroundColor3 = Color3.fromRGB(32, 14, 52), BackgroundTransparency = 0.35 }, 0.2)
+                    if numOnly and not tonumber(box.Text) then box.Text = "" end
+                    if enter then cb(box.Text) end
+                end)
+                box:GetPropertyChangedSignal("Text"):Connect(function()
+                    if numOnly then box.Text = box.Text:gsub("[^%d%.%-]", "") end
+                end)
+
+                local obj = {}
+                function obj:Set(v) box.Text = tostring(v) end
+                function obj:Get()  return box.Text end
+                return obj
+            end
+
+            -- ── COLOR PICKER ──
+            function Sec:AddColorPicker(c)
+                c = c or {}
+                local row   = Row(c.Name or "Color", 34)
+                local cb    = c.Callback or function() end
+                local cur   = c.Default  or Color3.fromRGB(255, 105, 180)
+                local popen = false
+                local hsv   = {}
+                do
+                    local h, s, v = Color3.toHSV(cur)
+                    hsv.h, hsv.s, hsv.v = h, s, v
+                end
+
+                local swatch = Utils.New("TextButton", {
+                    BackgroundColor3 = cur,
+                    Position         = UDim2.new(1, -36, 0.5, -11),
+                    Size             = UDim2.new(0, 32, 0, 22),
+                    Text             = "",
+                    Parent           = row,
+                })
+                Utils.Corner(swatch, 5)
+                Utils.New("UIStroke", {
+                    Color        = Color3.fromRGB(140, 55, 110),
+                    Thickness    = 1,
+                    Transparency = 0.5,
+                    Parent       = swatch,
+                })
+
+                -- Hex display
+                local function ColorToHex(col)
+                    return string.format("#%02X%02X%02X",
+                        math.round(col.R * 255),
+                        math.round(col.G * 255),
+                        math.round(col.B * 255)
+                    )
+                end
+                local hexLabel = Utils.New("TextLabel", {
+                    BackgroundTransparency = 1,
+                    Position               = UDim2.new(1, -38 - 55, 0.5, -8),
+                    Size                   = UDim2.new(0, 52, 0, 16),
+                    Text                   = ColorToHex(cur),
+                    TextColor3             = T.TxtMute,
+                    Font                   = T.FntMono,
+                    TextSize               = 8,
+                    Parent                 = row,
+                })
+
+                -- Panel flutuante glass
+                local panel = Utils.New("Frame", {
+                    BackgroundColor3      = Color3.fromRGB(22, 10, 38),
+                    BackgroundTransparency = 0.2,
+                    Size                  = UDim2.new(0, 185, 0, 0),
+                    ZIndex                = 200,
+                    Visible               = false,
+                    ClipsDescendants      = true,
+                    Parent                = contentArea,
+                })
+                Utils.Corner(panel, 9)
+                Utils.New("UIStroke", {
+                    Color        = Color3.fromRGB(200, 80, 160),
+                    Thickness    = 1,
+                    Transparency = 0.45,
+                    Parent       = panel,
+                })
+                Utils.Pad(panel, 10, 10, 10, 10)
+                Utils.New("UIListLayout", { Padding = UDim.new(0, 8), SortOrder = Enum.SortOrder.LayoutOrder, Parent = panel })
+
+                local function Rebuild()
+                    cur              = Color3.fromHSV(hsv.h, hsv.s, hsv.v)
+                    swatch.BackgroundColor3 = cur
+                    hexLabel.Text           = ColorToHex(cur)
+                    cb(cur)
+                end
+
+                local sliderDefs = {
+                    { lbl = "H", key = "h", c1 = Color3.fromRGB(255,0,0), c2 = Color3.fromRGB(0,0,255) },
+                    { lbl = "S", key = "s", c1 = Color3.fromRGB(160,160,160), c2 = Color3.fromRGB(255,105,180) },
+                    { lbl = "V", key = "v", c1 = Color3.fromRGB(0,0,0), c2 = Color3.fromRGB(255,255,255) },
+                }
+
+                for i, sd in ipairs(sliderDefs) do
+                    local sr = Utils.New("Frame", {
+                        BackgroundTransparency = 1,
+                        Size                   = UDim2.new(1, 0, 0, 26),
+                        LayoutOrder            = i,
+                        Parent                 = panel,
+                    })
+                    Utils.New("TextLabel", {
+                        BackgroundTransparency = 1,
+                        Size                   = UDim2.new(0, 12, 1, 0),
+                        Text                   = sd.lbl,
+                        TextColor3             = T.TxtMute,
+                        Font                   = T.FntMono,
+                        TextSize               = 9,
+                        Parent                 = sr,
+                    })
+                    local slTrk = Utils.New("Frame", {
+                        BackgroundColor3 = T.BG4,
+                        Position         = UDim2.new(0, 16, 0.5, -5),
+                        Size             = UDim2.new(1, -16, 0, 10),
+                        Parent           = sr,
+                    })
+                    Utils.Corner(slTrk, 999)
+                    Utils.New("UIGradient", {
+                        Color  = ColorSequence.new({ ColorSequenceKeypoint.new(0, sd.c1), ColorSequenceKeypoint.new(1, sd.c2) }),
+                        Parent = slTrk,
+                    })
+                    local slThumb = Utils.New("Frame", {
+                        BackgroundColor3 = Color3.new(1, 1, 1),
+                        AnchorPoint      = Vector2.new(0.5, 0.5),
+                        Position         = UDim2.new(hsv[sd.key], 0, 0.5, 0),
+                        Size             = UDim2.new(0, 12, 0, 12),
+                        ZIndex           = 201,
+                        Parent           = slTrk,
+                    })
+                    Utils.Corner(slThumb, 999)
+                    Utils.Stroke(slThumb, Color3.new(1, 1, 1), 2)
+
+                    local dH = false
+                    slTrk.InputBegan:Connect(function(inp)
+                        if inp.UserInputType == Enum.UserInputType.MouseButton1 then
+                            dH = true
+                            local p = math.clamp((inp.Position.X - slTrk.AbsolutePosition.X) / slTrk.AbsoluteSize.X, 0, 1)
+                            hsv[sd.key]      = p
+                            slThumb.Position = UDim2.new(p, 0, 0.5, 0)
+                            Rebuild()
+                        end
+                    end)
+                    local mv = UserInputService.InputChanged:Connect(function(inp)
+                        if dH and inp.UserInputType == Enum.UserInputType.MouseMovement then
+                            local p = math.clamp((inp.Position.X - slTrk.AbsolutePosition.X) / slTrk.AbsoluteSize.X, 0, 1)
+                            hsv[sd.key]      = p
+                            slThumb.Position = UDim2.new(p, 0, 0.5, 0)
+                            Rebuild()
+                        end
+                    end)
+                    local ed = UserInputService.InputEnded:Connect(function(inp)
+                        if inp.UserInputType == Enum.UserInputType.MouseButton1 then dH = false end
+                    end)
+                    panel.AncestryChanged:Connect(function()
+                        if not panel.Parent then mv:Disconnect() ed:Disconnect() end
+                    end)
+                end
+
+                swatch.MouseButton1Click:Connect(function()
+                    popen = not popen
+                    if popen then
+                        local ax = swatch.AbsolutePosition.X - contentArea.AbsolutePosition.X
+                        local ay = swatch.AbsolutePosition.Y - contentArea.AbsolutePosition.Y
+                        panel.Position = UDim2.new(0,
+                            math.clamp(ax - 150, 0, contentArea.AbsoluteSize.X - 190),
+                            0,
+                            ay + 28
+                        )
+                        panel.Visible = true
+                        panel.Size    = UDim2.new(0, 185, 0, 0)
+                        Utils.Tween(panel, { Size = UDim2.new(0, 185, 0, 120) }, 0.3, Enum.EasingStyle.Back)
+                    else
+                        Utils.Tween(panel, { Size = UDim2.new(0, 185, 0, 0) }, 0.22)
+                        task.wait(0.25)
+                        panel.Visible = false
+                    end
+                end)
+
+                local obj = {}
+                function obj:Set(col)
+                    cur               = col
+                    swatch.BackgroundColor3 = col
+                    hexLabel.Text           = ColorToHex(col)
+                    local h, s, v = Color3.toHSV(col)
+                    hsv.h, hsv.s, hsv.v = h, s, v
+                end
+                function obj:Get() return cur end
+                return obj
+            end
+
+            -- ── LABEL ──
+            function Sec:AddLabel(text)
+                iOrder = iOrder + 1
+                local r = Utils.New("Frame", {
+                    BackgroundTransparency = 1,
+                    Size                   = UDim2.new(1, 0, 0, 22),
+                    LayoutOrder            = iOrder,
+                    Parent                 = card,
+                })
+                Utils.New("TextLabel", {
+                    BackgroundTransparency = 1,
+                    Position               = UDim2.new(0, 2, 0, 0),
+                    Size                   = UDim2.new(1, -4, 1, 0),
+                    Text                   = text,
+                    TextColor3             = T.TxtSec,
+                    Font                   = T.FntBody,
+                    TextSize               = 9,
+                    TextXAlignment         = Enum.TextXAlignment.Left,
+                    TextWrapped            = true,
+                    Parent                 = r,
+                })
+            end
+
+            -- ── SEPARATOR ──
+            function Sec:AddSeparator(label)
+                iOrder = iOrder + 1
+                local r = Utils.New("Frame", {
+                    BackgroundTransparency = 1,
+                    Size                   = UDim2.new(1, 0, 0, 20),
+                    LayoutOrder            = iOrder,
+                    Parent                 = card,
+                })
+                Utils.New("Frame", {
+                    BackgroundColor3      = T.Border,
+                    BackgroundTransparency = 0.4,
+                    AnchorPoint          = Vector2.new(0, 0.5),
+                    Position             = UDim2.new(0, 0, 0.5, 0),
+                    Size                 = UDim2.new(1, 0, 0, 1),
+                    Parent               = r,
+                })
+                if label then
+                    local lbg = Utils.New("Frame", {
+                        BackgroundColor3 = T.BG3,
+                        AnchorPoint      = Vector2.new(0, 0.5),
+                        Position         = UDim2.new(0, 8, 0.5, 0),
+                        Size             = UDim2.new(0, 0, 0, 14),
+                        AutomaticSize    = Enum.AutomaticSize.X,
+                        Parent           = r,
+                    })
+                    Utils.Pad(lbg, 0, 5, 0, 5)
+                    Utils.New("TextLabel", {
+                        BackgroundTransparency = 1,
+                        Size                   = UDim2.new(0, 0, 1, 0),
+                        AutomaticSize          = Enum.AutomaticSize.X,
+                        Text                   = label,
+                        TextColor3             = T.PinkMute,
+                        Font                   = T.FntBold,
+                        TextSize               = 8,
+                        Parent                 = lbg,
+                    })
+                end
+            end
+
+            return Sec
+        end -- AddSection
+
+        return Tab
+    end -- AddTab
+
+    -- ── Animação de entrada ──
+    win.Size                = UDim2.new(0, winWidth, 0, 0)
+    win.BackgroundTransparency = 1
+    task.wait(0.05)
+    Utils.Tween(win, { Size = UDim2.new(0, winWidth, 0, winHeight), BackgroundTransparency = 0 }, 0.45, Enum.EasingStyle.Back)
+    TwBlur(8, 0.45)
+
+    table.insert(BarbiUI._windows, Win)
+    return Win
+end
+
+-- ══════════════════════════════════════════════════════════════════
+return BarbiUI
