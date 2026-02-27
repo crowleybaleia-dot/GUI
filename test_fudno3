@@ -516,8 +516,8 @@ function BarbiUI:CreateWindow(cfg)
     -- SIDEBAR
     -- ──────────────────────────────────────────────────────────────
     local sidebar = U.New("ScrollingFrame", {
-        BackgroundColor3       = T.GlassSide,
-        BackgroundTransparency = T.TSide,
+        BackgroundColor3       = Color3.fromRGB(5, 4, 10),
+        BackgroundTransparency = 0,
         BorderSizePixel        = 0,
         Size                   = UDim2.new(0, sideW, 1, 0),
         ScrollBarThickness     = 2,
@@ -568,8 +568,7 @@ function BarbiUI:CreateWindow(cfg)
     -- CONTENT AREA
     -- ──────────────────────────────────────────────────────────────
     local contentArea = U.New("Frame", {
-        BackgroundColor3=Color3.fromRGB(5, 4, 10),
-        BackgroundTransparency=0,
+        BackgroundTransparency=1,
         Position=UDim2.new(0,sideW+1,0,0),
         Size=UDim2.new(1,-(sideW+1),1,0),
         ClipsDescendants=true,
