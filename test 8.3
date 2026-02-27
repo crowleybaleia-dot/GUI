@@ -244,11 +244,11 @@ function BarbiUI:CreateWindow(cfg)
         BackgroundTransparency = T.TWin,
         Size                   = UDim2.new(0, winW, 0, 0),
         Position               = UDim2.new(0.5, -winW/2, 0.5, -winH/2),
-        ClipsDescendants       = true,  -- resolve TODAS as quinas quadradas dos filhos
+        ClipsDescendants       = false,
         Parent                 = sg,
     })
     U.Corner(win, 12)
-    -- sem UIStroke no win: evita a linha fantasma no topo
+    -- sem UIStroke: evita linha fantasma no topo
 
     -- Gradiente de fundo da janela
     U.New("UIGradient", {
@@ -282,23 +282,15 @@ function BarbiUI:CreateWindow(cfg)
         })
     end
 
-    -- Sombra externa (filho de sg para não ser cortada pelo ClipsDescendants do win)
-    local shadow = U.New("ImageLabel", {
+    -- Sombra externa
+    U.New("ImageLabel", {
         BackgroundTransparency=1,
         Image="rbxassetid://6014261993",
         ImageColor3=Color3.new(0,0,0), ImageTransparency=0.5,
         ScaleType=Enum.ScaleType.Slice, SliceCenter=Rect.new(49,49,450,450),
-        Size=UDim2.new(0,winW+60,0,winH+60),
-        ZIndex=0, Parent=sg,
+        Size=UDim2.new(1,60,1,60), Position=UDim2.new(0,-30,0,-30),
+        ZIndex=-1, Parent=win,
     })
-    -- sincroniza posição da sombra com a janela
-    task.spawn(function()
-        while win and win.Parent do
-            shadow.Position = UDim2.new(0, win.Position.X.Offset-30, 0, win.Position.Y.Offset-30)
-            task.wait()
-        end
-        if shadow and shadow.Parent then shadow:Destroy() end
-    end)
 
     -- ──────────────────────────────────────────────────────────────
     -- TOPBAR — redesign: limpa, status centralizado, controles discretos
@@ -503,12 +495,14 @@ function BarbiUI:CreateWindow(cfg)
     -- BODY
     -- ──────────────────────────────────────────────────────────────
     local body = U.New("Frame", {
+        BackgroundColor3 = Color3.fromRGB(0,0,0),
         BackgroundTransparency = 1,
         Position         = UDim2.new(0, 0, 0, titleH),
         Size             = UDim2.new(1, 0, 1, -titleH),
         ClipsDescendants = true,
         Parent           = win,
     })
+    U.Corner(body, 12)   -- arredonda os cantos inferiores do body
 
     -- ──────────────────────────────────────────────────────────────
     -- SIDEBAR
