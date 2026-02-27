@@ -248,7 +248,15 @@ function BarbiUI:CreateWindow(cfg)
         Parent                 = sg,
     })
     U.Corner(win, 12)
-    -- sem UIStroke: evita linha fantasma no topo
+    -- clipFrame: contém todos os elementos UI e garante cantos redondos perfeitos
+    local clipFrame = U.New("Frame", {
+        BackgroundTransparency = 1,
+        Size                   = UDim2.new(1, 0, 1, 0),
+        ClipsDescendants       = true,
+        ZIndex                 = 2,
+        Parent                 = win,
+    })
+    U.Corner(clipFrame, 12)
 
     -- Gradiente de fundo da janela
     U.New("UIGradient", {
@@ -301,7 +309,7 @@ function BarbiUI:CreateWindow(cfg)
         Size                   = UDim2.new(1, 0, 0, titleH),
         ZIndex                 = 10,
         ClipsDescendants       = false,
-        Parent                 = win,
+        Parent                 = clipFrame,
     })
     -- sem UICorner no tb: win já faz o clip com ClipsDescendants
     -- Linha separadora fina na base do topbar
@@ -495,14 +503,12 @@ function BarbiUI:CreateWindow(cfg)
     -- BODY
     -- ──────────────────────────────────────────────────────────────
     local body = U.New("Frame", {
-        BackgroundColor3 = Color3.fromRGB(0,0,0),
         BackgroundTransparency = 1,
         Position         = UDim2.new(0, 0, 0, titleH),
         Size             = UDim2.new(1, 0, 1, -titleH),
-        ClipsDescendants = true,
-        Parent           = win,
+        ClipsDescendants = false,
+        Parent           = clipFrame,
     })
-    U.Corner(body, 12)   -- arredonda os cantos inferiores do body
 
     -- ──────────────────────────────────────────────────────────────
     -- SIDEBAR
