@@ -347,7 +347,7 @@ function BarbiUI:CreateWindow(cfg)
         U.Stroke(logoF, T.Pink, 1, 0.52)
         U.New("TextLabel", {
             BackgroundTransparency=1, Size=UDim2.new(1,0,1,0),
-            Text="B", TextColor3=T.PinkLight,
+            Text="K", TextColor3=T.PinkLight,
             Font=T.FntBold, TextSize=13, ZIndex=13, Parent=logoF,
         })
     end
@@ -1284,7 +1284,7 @@ return BarbiUI
   Na chamada CreateWindow, passe o parâmetro Background:
   
   local Window = BarbiUI:CreateWindow({
-      Title      = "BARBIE HUB",
+      Title      = "Kyotaki HUB",
       Key        = Enum.KeyCode.RightShift,
       Background = "rbxassetid://SEU_ID_AQUI",
   })
