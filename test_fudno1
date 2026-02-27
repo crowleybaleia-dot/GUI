@@ -505,7 +505,8 @@ function BarbiUI:CreateWindow(cfg)
     -- BODY
     -- ──────────────────────────────────────────────────────────────
     local body = U.New("Frame", {
-        BackgroundTransparency = 1,
+        BackgroundColor3 = Color3.fromRGB(5, 4, 10),
+        BackgroundTransparency = 0,
         Position         = UDim2.new(0, 0, 0, titleH),
         Size             = UDim2.new(1, 0, 1, -titleH),
         ClipsDescendants = false,
