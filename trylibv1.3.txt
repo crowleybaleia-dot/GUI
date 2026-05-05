@@ -285,7 +285,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
         Name                 = "sidebar",
         Position             = UDim2.new(0,0,0,38),
         Size                 = UDim2.new(0,168,1,-62),
-        BackgroundColor3     = Color3.fromRGB(22,22,22),
+        BackgroundColor3     = Color3.fromRGB(18,18,18),
         BackgroundTransparency = 0,
         ClipsDescendants     = true,
         ZIndex               = 3,
@@ -856,27 +856,35 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
                 AutomaticSize        = Enum.AutomaticSize.Y,
                 BackgroundColor3     = C.white,
                 BackgroundTransparency = 0.975,
-                ClipsDescendants     = true,
+                ClipsDescendants     = false,
                 ZIndex               = 3,
                 LayoutOrder          = #workarea:GetChildren(),
             })
             Corner(gbox, 9)
             Stroke(gbox, C.white, 1, 0.94)
 
-            -- header
+            -- header sem Corner — cantos de cima vêm do gbox
             local header = Frame(gbox, {
                 Size                 = UDim2.new(1,0,0,28),
                 BackgroundColor3     = C.white,
                 BackgroundTransparency = 0.98,
                 ZIndex               = 4,
             })
-            Corner(header, 9)
+            -- tampão nos cantos de baixo do header (tapa o arredondamento do gbox no meio)
+            Frame(header, {
+                Position             = UDim2.new(0,0,1,-9),
+                Size                 = UDim2.new(1,0,0,9),
+                BackgroundColor3     = C.white,
+                BackgroundTransparency = 0.98,
+                ZIndex               = 4,
+            })
+            -- linha separadora
             Frame(header, {
                 Position             = UDim2.new(0,0,1,-1),
                 Size                 = UDim2.new(1,0,0,1),
                 BackgroundColor3     = C.white,
                 BackgroundTransparency = 0.95,
-                ZIndex               = 4,
+                ZIndex               = 5,
             })
 
             if iconAsset then
