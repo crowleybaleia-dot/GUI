@@ -61,7 +61,7 @@ local function Label(parent, props)
     local l = Instance.new("TextLabel")
     l.BackgroundTransparency = 1
     l.BorderSizePixel = 0
-    l.Font = Enum.Font.Gotham
+    l.Font = Enum.Font.GothamSans
     applyProps(l, props)
     l.Parent = parent
     return l
@@ -71,7 +71,7 @@ local function Button(parent, props)
     local b = Instance.new("TextButton")
     b.AutoButtonColor = false
     b.BorderSizePixel = 0
-    b.Font = Enum.Font.Gotham
+    b.Font = Enum.Font.GothamSans
     applyProps(b, props)
     b.Parent = parent
     return b
@@ -160,25 +160,29 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
     scrgui.Parent         = hui
 
     -- ── main window  820 × 440 ─────────────────────────────────────────────
-    local main = Frame(scrgui, {
-        Name                 = "main",
+    -- container externo: só faz o clip com cantos arredondados, sem cor
+    local mainOuter = Frame(scrgui, {
+        Name                 = "mainOuter",
         AnchorPoint          = Vector2.new(0.5, 0.5),
         Position             = UDim2.new(0.5, 0, 2, 0),
         Size                 = UDim2.new(0, 820, 0, 440),
+        BackgroundTransparency = 1,
+        ClipsDescendants     = true,
+        ZIndex               = 1,
+    })
+    Corner(mainOuter, 14)
+
+    -- frame principal com a cor de fundo, sem clip (o outer já faz isso)
+    local main = Frame(mainOuter, {
+        Name                 = "main",
+        Size                 = UDim2.new(1, 0, 1, 0),
         BackgroundColor3     = C.bg,
         BackgroundTransparency = 0,
         ClipsDescendants     = false,
         ZIndex               = 1,
     })
-    Corner(main, 14)
-    Stroke(main, C.white, 1, 0.93)
-
-    -- mascara para garantir que os 4 cantos sejam arredondados corretamente
-    do
-        local mask = Instance.new("UICorner")
-        mask.CornerRadius = UDim.new(0, 14)
-        mask.Parent = main
-    end
+    -- stroke na borda do outer para aparecer por cima do clip
+    Stroke(mainOuter, C.white, 1, 0.93)
 
     -- inner top-glow line
     Frame(main, {
@@ -188,12 +192,12 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
         ZIndex               = 6,
     })
 
-    -- ── drag ───────────────────────────────────────────────────────────────
+    -- ── drag (move o outer que contém tudo) ───────────────────────────────────
     local drag, dragStart, startPos
     main.InputBegan:Connect(function(i)
         if i.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
-        if (i.Position.Y - main.AbsolutePosition.Y) > 38 then return end
-        drag = true; dragStart = i.Position; startPos = main.Position
+        if (i.Position.Y - mainOuter.AbsolutePosition.Y) > 38 then return end
+        drag = true; dragStart = i.Position; startPos = mainOuter.Position
         i.Changed:Connect(function()
             if i.UserInputState == Enum.UserInputState.End then drag = false end
         end)
@@ -201,8 +205,8 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
     UserInputService.InputChanged:Connect(function(i)
         if drag and i.UserInputType == Enum.UserInputType.MouseMovement then
             local d = i.Position - dragStart
-            main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + d.X,
-                                      startPos.Y.Scale, startPos.Y.Offset + d.Y)
+            mainOuter.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + d.X,
+                                           startPos.Y.Scale, startPos.Y.Offset + d.Y)
         end
     end)
 
@@ -242,7 +246,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
         Text           = string.upper(title or "VANTA"),
         TextColor3     = C.hi,
         TextSize       = 11,
-        Font           = Enum.Font.GothamMedium,
+        Font           = Enum.Font.GothamSansMedium,
         TextXAlignment = Enum.TextXAlignment.Left,
         ZIndex         = 4,
     })
@@ -253,7 +257,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
         Text           = subtitle or "",
         TextColor3     = C.low,
         TextSize       = 9,
-        Font           = Enum.Font.Gotham,
+        Font           = Enum.Font.GothamSans,
         TextXAlignment = Enum.TextXAlignment.Left,
         ZIndex         = 4,
     })
@@ -271,32 +275,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
         ZIndex         = 4,
     })
 
-    -- close button
-    local wmClose = Button(titlebar, {
-        Position             = UDim2.new(1,-22,0.5,-8),
-        Size                 = UDim2.new(0,16,0,16),
-        BackgroundColor3     = Color3.fromRGB(55,18,18),
-        Text                 = "",
-        ZIndex               = 5,
-    })
-    Corner(wmClose, 8)
-    Stroke(wmClose, C.err, 1, 0.7)
-    wmClose.MouseEnter:Connect(function() tw(wmClose, {BackgroundColor3 = Color3.fromRGB(200,40,40)}, 0.12) end)
-    wmClose.MouseLeave:Connect(function() tw(wmClose, {BackgroundColor3 = Color3.fromRGB(55,18,18)},  0.12) end)
-    wmClose.MouseButton1Click:Connect(function() scrgui:Destroy() end)
-
-    -- minimize button
-    local wmMin = Button(titlebar, {
-        Position             = UDim2.new(1,-44,0.5,-8),
-        Size                 = UDim2.new(0,16,0,16),
-        BackgroundColor3     = C.element,
-        Text                 = "",
-        ZIndex               = 5,
-    })
-    Corner(wmMin, 8)
-    Stroke(wmMin, C.white, 1, 0.88)
-    wmMin.MouseEnter:Connect(function() tw(wmMin, {BackgroundColor3 = C.dim}, 0.12) end)
-    wmMin.MouseLeave:Connect(function() tw(wmMin, {BackgroundColor3 = C.element}, 0.12) end)
+    -- (botões de fechar/minimizar removidos — use visibleKey para toggle)
 
     -- ── sidebar  (168px wide) ──────────────────────────────────────────────
     local sidebar = Frame(main, {
@@ -343,7 +322,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
     searchBox.Size                = UDim2.new(1,-28,1,0)
     searchBox.BackgroundTransparency = 1
     searchBox.BorderSizePixel     = 0
-    searchBox.Font                = Enum.Font.Gotham
+    searchBox.Font                = Enum.Font.GothamSans
     searchBox.PlaceholderText     = "Search..."
     searchBox.PlaceholderColor3   = C.dim
     searchBox.Text                = ""
@@ -425,7 +404,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
     local toastIdx  = 0
 
     -- animate in
-    tw(main, {Position = UDim2.new(0.5,0,0.5,0)}, 0.55, Enum.EasingStyle.Quart)
+    tw(mainOuter, {Position = UDim2.new(0.5,0,0.5,0)}, 0.55, Enum.EasingStyle.Quart)
 
     -- ═════════════════════════════════════════════════════════════════════
     local window = {}
@@ -436,14 +415,14 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
         visible = not visible
         dbc = true
         if visible then
-            tw(main, {Position = UDim2.new(0.5,0,0.5,0)}, 0.45)
+            tw(mainOuter, {Position = UDim2.new(0.5,0,0.5,0)}, 0.45)
         else
-            tw(main, {Position = main.Position + UDim2.new(0,0,2,0)}, 0.45)
+            tw(mainOuter, {Position = mainOuter.Position + UDim2.new(0,0,2,0)}, 0.45)
         end
         task.delay(0.5, function() dbc = false end)
     end
 
-    wmMin.MouseButton1Click:Connect(function() window:ToggleVisible() end)
+    -- toggle via keybind
     if visibleKey then
         UserInputService.InputBegan:Connect(function(i, gp)
             if not gp and i.KeyCode == visibleKey then window:ToggleVisible() end
@@ -490,7 +469,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
             Text           = toastTitle or "",
             TextColor3     = C.hi,
             TextSize       = 11,
-            Font           = Enum.Font.GothamMedium,
+            Font           = Enum.Font.GothamSansMedium,
             TextXAlignment = Enum.TextXAlignment.Left,
             ZIndex         = 31,
         })
@@ -501,7 +480,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
             Text           = message or "",
             TextColor3     = C.low,
             TextSize       = 10,
-            Font           = Enum.Font.Gotham,
+            Font           = Enum.Font.GothamSans,
             TextXAlignment = Enum.TextXAlignment.Left,
             TextWrapped    = true,
             ZIndex         = 31,
@@ -584,7 +563,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
             Text           = t1 or "",
             TextColor3     = C.hi,
             TextSize       = 13,
-            Font           = Enum.Font.GothamMedium,
+            Font           = Enum.Font.GothamSansMedium,
             TextXAlignment = Enum.TextXAlignment.Center,
             ZIndex         = 12,
         })
@@ -594,7 +573,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
             Text           = t2 or "",
             TextColor3     = C.low,
             TextSize       = 10,
-            Font           = Enum.Font.Gotham,
+            Font           = Enum.Font.GothamSans,
             TextWrapped    = true,
             TextXAlignment = Enum.TextXAlignment.Center,
             ZIndex         = 12,
@@ -608,7 +587,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
             Text                 = btnTxt or "OK",
             TextColor3           = C.bg,
             TextSize             = 12,
-            Font                 = Enum.Font.GothamMedium,
+            Font                 = Enum.Font.GothamSansMedium,
             ZIndex               = 12,
         })
         Corner(ok, 7)
@@ -658,7 +637,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
             Text           = t1 or "",
             TextColor3     = C.hi,
             TextSize       = 13,
-            Font           = Enum.Font.GothamMedium,
+            Font           = Enum.Font.GothamSansMedium,
             TextXAlignment = Enum.TextXAlignment.Center,
             ZIndex         = 12,
         })
@@ -668,7 +647,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
             Text           = t2 or "",
             TextColor3     = C.low,
             TextSize       = 10,
-            Font           = Enum.Font.Gotham,
+            Font           = Enum.Font.GothamSans,
             TextWrapped    = true,
             TextXAlignment = Enum.TextXAlignment.Center,
             ZIndex         = 12,
@@ -682,7 +661,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
             Text                 = b1txt or "Confirm",
             TextColor3           = C.bg,
             TextSize             = 12,
-            Font                 = Enum.Font.GothamMedium,
+            Font                 = Enum.Font.GothamSansMedium,
             ZIndex               = 12,
         })
         Corner(btn1, 7)
@@ -695,7 +674,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
             Text                 = b2txt or "Cancel",
             TextColor3           = C.mid,
             TextSize             = 12,
-            Font                 = Enum.Font.Gotham,
+            Font                 = Enum.Font.GothamSans,
             ZIndex               = 12,
         })
         Corner(btn2, 7)
@@ -712,7 +691,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
             Text           = string.upper(name or ""),
             TextColor3     = C.dim,
             TextSize       = 8,
-            Font           = Enum.Font.GothamBold,
+            Font           = Enum.Font.GothamSansBold,
             TextXAlignment = Enum.TextXAlignment.Left,
             ZIndex         = 3,
             LayoutOrder    = #sidebarScroll:GetChildren() + 1,
@@ -762,7 +741,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
             Text           = name,
             TextColor3     = C.low,
             TextSize       = 11,
-            Font           = Enum.Font.Gotham,
+            Font           = Enum.Font.GothamSans,
             TextXAlignment = Enum.TextXAlignment.Left,
             ZIndex         = 4,
         })
@@ -794,7 +773,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
             for _, t in ipairs(sections) do
                 t.BackgroundTransparency = 1
                 local l = t:FindFirstChildWhichIsA("TextLabel")
-                if l then tw(l, {TextColor3 = C.low}, 0.12); l.Font = Enum.Font.Gotham end
+                if l then tw(l, {TextColor3 = C.low}, 0.12); l.Font = Enum.Font.GothamSans end
                 local ic = t:FindFirstChildWhichIsA("ImageLabel")
                 if ic then tw(ic, {ImageColor3 = C.low, ImageTransparency = 0.5}, 0.12) end
                 for _, ch in ipairs(t:GetChildren()) do
@@ -803,7 +782,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
             end
             tw(tabBtn,  {BackgroundTransparency = 0.94}, 0.12)
             tw(tabLabel,{TextColor3 = C.hi},             0.12)
-            tabLabel.Font = Enum.Font.GothamMedium
+            tabLabel.Font = Enum.Font.GothamSansMedium
             if iconAsset then tw(tabIcon, {ImageColor3 = C.hi, ImageTransparency = 0}, 0.12) end
             tw(activeBar, {BackgroundTransparency = 0.4}, 0.12)
             for _, w in ipairs(workareas) do w.Visible = false end
@@ -887,7 +866,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
                 Text           = string.upper(groupName or ""),
                 TextColor3     = C.mid,
                 TextSize       = 9,
-                Font           = Enum.Font.GothamBold,
+                Font           = Enum.Font.GothamSansBold,
                 TextXAlignment = Enum.TextXAlignment.Left,
                 ZIndex         = 5,
             })
@@ -926,7 +905,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
                     Text           = lbl or "",
                     TextColor3     = C.mid,
                     TextSize       = 11,
-                    Font           = Enum.Font.Gotham,
+                    Font           = Enum.Font.GothamSans,
                     TextXAlignment = Enum.TextXAlignment.Left,
                     ZIndex         = 6,
                 })
@@ -979,9 +958,10 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
                 local val = default
                 local row = baseRow(lbl, 34)
 
+                -- valor fica à esquerda do track, sem sobreposição
                 local valLbl = Label(row, {
-                    Position       = UDim2.new(1,-58,0,0),
-                    Size           = UDim2.new(0,18,1,0),
+                    Position       = UDim2.new(1,-100,0.5,-7),
+                    Size           = UDim2.new(0,20,0,14),
                     Text           = tostring(val),
                     TextColor3     = C.dim,
                     TextSize       = 9,
@@ -991,8 +971,8 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
                 })
 
                 local trackBg = Frame(row, {
-                    Position         = UDim2.new(1,-76,0.5,-1),
-                    Size             = UDim2.new(0,72,0,2),
+                    Position         = UDim2.new(1,-74,0.5,-1),
+                    Size             = UDim2.new(0,70,0,2),
                     BackgroundColor3 = C.white,
                     BackgroundTransparency = 0.9,
                     ZIndex           = 6,
@@ -1077,7 +1057,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
                     Text           = sel,
                     TextColor3     = C.mid,
                     TextSize       = 10,
-                    Font           = Enum.Font.Gotham,
+                    Font           = Enum.Font.GothamSans,
                     TextXAlignment = Enum.TextXAlignment.Left,
                     ZIndex         = 8,
                 })
@@ -1112,7 +1092,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
                         Text                 = opt,
                         TextColor3           = opt == sel and C.hi or C.low,
                         TextSize             = 10,
-                        Font                 = opt == sel and Enum.Font.GothamMedium or Enum.Font.Gotham,
+                        Font                 = opt == sel and Enum.Font.GothamSansMedium or Enum.Font.GothamSans,
                         ZIndex               = 21,
                     })
                     Padding(ob, 0, 0, 8, 8)
@@ -1173,7 +1153,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
                     Text           = labelTxt(),
                     TextColor3     = C.mid,
                     TextSize       = 10,
-                    Font           = Enum.Font.Gotham,
+                    Font           = Enum.Font.GothamSans,
                     TextXAlignment = Enum.TextXAlignment.Left,
                     ZIndex         = 8,
                 })
@@ -1241,7 +1221,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
                         Text           = opt,
                         TextColor3     = on and C.hi or C.low,
                         TextSize       = 10,
-                        Font           = Enum.Font.Gotham,
+                        Font           = Enum.Font.GothamSans,
                         TextXAlignment = Enum.TextXAlignment.Left,
                         ZIndex         = 22,
                     })
@@ -1293,7 +1273,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
                     Text                 = lbl,
                     TextColor3           = C.mid,
                     TextSize             = 10,
-                    Font                 = Enum.Font.Gotham,
+                    Font                 = Enum.Font.GothamSans,
                     ZIndex               = 7,
                 })
                 Corner(btn, 5)
@@ -1314,7 +1294,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
                     Text           = text or "",
                     TextColor3     = C.low,
                     TextSize       = 10,
-                    Font           = Enum.Font.Gotham,
+                    Font           = Enum.Font.GothamSans,
                     TextXAlignment = Enum.TextXAlignment.Left,
                     ZIndex         = 5,
                     LayoutOrder    = #body:GetChildren(),
@@ -1329,7 +1309,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
                     Text           = text or "",
                     TextColor3     = C.dim,
                     TextSize       = 10,
-                    Font           = Enum.Font.Gotham,
+                    Font           = Enum.Font.GothamSans,
                     TextWrapped    = true,
                     TextXAlignment = Enum.TextXAlignment.Left,
                     LineHeight     = 1.5,
@@ -1358,7 +1338,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
                 tb.Size                  = UDim2.new(1,-12,1,0)
                 tb.BackgroundTransparency = 1
                 tb.BorderSizePixel       = 0
-                tb.Font                  = Enum.Font.Gotham
+                tb.Font                  = Enum.Font.GothamSans
                 tb.PlaceholderText       = placeholder or "Type..."
                 tb.PlaceholderColor3     = C.dim
                 tb.Text                  = ""
@@ -1429,19 +1409,27 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
                     ZIndex         = 8,
                 })
 
+                -- clique no badge: entra em modo de captura
                 kbf.MouseButton1Click:Connect(function()
                     waiting = true
-                    kbLbl.Text      = "..."
+                    kbLbl.Text       = "..."
                     kbLbl.TextColor3 = C.hi
                 end)
+
+                -- escuta global: captura nova tecla OU dispara o callback
                 UserInputService.InputBegan:Connect(function(i, gp)
-                    if not waiting then return end
+                    if gp then return end
                     if i.UserInputType ~= Enum.UserInputType.Keyboard then return end
-                    waiting = false
-                    key = i.KeyCode
-                    kbLbl.Text       = tostring(key):gsub("Enum.KeyCode.","")
-                    kbLbl.TextColor3 = C.mid
-                    if cb then cb(key) end
+                    if waiting then
+                        -- modo captura: salva nova tecla
+                        waiting          = false
+                        key              = i.KeyCode
+                        kbLbl.Text       = tostring(key):gsub("Enum.KeyCode.","")
+                        kbLbl.TextColor3 = C.mid
+                    elseif i.KeyCode == key then
+                        -- tecla correta pressionada: dispara callback
+                        if cb then cb(key) end
+                    end
                 end)
 
                 local o = {}
@@ -1457,7 +1445,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
                     Text           = string.upper(name or ""),
                     TextColor3     = C.dim,
                     TextSize       = 8,
-                    Font           = Enum.Font.GothamBold,
+                    Font           = Enum.Font.GothamSansBold,
                     TextXAlignment = Enum.TextXAlignment.Left,
                     ZIndex         = 5,
                     LayoutOrder    = #body:GetChildren(),
