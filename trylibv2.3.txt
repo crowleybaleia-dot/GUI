@@ -285,8 +285,8 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
         Name                 = "sidebar",
         Position             = UDim2.new(0,0,0,38),
         Size                 = UDim2.new(0,168,1,-62),
-        BackgroundColor3     = C.sidebar,
-        BackgroundTransparency = 0.28,
+        BackgroundColor3     = Color3.fromRGB(22,22,22),
+        BackgroundTransparency = 0,
         ClipsDescendants     = true,
         ZIndex               = 3,
     })
@@ -433,7 +433,6 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
     end
 
     -- ── TempNotify (toast) ────────────────────────────────────────────────
-    -- notifType: "success" | "warn" | "error" | "info"
     function window:TempNotify(toastTitle, message, notifType, duration)
         duration  = duration  or 4
         notifType = notifType or "info"
@@ -446,40 +445,68 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
             info    = C.info,
         })[notifType] or C.info
 
+        local icon = ({
+            success = "✓",
+            warn    = "!",
+            error   = "✕",
+            info    = "i",
+        })[notifType] or "i"
+
         local toast = Frame(toastHolder, {
-            Name                 = "toast" .. toastIdx,
-            Size                 = UDim2.new(1,0,0,54),
-            BackgroundColor3     = C.toastBg,
-            BackgroundTransparency = 0.05,
-            ClipsDescendants     = true,
-            ZIndex               = 30,
-            LayoutOrder          = toastIdx,
+            Name             = "toast" .. toastIdx,
+            Size             = UDim2.new(1,0,0,62),
+            BackgroundColor3 = Color3.fromRGB(14,14,14),
+            BackgroundTransparency = 0,
+            ClipsDescendants = true,
+            ZIndex           = 30,
+            LayoutOrder      = toastIdx,
         })
-        Corner(toast, 8)
-        Stroke(toast, accent, 1, 0.8)
+        Corner(toast, 10)
+        Stroke(toast, C.white, 1, 0.92)
 
-        -- left accent bar
-        Frame(toast, {
-            Size                 = UDim2.new(0,2,1,0),
-            BackgroundColor3     = accent,
-            BackgroundTransparency = 0.3,
-            ZIndex               = 31,
+        -- accent strip on left
+        local strip = Frame(toast, {
+            Size             = UDim2.new(0,3,1,0),
+            BackgroundColor3 = accent,
+            BackgroundTransparency = 0,
+            ZIndex           = 31,
+        })
+        Corner(strip, 2)
+
+        -- icon circle
+        local iconCircle = Frame(toast, {
+            Position         = UDim2.new(0,14,0.5,-12),
+            Size             = UDim2.new(0,24,0,24),
+            BackgroundColor3 = accent,
+            BackgroundTransparency = 0.82,
+            ZIndex           = 31,
+        })
+        Corner(iconCircle, 12)
+        Label(iconCircle, {
+            Size           = UDim2.new(1,0,1,0),
+            Text           = icon,
+            TextColor3     = accent,
+            TextSize       = 12,
+            Font           = Enum.Font.GothamBold,
+            ZIndex         = 32,
         })
 
+        -- title
         Label(toast, {
-            Position       = UDim2.new(0,12,0,8),
-            Size           = UDim2.new(1,-24,0,16),
+            Position       = UDim2.new(0,46,0,12),
+            Size           = UDim2.new(1,-60,0,16),
             Text           = toastTitle or "",
             TextColor3     = C.hi,
-            TextSize       = 11,
+            TextSize       = 12,
             Font           = Enum.Font.GothamMedium,
             TextXAlignment = Enum.TextXAlignment.Left,
             ZIndex         = 31,
         })
 
+        -- message
         Label(toast, {
-            Position       = UDim2.new(0,12,0,26),
-            Size           = UDim2.new(1,-24,0,20),
+            Position       = UDim2.new(0,46,0,30),
+            Size           = UDim2.new(1,-60,0,20),
             Text           = message or "",
             TextColor3     = C.low,
             TextSize       = 10,
@@ -489,37 +516,37 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
             ZIndex         = 31,
         })
 
-        -- progress bar
+        -- progress bar na base
         local prog = Frame(toast, {
-            Position         = UDim2.new(0,0,1,-2),
-            Size             = UDim2.new(1,0,0,2),
+            Position         = UDim2.new(0,3,1,-2),
+            Size             = UDim2.new(1,-3,0,2),
             BackgroundColor3 = accent,
-            BackgroundTransparency = 0.5,
+            BackgroundTransparency = 0.6,
             ZIndex           = 32,
         })
         tw(prog, {Size = UDim2.new(0,0,0,2)}, duration, Enum.EasingStyle.Linear)
 
-        -- close btn
+        -- botão fechar
         local closeBtn = Button(toast, {
-            Position             = UDim2.new(1,-18,0,6),
-            Size                 = UDim2.new(0,12,0,12),
+            Position             = UDim2.new(1,-20,0,8),
+            Size                 = UDim2.new(0,14,0,14),
             BackgroundTransparency = 1,
             Text                 = "✕",
             TextColor3           = C.dim,
             TextSize             = 9,
+            Font                 = Enum.Font.Gotham,
             ZIndex               = 32,
         })
 
-        -- slide in
         toast.Position = UDim2.new(1,16,0,0)
-        tw(toast, {Position = UDim2.new(0,0,0,0)}, 0.22, Enum.EasingStyle.Back)
+        tw(toast, {Position = UDim2.new(0,0,0,0)}, 0.28, Enum.EasingStyle.Back)
 
         local dismissed = false
         local function dismiss()
             if dismissed then return end
             dismissed = true
-            tw(toast, {Position = UDim2.new(1,16,0,0)}, 0.18)
-            Debris:AddItem(toast, 0.25)
+            tw(toast, {Position = UDim2.new(1,16,0,0)}, 0.2)
+            Debris:AddItem(toast, 0.3)
         end
 
         closeBtn.MouseButton1Click:Connect(dismiss)
@@ -829,6 +856,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
                 AutomaticSize        = Enum.AutomaticSize.Y,
                 BackgroundColor3     = C.white,
                 BackgroundTransparency = 0.975,
+                ClipsDescendants     = true,
                 ZIndex               = 3,
                 LayoutOrder          = #workarea:GetChildren(),
             })
