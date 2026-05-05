@@ -166,12 +166,19 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
         Position             = UDim2.new(0.5, 0, 2, 0),
         Size                 = UDim2.new(0, 820, 0, 440),
         BackgroundColor3     = C.bg,
-        BackgroundTransparency = 0.12,
-        ClipsDescendants     = true,
+        BackgroundTransparency = 0,
+        ClipsDescendants     = false,
         ZIndex               = 1,
     })
     Corner(main, 14)
     Stroke(main, C.white, 1, 0.93)
+
+    -- mascara para garantir que os 4 cantos sejam arredondados corretamente
+    do
+        local mask = Instance.new("UICorner")
+        mask.CornerRadius = UDim.new(0, 14)
+        mask.Parent = main
+    end
 
     -- inner top-glow line
     Frame(main, {
@@ -216,20 +223,18 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
         ZIndex               = 4,
     })
 
-    -- logo
-    if logoAsset then
-        Image(titlebar, {
-            Position          = UDim2.new(0,14,0.5,-10),
-            Size              = UDim2.new(0,20,0,20),
-            Image             = logoAsset,
-            ImageColor3       = C.white,
-            ImageTransparency = 0.1,
-            ScaleType         = Enum.ScaleType.Fit,
-            ZIndex            = 4,
-        })
-    end
+    -- logo na titlebar
+    local logoImg = Image(titlebar, {
+        Position          = UDim2.new(0, 14, 0.5, -10),
+        Size              = UDim2.new(0, 20, 0, 20),
+        Image             = logoAsset or "",
+        ImageColor3       = C.white,
+        ImageTransparency = logoAsset and 0.1 or 1,
+        ScaleType         = Enum.ScaleType.Fit,
+        ZIndex            = 4,
+    })
 
-    local txOff = logoAsset and 40 or 14
+    local txOff = logoAsset and 42 or 14
 
     Label(titlebar, {
         Position       = UDim2.new(0, txOff, 0, 5),
@@ -740,17 +745,16 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
         })
         Corner(activeBar, 2)
 
-        if iconAsset then
-            Image(tabBtn, {
-                Position          = UDim2.new(0,14,0.5,-8),
-                Size              = UDim2.new(0,16,0,16),
-                Image             = iconAsset,
-                ImageColor3       = C.low,
-                ImageTransparency = 0.5,
-                ScaleType         = Enum.ScaleType.Fit,
-                ZIndex            = 4,
-            })
-        end
+        -- ícone do sidebar (sempre criado; invisível se sem asset)
+        local tabIcon = Image(tabBtn, {
+            Position          = UDim2.new(0, 14, 0.5, -8),
+            Size              = UDim2.new(0, 16, 0, 16),
+            Image             = iconAsset or "",
+            ImageColor3       = C.low,
+            ImageTransparency = iconAsset and 0.5 or 1,
+            ScaleType         = Enum.ScaleType.Fit,
+            ZIndex            = 4,
+        })
 
         local tabLabel = Label(tabBtn, {
             Position       = UDim2.new(0, iconAsset and 36 or 14, 0, 0),
@@ -791,6 +795,8 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
                 t.BackgroundTransparency = 1
                 local l = t:FindFirstChildWhichIsA("TextLabel")
                 if l then tw(l, {TextColor3 = C.low}, 0.12); l.Font = Enum.Font.Gotham end
+                local ic = t:FindFirstChildWhichIsA("ImageLabel")
+                if ic then tw(ic, {ImageColor3 = C.low, ImageTransparency = 0.5}, 0.12) end
                 for _, ch in ipairs(t:GetChildren()) do
                     if ch:IsA("Frame") then tw(ch, {BackgroundTransparency = 1}, 0.12) end
                 end
@@ -798,6 +804,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
             tw(tabBtn,  {BackgroundTransparency = 0.94}, 0.12)
             tw(tabLabel,{TextColor3 = C.hi},             0.12)
             tabLabel.Font = Enum.Font.GothamMedium
+            if iconAsset then tw(tabIcon, {ImageColor3 = C.hi, ImageTransparency = 0}, 0.12) end
             tw(activeBar, {BackgroundTransparency = 0.4}, 0.12)
             for _, w in ipairs(workareas) do w.Visible = false end
             workarea.Visible = true
@@ -808,11 +815,13 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
             if workarea.Visible then return end
             tw(tabBtn,  {BackgroundTransparency = 0.96}, 0.1)
             tw(tabLabel,{TextColor3 = C.mid},            0.1)
+            if iconAsset then tw(tabIcon, {ImageColor3 = C.mid, ImageTransparency = 0.3}, 0.1) end
         end)
         tabBtn.MouseLeave:Connect(function()
             if workarea.Visible then return end
             tw(tabBtn,  {BackgroundTransparency = 1},  0.1)
             tw(tabLabel,{TextColor3 = C.low},           0.1)
+            if iconAsset then tw(tabIcon, {ImageColor3 = C.low, ImageTransparency = 0.5}, 0.1) end
         end)
 
         if #sections == 1 then sec:Select() end
