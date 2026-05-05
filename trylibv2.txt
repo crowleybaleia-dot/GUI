@@ -149,7 +149,10 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
     local hui = gethui()
     if hui:FindFirstChild("VantaUI") and deletePrevious then
         local old = hui.VantaUI
-        tw(old.main, {Position = old.main.Position + UDim2.new(0,0,2,0)}, 0.4)
+        local oldOuter = old:FindFirstChild("mainOuter")
+        if oldOuter then
+            tw(oldOuter, {Position = oldOuter.Position + UDim2.new(0,0,2,0)}, 0.4)
+        end
         Debris:AddItem(old, 0.5)
     end
 
