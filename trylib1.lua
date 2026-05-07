@@ -429,12 +429,12 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
     local dbc       = false
     local toastIdx  = 0
 
-    -- animate in: pop + fade in
-    main.Size = UDim2.new(0, 779, 0, 418)
+    -- animate in: grow + fade in a partir de 60%
+    main.Size = UDim2.new(0, 492, 0, 264)
     main.BackgroundTransparency = 1
     main.Position = UDim2.new(0.5, 0, 0.5, 0)
     main.Visible = true
-    tw(main, {Size = UDim2.new(0, 820, 0, 440), BackgroundTransparency = 0}, 0.35, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+    tw(main, {Size = UDim2.new(0, 820, 0, 440), BackgroundTransparency = 0}, 0.55, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
 
     -- ═════════════════════════════════════════════════════════════════════
     local window = {}
@@ -446,9 +446,9 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
         dbc = true
         if visible then
             main.Visible = true
-            main.Size = UDim2.new(0, 779, 0, 418)
+            main.Size = UDim2.new(0, 492, 0, 264)
             main.BackgroundTransparency = 1
-            tw(main, {Size = UDim2.new(0, 820, 0, 440), BackgroundTransparency = 0}, 0.35, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+            tw(main, {Size = UDim2.new(0, 820, 0, 440), BackgroundTransparency = 0}, 0.55, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
         else
             tw(main, {Size = UDim2.new(0, 779, 0, 418), BackgroundTransparency = 1}, 0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
             task.delay(0.28, function() main.Visible = false end)
