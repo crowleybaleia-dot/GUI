@@ -213,10 +213,10 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     })
 
     -- ── TitleHolder (logo + título lado a lado via UIListLayout) ─────────────
-    local iconSize = logoSize or UDim2.new(0, 30, 0, 30)
+    local iconSize = logoSize or UDim2.new(0, 92, 0, 92)
 
     local titleHolder = Frame(titlebar, {
-        Position             = UDim2.new(0, 10, 0, 0),
+        Position             = UDim2.new(0, -10, 0, 0),
         Size                 = UDim2.new(0, 300, 1, 0),
         BackgroundTransparency = 1,
         ZIndex               = 4,
