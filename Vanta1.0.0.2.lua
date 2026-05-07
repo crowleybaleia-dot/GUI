@@ -225,7 +225,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     titleLayout.FillDirection         = Enum.FillDirection.Horizontal
     titleLayout.HorizontalAlignment   = Enum.HorizontalAlignment.Left
     titleLayout.VerticalAlignment     = Enum.VerticalAlignment.Center
-    titleLayout.Padding               = UDim.new(0, -20)
+    titleLayout.Padding               = UDim.new(0, -10)
     titleLayout.SortOrder             = Enum.SortOrder.LayoutOrder
     titleLayout.Parent                = titleHolder
 
