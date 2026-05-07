@@ -410,16 +410,16 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
     -- ── toast holder ──────────────────────────────────────────────────────
     local toastHolder = Frame(scrgui, {
         Name                 = "toastHolder",
-        AnchorPoint          = Vector2.new(1,0),
-        Position             = UDim2.new(1,-14,0,14),
-        Size                 = UDim2.new(0,260,1,-28),
+        AnchorPoint          = Vector2.new(0,0),
+        Position             = UDim2.new(0,14,0,14),
+        Size                 = UDim2.new(0,220,1,-28),
         BackgroundTransparency = 1,
         ZIndex               = 30,
     })
     ListLayout(toastHolder, {
-        VerticalAlignment   = Enum.VerticalAlignment.Bottom,
-        HorizontalAlignment = Enum.HorizontalAlignment.Right,
-        Padding             = UDim.new(0,6),
+        VerticalAlignment   = Enum.VerticalAlignment.Top,
+        HorizontalAlignment = Enum.HorizontalAlignment.Left,
+        Padding             = UDim.new(0,5),
     })
 
     -- ── state ─────────────────────────────────────────────────────────────
@@ -463,7 +463,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
         end)
     end
 
-    -- ── TempNotify (toast) ────────────────────────────────────────────────
+    -- ── TempNotify (toast estilo Linoria) ─────────────
     function window:TempNotify(toastTitle, message, notifType, duration)
         duration  = duration  or 4
         notifType = notifType or "info"
@@ -476,70 +476,46 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
             info    = C.info,
         })[notifType] or C.info
 
-        local icon = ({
-            success = "✓",
-            warn    = "!",
-            error   = "✕",
-            info    = "i",
-        })[notifType] or "i"
-
         local toast = Frame(toastHolder, {
-            Name             = "toast" .. toastIdx,
-            Size             = UDim2.new(1,0,0,62),
-            BackgroundColor3 = Color3.fromRGB(14,14,14),
+            Name                 = "toast" .. toastIdx,
+            Size                 = UDim2.new(1,0,0,52),
+            BackgroundColor3     = Color3.fromRGB(12,12,12),
             BackgroundTransparency = 0,
-            ClipsDescendants = true,
-            ZIndex           = 30,
-            LayoutOrder      = toastIdx,
+            ClipsDescendants     = false,
+            ZIndex               = 30,
+            LayoutOrder          = toastIdx,
         })
-        Corner(toast, 10)
-        Stroke(toast, C.white, 1, 0.92)
+        Corner(toast, 6)
+        Stroke(toast, C.white, 1, 0.91)
 
-        -- accent strip on left
+        -- listra accent na esquerda
         local strip = Frame(toast, {
-            Size             = UDim2.new(0,3,1,0),
+            Position         = UDim2.new(0,0,0,4),
+            Size             = UDim2.new(0,2,1,-8),
             BackgroundColor3 = accent,
             BackgroundTransparency = 0,
             ZIndex           = 31,
         })
         Corner(strip, 2)
 
-        -- icon circle
-        local iconCircle = Frame(toast, {
-            Position         = UDim2.new(0,14,0.5,-12),
-            Size             = UDim2.new(0,24,0,24),
-            BackgroundColor3 = accent,
-            BackgroundTransparency = 0.82,
-            ZIndex           = 31,
-        })
-        Corner(iconCircle, 12)
-        Label(iconCircle, {
-            Size           = UDim2.new(1,0,1,0),
-            Text           = icon,
-            TextColor3     = accent,
-            TextSize       = 12,
-            Font           = Enum.Font.GothamBold,
-            ZIndex         = 32,
-        })
-
-        -- title
+        -- titulo
         Label(toast, {
-            Position       = UDim2.new(0,46,0,12),
-            Size           = UDim2.new(1,-60,0,16),
+            Position       = UDim2.new(0,12,0,10),
+            Size           = UDim2.new(1,-16,0,14),
             Text           = toastTitle or "",
             TextColor3     = C.hi,
-            TextSize       = 12,
+            TextSize       = 11,
             Font           = Enum.Font.GothamMedium,
             TextXAlignment = Enum.TextXAlignment.Left,
             ZIndex         = 31,
         })
 
-        -- message
+        -- mensagem
         Label(toast, {
-            Position       = UDim2.new(0,46,0,30),
-            Size           = UDim2.new(1,-60,0,20),
+            Position       = UDim2.new(0,12,0,27),
+            Size           = UDim2.new(1,-16,0,16),
             Text           = message or "",
-            TextColor3     = C.low,
+            TextColor3     = C.mid,
             TextSize       = 10,
             Font           = Enum.Font.Gotham,
             TextXAlignment = Enum.TextXAlignment.Left,
@@ -549,38 +525,30 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
 
         -- progress bar na base
         local prog = Frame(toast, {
-            Position         = UDim2.new(0,3,1,-2),
-            Size             = UDim2.new(1,-3,0,2),
+            Position         = UDim2.new(0,2,1,-2),
+            Size             = UDim2.new(1,-4,0,2),
             BackgroundColor3 = accent,
-            BackgroundTransparency = 0.6,
+            BackgroundTransparency = 0.5,
             ZIndex           = 32,
         })
+        Corner(prog, 1)
         tw(prog, {Size = UDim2.new(0,0,0,2)}, duration, Enum.EasingStyle.Linear)
 
-        -- botão fechar
-        local closeBtn = Button(toast, {
-            Position             = UDim2.new(1,-20,0,8),
-            Size                 = UDim2.new(0,14,0,14),
-            BackgroundTransparency = 1,
-            Text                 = "✕",
-            TextColor3           = C.dim,
-            TextSize             = 9,
-            Font                 = Enum.Font.Gotham,
-            ZIndex               = 32,
-        })
-
-        toast.Position = UDim2.new(1,16,0,0)
-        tw(toast, {Position = UDim2.new(0,0,0,0)}, 0.28, Enum.EasingStyle.Back)
+        -- anima entrada: desliza da esquerda
+        toast.Position = UDim2.new(-1,0,0,0)
+        tw(toast, {Position = UDim2.new(0,0,0,0)}, 0.25, Enum.EasingStyle.Quart)
 
         local dismissed = false
         local function dismiss()
             if dismissed then return end
             dismissed = true
-            tw(toast, {Position = UDim2.new(1,16,0,0)}, 0.2)
-            Debris:AddItem(toast, 0.3)
+            tw(toast, {Position = UDim2.new(-1,0,0,0)}, 0.2, Enum.EasingStyle.Quart)
+            Debris:AddItem(toast, 0.25)
         end
 
-        closeBtn.MouseButton1Click:Connect(dismiss)
+        toast.InputBegan:Connect(function(i)
+            if i.UserInputType == Enum.UserInputType.MouseButton1 then dismiss() end
+        end)
         task.delay(duration, dismiss)
     end
 
