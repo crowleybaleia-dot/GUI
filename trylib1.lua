@@ -247,19 +247,6 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
         ZIndex         = 4,
     })
 
-    -- keybind hint
-    Label(titlebar, {
-        Name           = "kbHint",
-        Position       = UDim2.new(1,-138,0.5,-7),
-        Size           = UDim2.new(0,90,0,14),
-        Text           = visibleKey and ("toggle  [" .. tostring(visibleKey):gsub("Enum.KeyCode.","") .. "]") or "",
-        TextColor3     = C.dim,
-        TextSize       = 9,
-        Font           = Enum.Font.Code,
-        TextXAlignment = Enum.TextXAlignment.Right,
-        ZIndex         = 4,
-    })
-
     Corner(titlebar, 14)
     -- hiders dos cantos inferiores do titlebar (nao devem ser arredondados)
     Frame(titlebar, {
@@ -388,25 +375,6 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
         BackgroundTransparency = 0.96,
         ZIndex               = 4,
     })
-    local dot = Frame(statusbar, {
-        Position             = UDim2.new(0,14,0.5,-3),
-        Size                 = UDim2.new(0,6,0,6),
-        BackgroundColor3     = C.success,
-        BackgroundTransparency = 0.4,
-        ZIndex               = 4,
-    })
-    Corner(dot, 3)
-    Label(statusbar, {
-        Position       = UDim2.new(0,24,0,0),
-        Size           = UDim2.new(0,60,1,0),
-        Text           = "ACTIVE",
-        TextColor3     = C.dim,
-        TextSize       = 9,
-        Font           = Enum.Font.Code,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        ZIndex         = 4,
-    })
-
     -- ── state ─────────────────────────────────────────────────────────────
     local sections     = {}
     local workareas    = {}
