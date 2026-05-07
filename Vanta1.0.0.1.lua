@@ -181,7 +181,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     local drag, dragStart, startPos
     main.InputBegan:Connect(function(i)
         if i.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
-        if (i.Position.Y - main.AbsolutePosition.Y) > 38 then return end
+        if (i.Position.Y - main.AbsolutePosition.Y) > 60 then return end
         drag = true; dragStart = i.Position; startPos = main.Position
         i.Changed:Connect(function()
             if i.UserInputState == Enum.UserInputState.End then drag = false end
@@ -195,10 +195,10 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         end
     end)
 
-    -- ── titlebar  (38px) ───────────────────────────────────────────────────
+    -- ── titlebar  (60px) ───────────────────────────────────────────────────
     local titlebar = Frame(main, {
         Name                 = "titlebar",
-        Size                 = UDim2.new(1, 0, 0, 38),
+        Size                 = UDim2.new(1, 0, 0, 60),
         BackgroundColor3     = C.white,
         BackgroundTransparency = 0.98,
         ZIndex               = 4,
@@ -213,7 +213,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     })
 
     -- ── TitleHolder (logo + título lado a lado via UIListLayout) ─────────────
-    local iconSize = logoSize or UDim2.new(0, 44, 0, 44)
+    local iconSize = logoSize or UDim2.new(0, 56, 0, 56)
 
     local titleHolder = Frame(titlebar, {
         Position             = UDim2.new(0, 10, 0, 0),
@@ -328,8 +328,8 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     -- ── sidebar  (168px wide) ──────────────────────────────────────────────
     local sidebar = Frame(main, {
         Name                 = "sidebar",
-        Position             = UDim2.new(0,0,0,38),
-        Size                 = UDim2.new(0,168,1,-62),
+        Position             = UDim2.new(0,0,0,60),
+        Size                 = UDim2.new(0,168,1,-84),
         BackgroundColor3     = Color3.fromRGB(0,0,0),
         BackgroundTransparency = 0,
         ClipsDescendants     = true,
@@ -802,8 +802,8 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         -- workarea scroll (sits on top of content area position)
         local workarea = Instance.new("ScrollingFrame")
         workarea.Name                = "wa_" .. name
-        workarea.Position            = UDim2.new(0,168,0,38)
-        workarea.Size                = UDim2.new(1,-168,1,-62)
+        workarea.Position            = UDim2.new(0,168,0,60)
+        workarea.Size                = UDim2.new(1,-168,1,-84)
         workarea.BackgroundTransparency = 1
         workarea.BorderSizePixel     = 0
         workarea.ScrollBarThickness  = 3
@@ -843,17 +843,17 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             for _, w in ipairs(workareas) do w.Visible = false end
 
             -- workarea original: scale + fade
-            local basePos  = UDim2.new(0, 168, 0, 38)
-            local baseSize = UDim2.new(1, -168, 1, -62)
+            local basePos  = UDim2.new(0, 168, 0, 60)
+            local baseSize = UDim2.new(1, -168, 1, -84)
             local scaleOff = 8
 
-            workarea.Position = UDim2.new(0, 168 + scaleOff, 0, 38 + scaleOff)
-            workarea.Size     = UDim2.new(1, -168 - scaleOff*2, 1, -62 - scaleOff*2)
+            workarea.Position = UDim2.new(0, 168 + scaleOff, 0, 60 + scaleOff)
+            workarea.Size     = UDim2.new(1, -168 - scaleOff*2, 1, -84 - scaleOff*2)
             workarea.Visible  = true
 
             local overlay = Frame(main, {
-                Position             = UDim2.new(0, 168, 0, 38),
-                Size                 = UDim2.new(1, -168, 1, -62),
+                Position             = UDim2.new(0, 168, 0, 60),
+                Size                 = UDim2.new(1, -168, 1, -84),
                 BackgroundColor3     = C.bg,
                 BackgroundTransparency = 0,
                 ZIndex               = 50,
