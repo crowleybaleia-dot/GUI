@@ -347,16 +347,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
     searchBox.ZIndex              = 5
     searchBox.Parent              = searchFrame
 
-    -- activeBar único da sidebar — desliza entre abas
-    local activeBar = Frame(sidebar, {
-        Position             = UDim2.new(0, 0, 0, 42),
-        Size                 = UDim2.new(0, 2, 0, 32),
-        BackgroundColor3     = C.white,
-        BackgroundTransparency = 0.4,
-        ZIndex               = 5,
-    })
-    Corner(activeBar, 2)
-
+    -- sidebar scroll
     local sidebarScroll = Instance.new("ScrollingFrame")
     sidebarScroll.Name                = "sidebarScroll"
     sidebarScroll.Position            = UDim2.new(0,0,0,42)
@@ -370,6 +361,18 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
     sidebarScroll.ZIndex              = 3
     sidebarScroll.Parent              = sidebar
     ListLayout(sidebarScroll, {Padding = UDim.new(0,1)})
+
+    -- ── pill indicator (viaja entre os tabs) ──────────────────────────────
+    local pill = Frame(sidebarScroll, {
+        Name                 = "pill",
+        Position             = UDim2.new(0, 6, 0, 0),
+        Size                 = UDim2.new(1, -12, 0, 32),
+        BackgroundColor3     = C.white,
+        BackgroundTransparency = 0.91,
+        ZIndex               = 2,
+    })
+    Corner(pill, 8)
+    Stroke(pill, C.white, 1, 0.88)
 
     -- ── status bar  (24px) ────────────────────────────────────────────────
     local statusbar = Frame(main, {
@@ -731,7 +734,6 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
             LayoutOrder          = #sidebarScroll:GetChildren() + 1,
         })
 
-        local activeBar_local = nil -- removido: activeBar agora é global na sidebar
         -- ícone do sidebar (sempre criado; invisível se sem asset)
         local tabIcon = Image(tabBtn, {
             Position          = UDim2.new(0, 14, 0.5, -8),
@@ -778,32 +780,27 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
         local sec = {}
 
         function sec:Select()
+            -- desativa todos os tabs
             for _, t in ipairs(sections) do
-                t.BackgroundTransparency = 1
                 local l = t:FindFirstChildWhichIsA("TextLabel")
-                if l then tw(l, {TextColor3 = C.low}, 0.12); l.Font = Enum.Font.Gotham end
+                if l then tw(l, {TextColor3 = C.low}, 0.18); l.Font = Enum.Font.Gotham end
                 local ic = t:FindFirstChildWhichIsA("ImageLabel")
-                if ic then tw(ic, {ImageColor3 = C.low, ImageTransparency = 0.5}, 0.12) end
+                if ic then tw(ic, {ImageColor3 = C.low, ImageTransparency = 0.5}, 0.18) end
             end
-            tw(tabBtn,  {BackgroundTransparency = 0.94}, 0.12)
-            tw(tabLabel,{TextColor3 = C.hi},             0.12)
+
+            -- pill viaja até a posição do tab ativo
+            local targetY = tabBtn.AbsolutePosition.Y - sidebarScroll.AbsolutePosition.Y + sidebarScroll.CanvasPosition.Y
+            tw(pill, {Position = UDim2.new(0, 6, 0, targetY)}, 0.28, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+
+            -- ativa o tab atual
+            tw(tabLabel, {TextColor3 = C.hi}, 0.18)
             tabLabel.Font = Enum.Font.GothamMedium
-            if iconAsset then tw(tabIcon, {ImageColor3 = C.hi, ImageTransparency = 0}, 0.12) end
+            if iconAsset then tw(tabIcon, {ImageColor3 = C.hi, ImageTransparency = 0}, 0.18) end
 
-            -- desliza o activeBar até a posição Y desta tab
-            local relY = tabBtn.AbsolutePosition.Y - sidebar.AbsolutePosition.Y
-            tw(activeBar, {Position = UDim2.new(0, 0, 0, relY)}, 0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-            activeBar.Size = UDim2.new(0, 2, 0, tabBtn.AbsoluteSize.Y)
-
+            -- fade simples da workarea
             for _, w in ipairs(workareas) do w.Visible = false end
-
-            -- scale + fade na entrada
-            local basePos  = UDim2.new(0, 168, 0, 38)
-            local baseSize = UDim2.new(1, -168, 1, -62)
-            local scaleOff = 8
-
-            workarea.Position = UDim2.new(0, 168 + scaleOff, 0, 38 + scaleOff)
-            workarea.Size     = UDim2.new(1, -168 - scaleOff*2, 1, -62 - scaleOff*2)
+            workarea.Position = UDim2.new(0, 168, 0, 38)
+            workarea.Size     = UDim2.new(1, -168, 1, -62)
             workarea.Visible  = true
 
             local overlay = Frame(main, {
@@ -813,31 +810,19 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
                 BackgroundTransparency = 0,
                 ZIndex               = 50,
             })
-
-            tw(workarea, {Position = basePos, Size = baseSize}, 0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-            tw(overlay,  {BackgroundTransparency = 1},          0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-            Debris:AddItem(overlay, 0.22)
+            tw(overlay, {BackgroundTransparency = 1}, 0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+            Debris:AddItem(overlay, 0.18)
         end
 
-        tabBtn.MouseButton1Click:Connect(function()
-            -- ripple: flash sutil de transparência
-            tw(tabBtn, {BackgroundTransparency = 0.88}, 0.06)
-            task.delay(0.06, function()
-                if not tabBtn.Parent then return end
-                tw(tabBtn, {BackgroundTransparency = 0.94}, 0.1)
-            end)
-            sec:Select()
-        end)
+        tabBtn.MouseButton1Click:Connect(function() sec:Select() end)
         tabBtn.MouseEnter:Connect(function()
             if workarea.Visible then return end
-            tw(tabBtn,  {BackgroundTransparency = 0.96}, 0.1)
-            tw(tabLabel,{TextColor3 = C.mid},            0.1)
+            tw(tabLabel, {TextColor3 = C.mid}, 0.1)
             if iconAsset then tw(tabIcon, {ImageColor3 = C.mid, ImageTransparency = 0.3}, 0.1) end
         end)
         tabBtn.MouseLeave:Connect(function()
             if workarea.Visible then return end
-            tw(tabBtn,  {BackgroundTransparency = 1},  0.1)
-            tw(tabLabel,{TextColor3 = C.low},           0.1)
+            tw(tabLabel, {TextColor3 = C.low}, 0.1)
             if iconAsset then tw(tabIcon, {ImageColor3 = C.low, ImageTransparency = 0.5}, 0.1) end
         end)
 
