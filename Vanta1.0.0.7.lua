@@ -808,6 +808,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         workarea.BorderSizePixel     = 0
         workarea.ScrollBarThickness  = 3
         workarea.ScrollBarImageColor3 = Color3.fromRGB(45,45,45)
+        workarea.ScrollBarImageTransparency = 1
         workarea.AutomaticCanvasSize = Enum.AutomaticSize.Y
         workarea.CanvasSize          = UDim2.new(0,0,0,0)
         workarea.ZIndex              = 2
@@ -1323,11 +1324,11 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                         Position         = UDim2.new(0,0,0.5,-6),
                         Size             = UDim2.new(0,12,0,12),
                         BackgroundColor3 = on and C.white or C.element,
-                        BackgroundTransparency = on and 0.2 or 0,
+                        BackgroundTransparency = on and 0.2 or 1,
                         ZIndex           = 22,
                     })
                     Corner(chk, 3)
-                    Stroke(chk, C.white, 1, on and 0.1 or 0.85)
+                    Stroke(chk, C.white, 1, on and 0.1 or 0.75)
 
                     local optLbl = Label(ob, {
                         Position       = UDim2.new(0,18,0,0),
@@ -1346,7 +1347,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                         sel[opt] = not sel[opt]
                         local s = sel[opt]
                         tw(chk,    {BackgroundColor3 = s and C.white or C.element,
-                                    BackgroundTransparency = s and 0.2 or 0}, 0.12)
+                                    BackgroundTransparency = s and 0.2 or 1}, 0.12)
                         tw(optLbl, {TextColor3 = s and C.hi or C.low}, 0.12)
                         btnLbl.Text = labelTxt()
                         badge.Text  = tostring(count())
