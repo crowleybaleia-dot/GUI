@@ -808,27 +808,28 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
             if iconAsset then tw(tabIcon, {ImageColor3 = C.hi, ImageTransparency = 0}, 0.12) end
             tw(activeBar, {BackgroundTransparency = 0.4}, 0.12)
 
-            -- esconde todas as workareas
             for _, w in ipairs(workareas) do w.Visible = false end
 
-            -- slide + fade na entrada
-            local baseX = 168
-            workarea.Position = UDim2.new(0, baseX + 12, 0, 38)
+            -- scale + fade: começa menor e cresce pra tamanho normal
+            local basePos  = UDim2.new(0, 168, 0, 38)
+            local baseSize = UDim2.new(1, -168, 1, -62)
+            local scaleOff = 8 -- px reduzidos em cada lado
+
+            workarea.Position = UDim2.new(0, 168 + scaleOff, 0, 38 + scaleOff)
+            workarea.Size     = UDim2.new(1, -168 - scaleOff*2, 1, -62 - scaleOff*2)
             workarea.Visible  = true
 
-            -- overlay de fade
             local overlay = Frame(main, {
-                Position             = UDim2.new(0, baseX, 0, 38),
-                Size                 = UDim2.new(1, -baseX, 1, -62),
+                Position             = UDim2.new(0, 168, 0, 38),
+                Size                 = UDim2.new(1, -168, 1, -62),
                 BackgroundColor3     = C.bg,
                 BackgroundTransparency = 0,
                 ZIndex               = 50,
             })
 
-            -- tween simultâneo: slide X e fade do overlay
-            tw(workarea, {Position = UDim2.new(0, baseX, 0, 38)}, 0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-            tw(overlay,  {BackgroundTransparency = 1},             0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-            Debris:AddItem(overlay, 0.2)
+            tw(workarea, {Position = basePos, Size = baseSize}, 0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+            tw(overlay,  {BackgroundTransparency = 1},          0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+            Debris:AddItem(overlay, 0.22)
         end
 
         tabBtn.MouseButton1Click:Connect(function() sec:Select() end)
