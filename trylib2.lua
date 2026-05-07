@@ -407,27 +407,12 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
         ZIndex         = 4,
     })
 
-    -- ── toast holder (top-left, compact) ─────────────────────────────────
-    local toastHolder = Frame(scrgui, {
-        Name                 = "toastHolder",
-        AnchorPoint          = Vector2.new(0,0),
-        Position             = UDim2.new(0,12,0,12),
-        Size                 = UDim2.new(0,260,1,-24),
-        BackgroundTransparency = 1,
-        ZIndex               = 30,
-    })
-    ListLayout(toastHolder, {
-        VerticalAlignment   = Enum.VerticalAlignment.Top,
-        HorizontalAlignment = Enum.HorizontalAlignment.Left,
-        Padding             = UDim.new(0,5),
-    })
-
     -- ── state ─────────────────────────────────────────────────────────────
-    local sections  = {}
-    local workareas = {}
-    local visible   = true
-    local dbc       = false
-    local toastIdx  = 0
+    local sections     = {}
+    local workareas    = {}
+    local visible      = true
+    local dbc          = false
+    local currentToast = nil
 
     -- animate in: grow + fade in a partir de 60%
     main.Size = UDim2.new(0, 492, 0, 264)
@@ -465,92 +450,97 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
 
     -- ── TempNotify ────────────────────────────────────────────────────────
     function window:TempNotify(toastTitle, message, notifType, duration)
-        duration  = duration  or 4
-        toastIdx  = toastIdx  + 1
+        duration = duration or 4
 
-        -- inner card com todo o conteúdo (AutomaticSize X calcula a largura real)
-        local inner = Frame(nil, {
-            Name                   = "inner",
-            Size                   = UDim2.new(0,0,0,28),
-            AutomaticSize          = Enum.AutomaticSize.X,
-            BackgroundColor3       = Color3.fromRGB(14,14,14),
+        -- destroi o toast anterior imediatamente
+        if currentToast then
+            currentToast:Destroy()
+            currentToast = nil
+        end
+
+        -- mede o texto pra calcular a largura final
+        local ts = game:GetService("TextService")
+        local titleW = ts:GetTextSize(toastTitle or "", 10, Enum.Font.GothamMedium, Vector2.new(9999,28)).X
+        local msgW   = ts:GetTextSize((message or "") .. "  ", 10, Enum.Font.Gotham,       Vector2.new(9999,28)).X
+        -- padding(10) + title + dot(8+10) + msg + padding(10)
+        local fullW  = 10 + titleW + 18 + msgW + 10
+
+        -- card: começa com Size.X = 0, ClipsDescendants corta o conteúdo durante expand
+        local toast = Frame(scrgui, {
+            Name                   = "VantaToast",
+            AnchorPoint            = Vector2.new(0, 1),
+            Position               = UDim2.new(0, 12, 1, -12),
+            Size                   = UDim2.new(0, 0, 0, 28),
+            BackgroundColor3       = Color3.fromRGB(14, 14, 14),
             BackgroundTransparency = 0,
-            ZIndex                 = 31,
+            ClipsDescendants       = true,
+            ZIndex                 = 50,
         })
-        Corner(inner, 5)
-        Stroke(inner, C.white, 1, 0.88)
+        Corner(toast, 5)
+        Stroke(toast, C.white, 1, 0.88)
+        currentToast = toast
 
         -- title
-        local titleLbl = Label(inner, {
-            Position       = UDim2.new(0,10,0,0),
-            Size           = UDim2.new(0,0,1,0),
-            AutomaticSize  = Enum.AutomaticSize.X,
+        Label(toast, {
+            Position       = UDim2.new(0, 10, 0, 0),
+            Size           = UDim2.new(0, titleW, 1, 0),
             Text           = toastTitle or "",
             TextColor3     = C.hi,
             TextSize       = 10,
             Font           = Enum.Font.GothamMedium,
             TextXAlignment = Enum.TextXAlignment.Left,
-            ZIndex         = 32,
+            ZIndex         = 51,
         })
 
-        -- dot separator
-        local dotOffset = 10 + titleLbl.TextBounds.X + 5
-        Label(inner, {
-            Position       = UDim2.new(0, dotOffset, 0, 0),
-            Size           = UDim2.new(0,8,1,0),
+        -- dot
+        Label(toast, {
+            Position       = UDim2.new(0, 10 + titleW + 4, 0, 0),
+            Size           = UDim2.new(0, 10, 1, 0),
             Text           = "·",
             TextColor3     = C.dim,
             TextSize       = 10,
             Font           = Enum.Font.Gotham,
-            ZIndex         = 32,
+            ZIndex         = 51,
         })
 
         -- message
-        Label(inner, {
-            Position       = UDim2.new(0, dotOffset + 9, 0, 0),
-            Size           = UDim2.new(0,0,1,0),
-            AutomaticSize  = Enum.AutomaticSize.X,
+        Label(toast, {
+            Position       = UDim2.new(0, 10 + titleW + 18, 0, 0),
+            Size           = UDim2.new(0, msgW, 1, 0),
             Text           = (message or "") .. "  ",
             TextColor3     = C.mid,
             TextSize       = 10,
             Font           = Enum.Font.Gotham,
             TextXAlignment = Enum.TextXAlignment.Left,
-            ZIndex         = 32,
+            ZIndex         = 51,
         })
 
-        -- outer wrapper: começa com largura 0 e ClipsDescendants esconde o inner
-        local toast = Frame(toastHolder, {
-            Name                   = "toast" .. toastIdx,
-            Size                   = UDim2.new(0,0,0,28),
-            BackgroundTransparency = 1,
-            ClipsDescendants       = true,
-            ZIndex                 = 30,
-            LayoutOrder            = toastIdx,
-        })
-        Corner(toast, 5)
-        inner.Parent = toast
+        -- entrada: expande X de 0 → fullW, Quad Out 0.4s
+        pcall(function()
+            toast:TweenSize(
+                UDim2.new(0, fullW, 0, 28),
+                Enum.EasingDirection.Out,
+                Enum.EasingStyle.Quad,
+                0.4,
+                true
+            )
+        end)
 
-        -- aguarda 1 frame pra AutomaticSize calcular a largura do inner
-        task.defer(function()
-            if not inner.Parent then return end
-            local fullW = inner.AbsoluteSize.X
-
-            -- entrada: expande de 0 até largura total, Quad Out 0.4s
-            TweenService:Create(
-                toast,
-                TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-                { Size = UDim2.new(0, fullW, 0, 28) }
-            ):Play()
-
-            -- saída: contrai de volta pra 0, Quad In 0.3s
-            task.delay(duration, function()
-                if not toast.Parent then return end
-                TweenService:Create(
-                    toast,
-                    TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
-                    { Size = UDim2.new(0, 0, 0, 28) }
-                ):Play()
-                Debris:AddItem(toast, 0.32)
+        -- saída: contrai X de fullW → 0, Quad In 0.3s
+        task.delay(duration, function()
+            if not toast.Parent then return end
+            pcall(function()
+                toast:TweenSize(
+                    UDim2.new(0, 0, 0, 28),
+                    Enum.EasingDirection.In,
+                    Enum.EasingStyle.Quad,
+                    0.3,
+                    true
+                )
+            end)
+            Debris:AddItem(toast, 0.35)
+            task.delay(0.35, function()
+                if currentToast == toast then currentToast = nil end
             end)
         end)
     end
