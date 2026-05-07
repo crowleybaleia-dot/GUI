@@ -1155,8 +1155,8 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 local row  = baseRow(lbl)
 
                 local btn = Button(row, {
-                    Position             = UDim2.new(1,-90,0.5,-10),
-                    Size                 = UDim2.new(0,86,0,20),
+                    Position             = UDim2.new(1,-130,0.5,-11),
+                    Size                 = UDim2.new(0,126,0,22),
                     BackgroundColor3     = C.white,
                     BackgroundTransparency = 0.96,
                     Text                 = "",
@@ -1166,8 +1166,8 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 Stroke(btn, C.white, 1, 0.9)
 
                 local btnLbl = Label(btn, {
-                    Position       = UDim2.new(0,7,0,0),
-                    Size           = UDim2.new(1,-18,1,0),
+                    Position       = UDim2.new(0,8,0,0),
+                    Size           = UDim2.new(1,-22,1,0),
                     Text           = sel,
                     TextColor3     = C.hi,
                     TextSize       = 10,
@@ -1176,8 +1176,8 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     ZIndex         = 8,
                 })
                 Label(btn, {
-                    Position       = UDim2.new(1,-13,0.5,-5),
-                    Size           = UDim2.new(0,10,0,10),
+                    Position       = UDim2.new(1,-16,0.5,-5),
+                    Size           = UDim2.new(0,12,0,10),
                     Text           = "▾",
                     TextColor3     = C.hi,
                     TextSize       = 10,
@@ -1251,8 +1251,8 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 end
 
                 local btn = Button(row, {
-                    Position             = UDim2.new(1,-90,0.5,-10),
-                    Size                 = UDim2.new(0,86,0,20),
+                    Position             = UDim2.new(1,-130,0.5,-11),
+                    Size                 = UDim2.new(0,126,0,22),
                     BackgroundColor3     = C.white,
                     BackgroundTransparency = 0.96,
                     Text                 = "",
@@ -1262,8 +1262,8 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 Stroke(btn, C.white, 1, 0.9)
 
                 local btnLbl = Label(btn, {
-                    Position       = UDim2.new(0,7,0,0),
-                    Size           = UDim2.new(1,-28,1,0),
+                    Position       = UDim2.new(0,8,0,0),
+                    Size           = UDim2.new(1,-38,1,0),
                     Text           = labelTxt(),
                     TextColor3     = C.hi,
                     TextSize       = 10,
@@ -1273,10 +1273,10 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 })
 
                 local badge = Label(btn, {
-                    Position             = UDim2.new(1,-22,0.5,-7),
+                    Position             = UDim2.new(1,-28,0.5,-7),
                     Size                 = UDim2.new(0,14,0,14),
                     Text                 = tostring(count()),
-                    TextColor3     = C.hi,
+                    TextColor3           = C.hi,
                     TextSize             = 9,
                     Font                 = Enum.Font.Code,
                     BackgroundColor3     = C.white,
@@ -1286,8 +1286,8 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 Corner(badge, 3)
 
                 Label(btn, {
-                    Position       = UDim2.new(1,-10,0.5,-5),
-                    Size           = UDim2.new(0,8,0,10),
+                    Position       = UDim2.new(1,-13,0.5,-5),
+                    Size           = UDim2.new(0,10,0,10),
                     Text           = "▾",
                     TextColor3     = C.hi,
                     TextSize       = 10,
@@ -1376,24 +1376,23 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 return o
             end
 
-            -- ── Button ───────────────────────────────────────────────────
+            -- ── Button (Linoria style: full-width, centered, no side label) ─
             function grp:Button(lbl, cb)
-                local row = baseRow(lbl)
-                local btn = Button(row, {
-                    Position             = UDim2.new(1,-62,0.5,-10),
-                    Size                 = UDim2.new(0,58,0,20),
+                local btn = Button(body, {
+                    Size                 = UDim2.new(1, 0, 0, 28),
                     BackgroundColor3     = C.white,
                     BackgroundTransparency = 0.92,
                     Text                 = lbl,
-                    TextColor3     = C.hi,
-                    TextSize             = 10,
-                    Font                 = Enum.Font.Gotham,
+                    TextColor3           = C.hi,
+                    TextSize             = 11,
+                    Font                 = Enum.Font.GothamMedium,
                     ZIndex               = 7,
+                    LayoutOrder          = #body:GetChildren(),
                 })
                 Corner(btn, 5)
                 Stroke(btn, C.white, 1, 0.87)
-                btn.MouseEnter:Connect(function() tw(btn, {BackgroundTransparency = 0.80, TextColor3 = C.hi}, 0.12) end)
-                btn.MouseLeave:Connect(function() tw(btn, {BackgroundTransparency = 0.92, TextColor3     = C.hi}, 0.12) end)
+                btn.MouseEnter:Connect(function() tw(btn, {BackgroundTransparency = 0.80}, 0.12) end)
+                btn.MouseLeave:Connect(function() tw(btn, {BackgroundTransparency = 0.92}, 0.12) end)
                 btn.MouseButton1Click:Connect(function()
                     tw(btn, {BackgroundTransparency = 0.65}, 0.06)
                     task.delay(0.12, function() tw(btn, {BackgroundTransparency = 0.92}, 0.1) end)
