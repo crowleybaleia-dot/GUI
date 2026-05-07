@@ -954,10 +954,9 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
                 local waiting = false
                 local row     = baseRow(lbl)
 
-                -- track posicionado com espaço pra badge se tiver keybind
-                local trackX = keybind and -82 or -34
+                -- track sempre na mesma posição fixa
                 local track = Button(row, {
-                    Position             = UDim2.new(1, trackX, 0.5, -9),
+                    Position             = UDim2.new(1,-34,0.5,-9),
                     Size                 = UDim2.new(0,34,0,18),
                     BackgroundColor3     = state and C.onBg or C.offBg,
                     Text                 = "",
@@ -983,11 +982,16 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
                 end
                 track.MouseButton1Click:Connect(flip)
 
-                -- badge de keybind (só criado se keybind foi passado)
+                -- badge de keybind posicionado dinamicamente à esquerda do track
                 if keybind then
+                    local keyName = tostring(key):gsub("Enum.KeyCode.","")
+                    local ts = game:GetService("TextService")
+                    local badgeW = ts:GetTextSize("[" .. keyName .. "]", 9, Enum.Font.Code, Vector2.new(9999,18)).X + 10
+
                     local kbf = Button(row, {
-                        Position             = UDim2.new(1,-76,0.5,-9),
-                        Size                 = UDim2.new(0,36,0,18),
+                        Size                 = UDim2.new(0, badgeW, 0, 18),
+                        AnchorPoint          = Vector2.new(1, 0.5),
+                        Position             = UDim2.new(1, -38, 0.5, 0),
                         BackgroundColor3     = C.white,
                         BackgroundTransparency = 0.94,
                         Text                 = "",
@@ -998,7 +1002,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
 
                     local kbLbl = Label(kbf, {
                         Size           = UDim2.new(1,0,1,0),
-                        Text           = "[" .. tostring(key):gsub("Enum.KeyCode.","") .. "]",
+                        Text           = "[" .. keyName .. "]",
                         TextColor3     = C.dim,
                         TextSize       = 9,
                         Font           = Enum.Font.Code,
@@ -1007,8 +1011,8 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
 
                     -- clique no badge: entra em modo captura
                     kbf.MouseButton1Click:Connect(function()
-                        waiting      = true
-                        kbLbl.Text   = "[...]"
+                        waiting          = true
+                        kbLbl.Text       = "[...]"
                         kbLbl.TextColor3 = C.hi
                     end)
 
@@ -1019,7 +1023,10 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
                         if waiting then
                             waiting          = false
                             key              = i.KeyCode
-                            kbLbl.Text       = "[" .. tostring(key):gsub("Enum.KeyCode.","") .. "]"
+                            local newName    = tostring(key):gsub("Enum.KeyCode.","")
+                            local newW       = ts:GetTextSize("[" .. newName .. "]", 9, Enum.Font.Code, Vector2.new(9999,18)).X + 10
+                            kbf.Size         = UDim2.new(0, newW, 0, 18)
+                            kbLbl.Text       = "[" .. newName .. "]"
                             kbLbl.TextColor3 = C.dim
                         elseif i.KeyCode == key then
                             flip()
