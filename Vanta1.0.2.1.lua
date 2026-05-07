@@ -1165,70 +1165,138 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             function grp:Slider(lbl, min, max, default, cb)
                 min = min or 0; max = max or 100; default = default or min
                 local val = default
-                local row = baseRow(lbl, 38)
+                local TRACK_W = 400
 
-                -- valor em cima à direita
-                local valLbl = Label(row, {
-                    Position       = UDim2.new(1, -110, 0, 4),
-                    Size           = UDim2.new(0, 110, 0, 14),
-                    Text           = tostring(val),
-                    TextColor3     = C.hi,
-                    TextSize       = 9,
-                    Font           = Enum.Font.Code,
-                    TextXAlignment = Enum.TextXAlignment.Right,
-                    ZIndex         = 6,
+                -- frame externo 50px, vai direto pro body
+                local slFrame = Frame(body, {
+                    Size                 = UDim2.new(1,0,0,50),
+                    BackgroundTransparency = 1,
+                    ZIndex               = 5,
+                    LayoutOrder          = #body:GetChildren(),
                 })
 
-                -- track fixo à direita, 110px, 8px de altura
-                local trackBg = Frame(row, {
-                    Position             = UDim2.new(1, -110, 1, -12),
-                    Size                 = UDim2.new(0, 110, 0, 6),
-                    BackgroundColor3     = C.border,
+                -- background 1: centralizado
+                local bg1 = Frame(slFrame, {
+                    AnchorPoint          = Vector2.new(0.5,0.5),
+                    Position             = UDim2.new(0.5,0,0.5,0),
+                    Size                 = UDim2.new(1,-10,1,0),
+                    BackgroundColor3     = C.element,
                     BackgroundTransparency = 0,
                     ZIndex               = 6,
+                })
+                Corner(bg1, 4)
+
+                -- label do título (linha de cima)
+                Label(bg1, {
+                    Position       = UDim2.new(0,10,0,0),
+                    Size           = UDim2.new(1,-170,0,25),
+                    Text           = lbl or "",
+                    TextColor3     = C.hi,
+                    TextSize       = 11,
+                    Font           = Enum.Font.GothamMedium,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    ZIndex         = 7,
+                })
+
+                -- TextBox do valor (canto superior direito, editável)
+                local bg2 = Frame(bg1, {
+                    AnchorPoint          = Vector2.new(1,0),
+                    Position             = UDim2.new(1,-5,0,5),
+                    Size                 = UDim2.new(0,150,0,20),
+                    BackgroundColor3     = C.border,
+                    BackgroundTransparency = 0,
+                    ZIndex               = 7,
+                })
+                Corner(bg2, 4)
+
+                local valBox = Instance.new("TextBox")
+                valBox.Size                  = UDim2.new(1,0,1,0)
+                valBox.BackgroundTransparency = 1
+                valBox.BorderSizePixel       = 0
+                valBox.Font                  = Enum.Font.GothamMedium
+                valBox.Text                  = tostring(val)
+                valBox.TextColor3            = C.hi
+                valBox.TextSize              = 10
+                valBox.ClearTextOnFocus      = false
+                valBox.TextXAlignment        = Enum.TextXAlignment.Center
+                valBox.ZIndex                = 8
+                valBox.Parent                = bg2
+
+                -- track (SliderBar) centralizado horizontalmente
+                local trackBg = Frame(slFrame, {
+                    AnchorPoint          = Vector2.new(0.5,0.5),
+                    Position             = UDim2.new(0.5,0,0.5,14),
+                    Size                 = UDim2.new(0,TRACK_W,0,6),
+                    BackgroundColor3     = C.border,
+                    BackgroundTransparency = 0,
+                    ZIndex               = 7,
                 })
                 Corner(trackBg, 3)
 
                 local p0 = (val-min)/(max-min)
-
                 local fill = Frame(trackBg, {
-                    Size             = UDim2.new(p0, 0, 1, 0),
+                    Size             = UDim2.new(0, p0*TRACK_W, 1, 0),
                     BackgroundColor3 = C.accent,
                     BackgroundTransparency = 0,
-                    ZIndex           = 7,
+                    ZIndex           = 8,
                 })
                 Corner(fill, 3)
 
-                local dslider = false
-                local function upd(x)
-                    local rel = math.clamp((x - trackBg.AbsolutePosition.X) / trackBg.AbsoluteSize.X, 0, 1)
-                    val = math.floor(min + rel*(max-min) + 0.5)
+                -- botão invisível sobre o track para captura de input
+                local slBtn = Button(trackBg, {
+                    Size                 = UDim2.new(1,0,1,0),
+                    BackgroundTransparency = 1,
+                    Text                 = "",
+                    ZIndex               = 9,
+                })
+
+                local mouse = game.Players.LocalPlayer:GetMouse()
+                local moveConn, releaseConn
+
+                local function setVal(v)
+                    val = math.clamp(v, min, max)
                     local p = (val-min)/(max-min)
-                    tw(fill, {Size = UDim2.new(p, 0, 1, 0)}, 0.06)
-                    valLbl.Text = tostring(val)
+                    fill.Size = UDim2.new(0, p*TRACK_W, 1, 0)
+                    valBox.Text = tostring(val)
                     if cb then cb(val) end
                 end
 
-                trackBg.InputBegan:Connect(function(i)
-                    if i.UserInputType == Enum.UserInputType.MouseButton1 then
-                        dslider = true; upd(i.Position.X)
-                    end
+                slBtn.MouseEnter:Connect(function()
+                    tw(fill, {BackgroundColor3 = C.accentBg}, 0.15)
                 end)
-                UserInputService.InputChanged:Connect(function(i)
-                    if dslider and i.UserInputType == Enum.UserInputType.MouseMovement then upd(i.Position.X) end
+                slBtn.MouseLeave:Connect(function()
+                    tw(fill, {BackgroundColor3 = C.accent}, 0.15)
                 end)
-                UserInputService.InputEnded:Connect(function(i)
-                    if i.UserInputType == Enum.UserInputType.MouseButton1 then dslider = false end
+
+                slBtn.MouseButton1Down:Connect(function()
+                    local raw = math.floor((max-min) / TRACK_W * fill.AbsoluteSize.X + min)
+                    setVal(raw)
+                    fill.Size = UDim2.new(0, math.clamp(mouse.X - fill.AbsolutePosition.X, 0, TRACK_W), 1, 0)
+
+                    moveConn = mouse.Move:Connect(function()
+                        local rv = math.floor((max-min) / TRACK_W * fill.AbsoluteSize.X + min)
+                        setVal(rv)
+                        fill.Size = UDim2.new(0, math.clamp(mouse.X - trackBg.AbsolutePosition.X, 0, TRACK_W), 1, 0)
+                    end)
+                    releaseConn = UserInputService.InputEnded:Connect(function(i)
+                        if i.UserInputType == Enum.UserInputType.MouseButton1 then
+                            local rv = math.floor((max-min) / TRACK_W * fill.AbsoluteSize.X + min)
+                            setVal(rv)
+                            fill.Size = UDim2.new(0, math.clamp(mouse.X - trackBg.AbsolutePosition.X, 0, TRACK_W), 1, 0)
+                            if moveConn then moveConn:Disconnect() end
+                            if releaseConn then releaseConn:Disconnect() end
+                        end
+                    end)
+                end)
+
+                valBox.FocusLost:Connect(function()
+                    local v = tonumber(valBox.Text)
+                    if v then setVal(math.floor(v))
+                    else valBox.Text = tostring(val) end
                 end)
 
                 local o = {}
-                function o:Set(v)
-                    val = math.clamp(v, min, max)
-                    local p = (val-min)/(max-min)
-                    fill.Size = UDim2.new(p, 0, 1, 0)
-                    valLbl.Text = tostring(val)
-                    if cb then cb(val) end
-                end
+                function o:Set(v) setVal(math.floor(v)) end
                 function o:Get() return val end
                 return o
             end
@@ -1237,39 +1305,68 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             function grp:Dropdown(lbl, options, default, cb)
                 local sel  = default or (options and options[1]) or ""
                 local open = false
-                local row  = baseRow(lbl)
 
-                local btn = Button(row, {
-                    Position             = UDim2.new(1,-130,0.5,-11),
-                    Size                 = UDim2.new(0,126,0,22),
+                -- frame externo, largura total, vai direto pro body
+                local ddFrame = Frame(body, {
+                    Size                 = UDim2.new(1,0,0,25),
+                    BackgroundTransparency = 1,
+                    ZIndex               = 5,
+                    LayoutOrder          = #body:GetChildren(),
+                })
+
+                -- background 1: centralizado, cor element
+                local bg1 = Frame(ddFrame, {
+                    AnchorPoint          = Vector2.new(0.5,0.5),
+                    Position             = UDim2.new(0.5,0,0.5,0),
+                    Size                 = UDim2.new(1,-10,1,0),
                     BackgroundColor3     = C.element,
                     BackgroundTransparency = 0,
-                    Text                 = "",
+                    ClipsDescendants     = true,
+                    ZIndex               = 6,
+                })
+                Corner(bg1, 4)
+
+                -- background 2: barra interna (linha completa, fundo levemente diferente)
+                local bg2 = Frame(bg1, {
+                    Size                 = UDim2.new(1,0,1,0),
+                    BackgroundColor3     = C.border,
+                    BackgroundTransparency = 0.5,
                     ZIndex               = 7,
                 })
-                Corner(btn, 4)
-                Stroke(btn, C.border, 1, 0)
+                Corner(bg2, 4)
 
-                local btnLbl = Label(btn, {
-                    Position       = UDim2.new(0,8,0,0),
-                    Size           = UDim2.new(1,-22,1,0),
-                    Text           = sel,
+                -- label "Titulo: Valor"
+                local btnLbl = Label(bg2, {
+                    Position       = UDim2.new(0,10,0,0),
+                    Size           = UDim2.new(1,-30,1,0),
+                    Text           = lbl .. ": " .. sel,
                     TextColor3     = C.hi,
-                    TextSize       = 10,
-                    Font           = Enum.Font.Gotham,
+                    TextSize       = 11,
+                    Font           = Enum.Font.GothamMedium,
                     TextXAlignment = Enum.TextXAlignment.Left,
                     ZIndex         = 8,
                 })
-                -- arrow ›
-                Label(btn, {
-                    Position       = UDim2.new(1,-16,0.5,-8),
-                    Size           = UDim2.new(0,12,0,16),
-                    Text           = "›",
-                    TextColor3     = C.dim,
-                    TextSize       = 14,
-                    Font           = Enum.Font.Gotham,
-                    ZIndex         = 8,
+
+                -- seta (imagem igual ao Feral)
+                local arrow = Instance.new("ImageLabel")
+                arrow.BackgroundTransparency = 1
+                arrow.AnchorPoint = Vector2.new(1,0.5)
+                arrow.Position = UDim2.new(1,-6,0.5,0)
+                arrow.Size = UDim2.new(0,15,0,15)
+                arrow.Image = "rbxassetid://6954383209"
+                arrow.ImageColor3 = C.dim
+                arrow.ZIndex = 8
+                arrow.Parent = bg2
+
+                -- botão transparente sobre tudo
+                local ddBtn = Button(bg2, {
+                    Size                 = UDim2.new(1,0,1,0),
+                    BackgroundTransparency = 1,
+                    Text                 = "",
+                    ZIndex               = 9,
                 })
+
+                -- painel de opções
                 local panel = Frame(gbox, {
                     Size             = UDim2.new(1,0,0,0),
                     AutomaticSize    = Enum.AutomaticSize.Y,
@@ -1299,23 +1396,24 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     ob.MouseEnter:Connect(function() tw(ob, {BackgroundTransparency = 0.94}, 0.1) end)
                     ob.MouseLeave:Connect(function() tw(ob, {BackgroundTransparency = 1},    0.1) end)
                     ob.MouseButton1Click:Connect(function()
-                        sel = opt; btnLbl.Text = opt
+                        sel = opt
+                        btnLbl.Text = lbl .. ": " .. opt
                         panel.Visible = false; open = false
                         if cb then cb(opt) end
                     end)
                 end
 
-                btn.MouseButton1Click:Connect(function()
+                ddBtn.MouseButton1Click:Connect(function()
                     open = not open
                     if open then
-                        local relY = row.AbsolutePosition.Y - gbox.AbsolutePosition.Y + 28
+                        local relY = ddFrame.AbsolutePosition.Y - gbox.AbsolutePosition.Y + 25
                         panel.Position = UDim2.new(0,0,0,relY)
                     end
                     panel.Visible = open
                 end)
 
                 local o = {}
-                function o:Set(v) sel = v; btnLbl.Text = v; if cb then cb(v) end end
+                function o:Set(v) sel = v; btnLbl.Text = lbl .. ": " .. v; if cb then cb(v) end end
                 function o:Get() return sel end
                 return o
             end
@@ -1500,37 +1598,75 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
 
             -- ── TextField ────────────────────────────────────────────────
             function grp:TextField(lbl, placeholder, cb)
-                local row = baseRow(lbl, 34)
+                local tfFrame = Frame(body, {
+                    Size                 = UDim2.new(1,0,0,60),
+                    BackgroundTransparency = 1,
+                    ZIndex               = 5,
+                    LayoutOrder          = #body:GetChildren(),
+                })
 
-                local inputFrame = Frame(row, {
-                    Position             = UDim2.new(1,-108,0.5,-11),
-                    Size                 = UDim2.new(0,104,0,22),
+                local bg1 = Frame(tfFrame, {
+                    AnchorPoint          = Vector2.new(0.5,0.5),
+                    Position             = UDim2.new(0.5,0,0.5,0),
+                    Size                 = UDim2.new(1,-10,1,0),
                     BackgroundColor3     = C.element,
                     BackgroundTransparency = 0,
+                    ZIndex               = 6,
+                })
+                Corner(bg1, 4)
+
+                Label(bg1, {
+                    Position       = UDim2.new(0,10,0,0),
+                    Size           = UDim2.new(1,-10,0.5,0),
+                    Text           = lbl or "",
+                    TextColor3     = C.hi,
+                    TextSize       = 11,
+                    Font           = Enum.Font.GothamMedium,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    ZIndex         = 7,
+                })
+
+                local bg2 = Frame(bg1, {
+                    AnchorPoint          = Vector2.new(1,0),
+                    Position             = UDim2.new(1,-5,0,33),
+                    Size                 = UDim2.new(1,-10,0,22),
+                    BackgroundColor3     = C.border,
+                    BackgroundTransparency = 0,
+                    ClipsDescendants     = true,
                     ZIndex               = 7,
                 })
-                Corner(inputFrame, 4)
-                local istr = Stroke(inputFrame, C.border, 1, 0)
+                Corner(bg2, 4)
+
+                local highlight = Frame(bg2, {
+                    Position             = UDim2.new(0,0,1,-2),
+                    Size                 = UDim2.new(1,0,0,4),
+                    BackgroundColor3     = C.accent,
+                    BackgroundTransparency = 1,
+                    ZIndex               = 9,
+                })
+                Corner(highlight, 2)
 
                 local tb = Instance.new("TextBox")
-                tb.Position              = UDim2.new(0,6,0,0)
-                tb.Size                  = UDim2.new(1,-12,1,0)
+                tb.Position              = UDim2.new(0,5,0,0)
+                tb.Size                  = UDim2.new(1,-10,1,0)
                 tb.BackgroundTransparency = 1
                 tb.BorderSizePixel       = 0
                 tb.Font                  = Enum.Font.Gotham
                 tb.PlaceholderText       = placeholder or "Type..."
                 tb.PlaceholderColor3     = C.dim
                 tb.Text                  = ""
-                tb.TextColor3     = C.hi
+                tb.TextColor3            = C.hi
                 tb.TextSize              = 10
                 tb.ClearTextOnFocus      = false
                 tb.TextXAlignment        = Enum.TextXAlignment.Left
                 tb.ZIndex                = 8
-                tb.Parent                = inputFrame
+                tb.Parent                = bg2
 
-                tb.Focused:Connect(function()   istr.Color = C.accent end)
+                tb.Focused:Connect(function()
+                    tw(highlight, {BackgroundTransparency = 0}, 0.15)
+                end)
                 tb.FocusLost:Connect(function()
-                    istr.Color = C.border
+                    tw(highlight, {BackgroundTransparency = 1}, 0.15)
                     if cb then cb(tb.Text) end
                 end)
 
