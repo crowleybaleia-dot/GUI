@@ -974,7 +974,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
                     Position             = UDim2.new(1, -22, 0.5, -9),
                     Size                 = UDim2.new(0, 18, 0, 18),
                     BackgroundColor3     = state and C.white or C.offBg,
-                    BackgroundTransparency = state and 0.75 or 0,
+                    BackgroundTransparency = 0,
                     Text                 = "",
                     ZIndex               = 7,
                 })
@@ -985,7 +985,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
                     state = not state
                     tw(box, {
                         BackgroundColor3     = state and C.white or C.offBg,
-                        BackgroundTransparency = state and 0.75 or 0,
+                        BackgroundTransparency = 0,
                     }, 0.14)
                     if cb then cb(state) end
                 end
