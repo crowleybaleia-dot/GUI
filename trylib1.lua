@@ -948,12 +948,16 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
             local grp = {}
 
             -- ── Toggle ───────────────────────────────────────────────────
-            function grp:Toggle(lbl, default, cb)
-                local state = default == true
-                local row = baseRow(lbl)
+            function grp:Toggle(lbl, default, cb, keybind)
+                local state   = default == true
+                local key     = keybind or nil
+                local waiting = false
+                local row     = baseRow(lbl)
 
+                -- track posicionado com espaço pra badge se tiver keybind
+                local trackX = keybind and -78 or -34
                 local track = Button(row, {
-                    Position             = UDim2.new(1,-34,0.5,-9),
+                    Position             = UDim2.new(1, trackX, 0.5, -9),
                     Size                 = UDim2.new(0,34,0,18),
                     BackgroundColor3     = state and C.onBg or C.offBg,
                     Text                 = "",
@@ -978,6 +982,50 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
                     if cb then cb(state) end
                 end
                 track.MouseButton1Click:Connect(flip)
+
+                -- badge de keybind (só criado se keybind foi passado)
+                if keybind then
+                    local kbf = Button(row, {
+                        Position             = UDim2.new(1,-74,0.5,-9),
+                        Size                 = UDim2.new(0,36,0,18),
+                        BackgroundColor3     = C.white,
+                        BackgroundTransparency = 0.94,
+                        Text                 = "",
+                        ZIndex               = 7,
+                    })
+                    Corner(kbf, 4)
+                    Stroke(kbf, C.white, 1, 0.88)
+
+                    local kbLbl = Label(kbf, {
+                        Size           = UDim2.new(1,0,1,0),
+                        Text           = "[" .. tostring(key):gsub("Enum.KeyCode.","") .. "]",
+                        TextColor3     = C.dim,
+                        TextSize       = 9,
+                        Font           = Enum.Font.Code,
+                        ZIndex         = 8,
+                    })
+
+                    -- clique no badge: entra em modo captura
+                    kbf.MouseButton1Click:Connect(function()
+                        waiting      = true
+                        kbLbl.Text   = "[...]"
+                        kbLbl.TextColor3 = C.hi
+                    end)
+
+                    -- captura tecla OU dispara flip
+                    UserInputService.InputBegan:Connect(function(i, gp)
+                        if gp then return end
+                        if i.UserInputType ~= Enum.UserInputType.Keyboard then return end
+                        if waiting then
+                            waiting          = false
+                            key              = i.KeyCode
+                            kbLbl.Text       = "[" .. tostring(key):gsub("Enum.KeyCode.","") .. "]"
+                            kbLbl.TextColor3 = C.dim
+                        elseif i.KeyCode == key then
+                            flip()
+                        end
+                    end)
+                end
 
                 local o = {}
                 function o:Set(v) if state ~= v then flip() end end
