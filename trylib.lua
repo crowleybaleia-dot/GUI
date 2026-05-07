@@ -1067,57 +1067,49 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
                 local val = default
                 local row = baseRow(lbl, 34)
 
-                -- valor fica à esquerda do track, sem sobreposição
+                -- valor à direita do label, antes do track
                 local valLbl = Label(row, {
-                    Position       = UDim2.new(1,-100,0.5,-7),
-                    Size           = UDim2.new(0,20,0,14),
+                    Position       = UDim2.new(1, -90, 0.5, -7),
+                    Size           = UDim2.new(0, 24, 0, 14),
                     Text           = tostring(val),
-                    TextColor3     = C.dim,
+                    TextColor3     = C.mid,
                     TextSize       = 9,
                     Font           = Enum.Font.Code,
                     TextXAlignment = Enum.TextXAlignment.Right,
                     ZIndex         = 6,
                 })
 
+                -- track grosso e arredondado
                 local trackBg = Frame(row, {
-                    Position         = UDim2.new(1,-74,0.5,-1),
-                    Size             = UDim2.new(0,70,0,2),
-                    BackgroundColor3 = C.white,
-                    BackgroundTransparency = 0.9,
-                    ZIndex           = 6,
+                    Position             = UDim2.new(0, 0, 1, -6),
+                    Size                 = UDim2.new(1, 0, 0, 4),
+                    BackgroundColor3     = C.white,
+                    BackgroundTransparency = 0.88,
+                    ZIndex               = 6,
                 })
-                Corner(trackBg, 1)
+                Corner(trackBg, 2)
 
                 local p0 = (val-min)/(max-min)
+
+                -- fill prata arredondado, sem thumb
                 local fill = Frame(trackBg, {
-                    Size             = UDim2.new(p0,0,1,0),
-                    BackgroundColor3 = C.white,
-                    BackgroundTransparency = 0.2,
+                    Size             = UDim2.new(p0, 0, 1, 0),
+                    BackgroundColor3 = C.mid,
+                    BackgroundTransparency = 0,
                     ZIndex           = 7,
                 })
-                Corner(fill, 1)
-
-                local thumb = Frame(trackBg, {
-                    AnchorPoint      = Vector2.new(0.5,0.5),
-                    Position         = UDim2.new(p0,0,0.5,0),
-                    Size             = UDim2.new(0,10,0,10),
-                    BackgroundColor3 = C.white,
-                    BackgroundTransparency = 0.2,
-                    ZIndex           = 8,
-                })
-                Corner(thumb, 5)
-                Stroke(thumb, C.white, 1, 0.05)
+                Corner(fill, 2)
 
                 local dslider = false
                 local function upd(x)
                     local rel = math.clamp((x - trackBg.AbsolutePosition.X) / trackBg.AbsoluteSize.X, 0, 1)
                     val = math.floor(min + rel*(max-min) + 0.5)
                     local p = (val-min)/(max-min)
-                    tw(fill,  {Size     = UDim2.new(p,0,1,0)},   0.06)
-                    tw(thumb, {Position = UDim2.new(p,0,0.5,0)}, 0.06)
+                    tw(fill, {Size = UDim2.new(p, 0, 1, 0)}, 0.06)
                     valLbl.Text = tostring(val)
                     if cb then cb(val) end
                 end
+
                 trackBg.InputBegan:Connect(function(i)
                     if i.UserInputType == Enum.UserInputType.MouseButton1 then
                         dslider = true; upd(i.Position.X)
@@ -1132,10 +1124,9 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
 
                 local o = {}
                 function o:Set(v)
-                    val = math.clamp(v,min,max)
+                    val = math.clamp(v, min, max)
                     local p = (val-min)/(max-min)
-                    fill.Size = UDim2.new(p,0,1,0)
-                    thumb.Position = UDim2.new(p,0,0.5,0)
+                    fill.Size = UDim2.new(p, 0, 1, 0)
                     valLbl.Text = tostring(val)
                     if cb then cb(val) end
                 end
