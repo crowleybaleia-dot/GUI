@@ -407,12 +407,12 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
         ZIndex         = 4,
     })
 
-    -- ── toast holder ──────────────────────────────────────────────────────
+    -- ── toast holder (top-left, compact) ─────────────────────────────────
     local toastHolder = Frame(scrgui, {
         Name                 = "toastHolder",
         AnchorPoint          = Vector2.new(0,0),
-        Position             = UDim2.new(0,14,0,14),
-        Size                 = UDim2.new(0,220,1,-28),
+        Position             = UDim2.new(0,12,0,12),
+        Size                 = UDim2.new(0,260,1,-24),
         BackgroundTransparency = 1,
         ZIndex               = 30,
     })
@@ -463,7 +463,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
         end)
     end
 
-    -- ── TempNotify (toast estilo Linoria) ─────────────
+    -- ── TempNotify (compact, Linoria-style) ──────────────────────────────
     function window:TempNotify(toastTitle, message, notifType, duration)
         duration  = duration  or 4
         notifType = notifType or "info"
@@ -476,80 +476,75 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
             info    = C.info,
         })[notifType] or C.info
 
+        -- card: 28px tall, auto width
         local toast = Frame(toastHolder, {
-            Name                 = "toast" .. toastIdx,
-            Size                 = UDim2.new(1,0,0,52),
-            BackgroundColor3     = Color3.fromRGB(12,12,12),
+            Name                   = "toast" .. toastIdx,
+            Size                   = UDim2.new(0,4,0,28),
+            AutomaticSize          = Enum.AutomaticSize.X,
+            BackgroundColor3       = Color3.fromRGB(14,14,14),
             BackgroundTransparency = 0,
-            ClipsDescendants     = false,
-            ZIndex               = 30,
-            LayoutOrder          = toastIdx,
+            ClipsDescendants       = false,
+            ZIndex                 = 30,
+            LayoutOrder            = toastIdx,
         })
-        Corner(toast, 6)
-        Stroke(toast, C.white, 1, 0.91)
+        Corner(toast, 5)
+        Stroke(toast, C.white, 1, 0.9)
 
-        -- listra accent na esquerda
-        local strip = Frame(toast, {
-            Position         = UDim2.new(0,0,0,4),
-            Size             = UDim2.new(0,2,1,-8),
+        -- accent bar left edge
+        Frame(toast, {
+            Size             = UDim2.new(0,3,1,0),
             BackgroundColor3 = accent,
-            BackgroundTransparency = 0,
             ZIndex           = 31,
         })
-        Corner(strip, 2)
 
-        -- titulo
-        Label(toast, {
-            Position       = UDim2.new(0,12,0,10),
-            Size           = UDim2.new(1,-16,0,14),
+        -- title label
+        local titleLbl = Label(toast, {
+            Position       = UDim2.new(0,9,0,0),
+            Size           = UDim2.new(0,0,1,0),
+            AutomaticSize  = Enum.AutomaticSize.X,
             Text           = toastTitle or "",
             TextColor3     = C.hi,
-            TextSize       = 11,
+            TextSize       = 10,
             Font           = Enum.Font.GothamMedium,
             TextXAlignment = Enum.TextXAlignment.Left,
-            ZIndex         = 31,
+            ZIndex         = 32,
         })
 
-        -- mensagem
+        -- separator dot
+        local dotOffset = 9 + titleLbl.TextBounds.X + 5
         Label(toast, {
-            Position       = UDim2.new(0,12,0,27),
-            Size           = UDim2.new(1,-16,0,16),
-            Text           = message or "",
-            TextColor3     = C.mid,
+            Position       = UDim2.new(0, dotOffset, 0, 0),
+            Size           = UDim2.new(0,8,1,0),
+            Text           = "·",
+            TextColor3     = C.dim,
+            TextSize       = 10,
+            Font           = Enum.Font.Gotham,
+            ZIndex         = 32,
+        })
+
+        -- message label
+        local msgOffset = dotOffset + 9
+        Label(toast, {
+            Position       = UDim2.new(0, msgOffset, 0, 0),
+            Size           = UDim2.new(0,0,1,0),
+            AutomaticSize  = Enum.AutomaticSize.X,
+            Text           = (message or "") .. "  ",
+            TextColor3     = C.low,
             TextSize       = 10,
             Font           = Enum.Font.Gotham,
             TextXAlignment = Enum.TextXAlignment.Left,
-            TextWrapped    = true,
-            ZIndex         = 31,
+            ZIndex         = 32,
         })
 
-        -- progress bar na base
-        local prog = Frame(toast, {
-            Position         = UDim2.new(0,2,1,-2),
-            Size             = UDim2.new(1,-4,0,2),
-            BackgroundColor3 = accent,
-            BackgroundTransparency = 0.5,
-            ZIndex           = 32,
-        })
-        Corner(prog, 1)
-        tw(prog, {Size = UDim2.new(0,0,0,2)}, duration, Enum.EasingStyle.Linear)
+        -- slide in from left
+        toast.Position = UDim2.new(0,-220,0,0)
+        tw(toast, {Position = UDim2.new(0,0,0,0)}, 0.28, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
 
-        -- anima entrada: desliza da esquerda
-        toast.Position = UDim2.new(-1,0,0,0)
-        tw(toast, {Position = UDim2.new(0,0,0,0)}, 0.25, Enum.EasingStyle.Quart)
-
-        local dismissed = false
-        local function dismiss()
-            if dismissed then return end
-            dismissed = true
-            tw(toast, {Position = UDim2.new(-1,0,0,0)}, 0.2, Enum.EasingStyle.Quart)
+        -- slide out after duration
+        task.delay(duration, function()
+            tw(toast, {Position = UDim2.new(0,-220,0,0)}, 0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
             Debris:AddItem(toast, 0.25)
-        end
-
-        toast.InputBegan:Connect(function(i)
-            if i.UserInputType == Enum.UserInputType.MouseButton1 then dismiss() end
         end)
-        task.delay(duration, dismiss)
     end
 
     -- ── Notify (1-button modal) ───────────────────────────────────────────
