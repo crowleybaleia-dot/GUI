@@ -476,33 +476,26 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
             info    = C.info,
         })[notifType] or C.info
 
-        -- outer wrapper: AutomaticSize handles width, ClipsDescendants off
+        -- card: 28px tall, auto width, ClipsDescendants=true fixes corner on accent bar
         local toast = Frame(toastHolder, {
             Name                   = "toast" .. toastIdx,
-            Size                   = UDim2.new(0,4,0,28),
+            Size                   = UDim2.new(0,0,0,28),
             AutomaticSize          = Enum.AutomaticSize.X,
             BackgroundColor3       = Color3.fromRGB(14,14,14),
             BackgroundTransparency = 0,
-            ClipsDescendants       = false,
+            ClipsDescendants       = true,
             ZIndex                 = 30,
             LayoutOrder            = toastIdx,
         })
         Corner(toast, 5)
         Stroke(toast, C.white, 1, 0.9)
 
-        -- accent bar (left edge, with left corners matching card)
-        local bar = Frame(toast, {
+        -- accent bar: wider than 3px so Corner on the card clips the right side naturally
+        Frame(toast, {
+            Position         = UDim2.new(0,0,0,0),
             Size             = UDim2.new(0,3,1,0),
             BackgroundColor3 = accent,
             ZIndex           = 31,
-        })
-        Corner(bar, 5)
-        -- square off right side of bar
-        Frame(bar, {
-            Position         = UDim2.new(1,-5,0,0),
-            Size             = UDim2.new(0,5,1,0),
-            BackgroundColor3 = accent,
-            ZIndex           = 32,
         })
 
         -- title label
@@ -544,50 +537,10 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
             ZIndex         = 32,
         })
 
-        -- shimmer clip container: fixed size = full card, clips the shimmer strip
-        -- sits AFTER the AutomaticSize labels so it doesn't inflate the card
-        local shimClip = Frame(toast, {
-            Position             = UDim2.new(0,0,0,0),
-            Size                 = UDim2.new(1,0,1,0),
-            BackgroundTransparency = 1,
-            ClipsDescendants     = true,
-            ZIndex               = 34,
-        })
-
-        -- the actual shimmer strip (starts offscreen left)
-        local shimmer = Frame(shimClip, {
-            Position             = UDim2.new(0,-60,0,0),
-            Size                 = UDim2.new(0,50,1,0),
-            BackgroundColor3     = Color3.fromRGB(255,255,255),
-            BackgroundTransparency = 0.88,
-            ZIndex               = 35,
-        })
-
         -- slide in with bounce
         toast.Position = UDim2.new(0,-220,0,0)
         toast.BackgroundTransparency = 0.6
         tw(toast, {Position = UDim2.new(0,0,0,0), BackgroundTransparency = 0}, 0.38, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
-
-        -- shimmer: 3 passes after card lands, clipped inside shimClip
-        task.delay(0.36, function()
-            local passTime = 0.48
-            local gap      = 0.26
-            for pass = 1, 3 do
-                task.delay((pass - 1) * (passTime + gap), function()
-                    if not toast.Parent then return end
-                    shimmer.Position = UDim2.new(0,-60,0,0)
-                    shimmer.BackgroundTransparency = 0.88
-                    tw(shimmer, {Position = UDim2.new(1,10,0,0)}, passTime, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
-                    if pass == 3 then
-                        task.delay(passTime - 0.08, function()
-                            if shimmer.Parent then
-                                tw(shimmer, {BackgroundTransparency = 1}, 0.12)
-                            end
-                        end)
-                    end
-                end)
-            end
-        end)
 
         -- slide out after duration
         task.delay(duration, function()
