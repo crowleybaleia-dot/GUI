@@ -476,7 +476,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
             info    = C.info,
         })[notifType] or C.info
 
-        -- card: 28px tall, auto width
+        -- outer wrapper: AutomaticSize handles width, ClipsDescendants off
         local toast = Frame(toastHolder, {
             Name                   = "toast" .. toastIdx,
             Size                   = UDim2.new(0,4,0,28),
@@ -497,7 +497,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
             ZIndex           = 31,
         })
         Corner(bar, 5)
-        -- hide right corners of bar so only left side is rounded
+        -- square off right side of bar
         Frame(bar, {
             Position         = UDim2.new(1,-5,0,0),
             Size             = UDim2.new(0,5,1,0),
@@ -544,51 +544,44 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
             ZIndex         = 32,
         })
 
-        -- shimmer frame (passes left→right 3x then fades)
-        local shimmer = Frame(toast, {
-            Position             = UDim2.new(0,-80,0,0),
-            Size                 = UDim2.new(0,60,1,0),
+        -- shimmer clip container: fixed size = full card, clips the shimmer strip
+        -- sits AFTER the AutomaticSize labels so it doesn't inflate the card
+        local shimClip = Frame(toast, {
+            Position             = UDim2.new(0,0,0,0),
+            Size                 = UDim2.new(1,0,1,0),
+            BackgroundTransparency = 1,
+            ClipsDescendants     = true,
+            ZIndex               = 34,
+        })
+
+        -- the actual shimmer strip (starts offscreen left)
+        local shimmer = Frame(shimClip, {
+            Position             = UDim2.new(0,-60,0,0),
+            Size                 = UDim2.new(0,50,1,0),
             BackgroundColor3     = Color3.fromRGB(255,255,255),
             BackgroundTransparency = 0.88,
             ZIndex               = 35,
         })
-        -- gradient effect via two nested frames
-        local shimLeft = Frame(shimmer, {
-            Size             = UDim2.new(0.5,0,1,0),
-            BackgroundColor3 = Color3.fromRGB(255,255,255),
-            BackgroundTransparency = 1,
-            ZIndex           = 36,
-        })
-        local shimRight = Frame(shimmer, {
-            Position         = UDim2.new(0.5,0,0,0),
-            Size             = UDim2.new(0.5,0,1,0),
-            BackgroundColor3 = Color3.fromRGB(255,255,255),
-            BackgroundTransparency = 1,
-            ZIndex           = 36,
-        })
 
-        -- slide in with bounce (Back easing = overshoot)
+        -- slide in with bounce
         toast.Position = UDim2.new(0,-220,0,0)
         toast.BackgroundTransparency = 0.6
         tw(toast, {Position = UDim2.new(0,0,0,0), BackgroundTransparency = 0}, 0.38, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
 
-        -- shimmer: run 3 passes after card lands
-        task.delay(0.32, function()
-            local toastW = toast.AbsoluteSize.X + 80
-            local passTime = 0.5
-            local gap      = 0.28
+        -- shimmer: 3 passes after card lands, clipped inside shimClip
+        task.delay(0.36, function()
+            local passTime = 0.48
+            local gap      = 0.26
             for pass = 1, 3 do
-                local delay = (pass - 1) * (passTime + gap)
-                task.delay(delay, function()
+                task.delay((pass - 1) * (passTime + gap), function()
                     if not toast.Parent then return end
-                    shimmer.Position = UDim2.new(0, -70, 0, 0)
-                    -- fade out last pass
-                    local endTrans = (pass == 3) and 1 or 0.88
-                    tw(shimmer, {Position = UDim2.new(0, toastW, 0, 0)}, passTime, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
+                    shimmer.Position = UDim2.new(0,-60,0,0)
+                    shimmer.BackgroundTransparency = 0.88
+                    tw(shimmer, {Position = UDim2.new(1,10,0,0)}, passTime, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
                     if pass == 3 then
-                        task.delay(passTime - 0.05, function()
+                        task.delay(passTime - 0.08, function()
                             if shimmer.Parent then
-                                tw(shimmer, {BackgroundTransparency = 1}, 0.15)
+                                tw(shimmer, {BackgroundTransparency = 1}, 0.12)
                             end
                         end)
                     end
