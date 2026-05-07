@@ -1065,12 +1065,12 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
             function grp:Slider(lbl, min, max, default, cb)
                 min = min or 0; max = max or 100; default = default or min
                 local val = default
-                local row = baseRow(lbl, 34)
+                local row = baseRow(lbl, 38)
 
-                -- valor à esquerda do track
+                -- valor em cima à direita
                 local valLbl = Label(row, {
-                    Position       = UDim2.new(1, -138, 0.5, -7),
-                    Size           = UDim2.new(0, 24, 0, 14),
+                    Position       = UDim2.new(1, -110, 0, 4),
+                    Size           = UDim2.new(0, 110, 0, 14),
                     Text           = tostring(val),
                     TextColor3     = C.mid,
                     TextSize       = 9,
@@ -1079,15 +1079,15 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
                     ZIndex         = 6,
                 })
 
-                -- track fixo à direita, 110px, 5px de altura
+                -- track fixo à direita, 110px, 8px de altura
                 local trackBg = Frame(row, {
-                    Position             = UDim2.new(1, -110, 0.5, -2),
-                    Size                 = UDim2.new(0, 110, 0, 5),
+                    Position             = UDim2.new(1, -110, 1, -12),
+                    Size                 = UDim2.new(0, 110, 0, 8),
                     BackgroundColor3     = C.white,
                     BackgroundTransparency = 0.88,
                     ZIndex               = 6,
                 })
-                Corner(trackBg, 3)
+                Corner(trackBg, 4)
 
                 local p0 = (val-min)/(max-min)
 
@@ -1097,7 +1097,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
                     BackgroundTransparency = 0,
                     ZIndex           = 7,
                 })
-                Corner(fill, 3)
+                Corner(fill, 4)
 
                 local dslider = false
                 local function upd(x)
