@@ -955,7 +955,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
                 local row     = baseRow(lbl)
 
                 -- track posicionado com espaço pra badge se tiver keybind
-                local trackX = keybind and -78 or -34
+                local trackX = keybind and -82 or -34
                 local track = Button(row, {
                     Position             = UDim2.new(1, trackX, 0.5, -9),
                     Size                 = UDim2.new(0,34,0,18),
@@ -986,7 +986,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
                 -- badge de keybind (só criado se keybind foi passado)
                 if keybind then
                     local kbf = Button(row, {
-                        Position             = UDim2.new(1,-74,0.5,-9),
+                        Position             = UDim2.new(1,-76,0.5,-9),
                         Size                 = UDim2.new(0,36,0,18),
                         BackgroundColor3     = C.white,
                         BackgroundTransparency = 0.94,
