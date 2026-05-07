@@ -248,6 +248,23 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
     })
 
     Corner(titlebar, 14)
+
+    -- dots estilo macOS no canto superior direito
+    local dotColors = {
+        Color3.fromRGB(255, 95,  86),  -- vermelho
+        Color3.fromRGB(255, 189, 46),  -- amarelo
+        Color3.fromRGB(39,  201, 63),  -- verde
+    }
+    for i, col in ipairs(dotColors) do
+        local d = Frame(titlebar, {
+            Position         = UDim2.new(1, -14 - (i-1)*16, 0.5, -4),
+            Size             = UDim2.new(0, 8, 0, 8),
+            BackgroundColor3 = col,
+            BackgroundTransparency = 0.2,
+            ZIndex           = 6,
+        })
+        Corner(d, 4)
+    end
     -- hiders dos cantos inferiores do titlebar (nao devem ser arredondados)
     Frame(titlebar, {
         Position             = UDim2.new(0,0,1,-14),
