@@ -216,7 +216,8 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     local iconSize = logoSize or UDim2.new(0, 102, 0, 102)
 
     local titleHolder = Frame(titlebar, {
-        Position             = UDim2.new(0, 10, 0, 0),
+        AnchorPoint          = Vector2.new(0.5, 0.5),
+        Position             = UDim2.new(0.5, 0, 0.5, 0),
         Size                 = UDim2.new(0, 300, 1, 0),
         BackgroundTransparency = 1,
         ZIndex               = 4,
