@@ -946,13 +946,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
                     ZIndex           = 5,
                     LayoutOrder      = #body:GetChildren(),
                 })
-                Frame(row, {
-                    Position         = UDim2.new(0,0,1,-1),
-                    Size             = UDim2.new(1,0,0,1),
-                    BackgroundColor3 = C.white,
-                    BackgroundTransparency = 0.97,
-                    ZIndex           = 5,
-                })
+
                 Label(row, {
                     Position       = UDim2.new(0,0,0,0),
                     Size           = UDim2.new(0.55,0,1,0),
