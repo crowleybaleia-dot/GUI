@@ -176,13 +176,6 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
     Corner(main, 14)
     Stroke(main, C.white, 1, 0.93)
 
-    -- inner top-glow line
-    Frame(main, {
-        Size                 = UDim2.new(1, 0, 0, 1),
-        BackgroundColor3     = C.white,
-        BackgroundTransparency = 0.94,
-        ZIndex               = 6,
-    })
 
     -- ── drag (move o outer que contém tudo) ───────────────────────────────────
     local drag, dragStart, startPos
