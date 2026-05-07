@@ -216,7 +216,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     local iconSize = logoSize or UDim2.new(0, 102, 0, 102)
 
     local titleHolder = Frame(titlebar, {
-        Position             = UDim2.new(0, 0, 0, 0),
+        Position             = UDim2.new(0, 10, 0, 0),
         Size                 = UDim2.new(0, 300, 1, 0),
         BackgroundTransparency = 1,
         ZIndex               = 4,
@@ -236,7 +236,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             Image             = logoAsset,
             ImageColor3       = C.white,
             ImageTransparency = 0.1,
-            ScaleType         = Enum.ScaleType.Stretch,
+            ScaleType         = Enum.ScaleType.Fit,
             ZIndex            = 4,
             LayoutOrder       = 1,
         })
