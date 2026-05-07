@@ -123,23 +123,23 @@ end
 
 -- ─── palette ───────────────────────────────────────────────────────────────
 local C = {
-    bg       = Color3.fromRGB(17,  17,  17),   -- #111111 preto
-    sidebar  = Color3.fromRGB(17,  17,  17),   -- #111111 preto
-    surface  = Color3.fromRGB(17,  17,  17),   -- #111111 preto
-    element  = Color3.fromRGB(17,  17,  17),   -- #111111 preto
-    white    = Color3.fromRGB(240, 240, 240),  -- #f0f0f0 prata
-    hi       = Color3.fromRGB(240, 240, 240),  -- #f0f0f0 prata
-    mid      = Color3.fromRGB(180, 180, 180),  -- prata médio
-    low      = Color3.fromRGB(100, 100, 100),  -- prata escuro
-    dim      = Color3.fromRGB(50,  50,  50),   -- prata muito escuro
-    onBg     = Color3.fromRGB(240, 240, 240),  -- #f0f0f0 prata (checkbox ON)
-    offBg    = Color3.fromRGB(17,  17,  17),   -- #111111 preto (checkbox OFF)
-    knob     = Color3.fromRGB(17,  17,  17),   -- #111111 preto
-    toastBg  = Color3.fromRGB(17,  17,  17),   -- #111111 preto
-    success  = Color3.fromRGB(240, 240, 240),  -- prata
-    warn     = Color3.fromRGB(240, 240, 240),  -- prata
-    err      = Color3.fromRGB(240, 240, 240),  -- prata
-    info     = Color3.fromRGB(240, 240, 240),  -- prata
+    bg       = Color3.fromRGB(0,   0,   0),    -- #000000 preto puro
+    sidebar  = Color3.fromRGB(0,   0,   0),    -- #000000 preto puro
+    surface  = Color3.fromRGB(0,   0,   0),    -- #000000 preto puro
+    element  = Color3.fromRGB(0,   0,   0),    -- #000000 preto puro
+    white    = Color3.fromRGB(211, 211, 211),  -- #D3D3D3 prata
+    hi       = Color3.fromRGB(211, 211, 211),  -- #D3D3D3 prata
+    mid      = Color3.fromRGB(160, 160, 160),  -- prata médio
+    low      = Color3.fromRGB(95,  95,  95),   -- prata escuro
+    dim      = Color3.fromRGB(45,  45,  45),   -- prata muito escuro
+    onBg     = Color3.fromRGB(211, 211, 211),  -- #D3D3D3 prata (checkbox ON)
+    offBg    = Color3.fromRGB(0,   0,   0),    -- #000000 preto (checkbox OFF)
+    knob     = Color3.fromRGB(0,   0,   0),    -- #000000 preto
+    toastBg  = Color3.fromRGB(0,   0,   0),    -- #000000 preto
+    success  = Color3.fromRGB(211, 211, 211),  -- prata
+    warn     = Color3.fromRGB(211, 211, 211),  -- prata
+    err      = Color3.fromRGB(211, 211, 211),  -- prata
+    info     = Color3.fromRGB(211, 211, 211),  -- prata
 }
 
 -- ═══════════════════════════════════════════════════════════════════════════
