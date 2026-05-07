@@ -149,7 +149,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
     local hui = gethui()
     if hui:FindFirstChild("VantaUI") and deletePrevious then
         local old = hui.VantaUI
-        local oldOuter = old:FindFirstChild("mainOuter")
+        local oldOuter = old:FindFirstChild("main")
         if oldOuter then
             tw(oldOuter, {Position = oldOuter.Position + UDim2.new(0,0,2,0)}, 0.4)
         end
@@ -162,32 +162,19 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
     scrgui.ResetOnSpawn   = false
     scrgui.Parent         = hui
 
-    -- ── main window  820 × 440 ─────────────────────────────────────────────
-    -- container externo: só faz o clip com cantos arredondados, sem cor
-    local mainOuter = Frame(scrgui, {
-        Name                 = "mainOuter",
+    -- ── main window  820 × 440 ─────────────────────────────────────────
+    local main = Frame(scrgui, {
+        Name                 = "main",
         AnchorPoint          = Vector2.new(0.5, 0.5),
         Position             = UDim2.new(0.5, 0, 2, 0),
         Size                 = UDim2.new(0, 820, 0, 440),
         BackgroundColor3     = C.bg,
-        BackgroundTransparency = 1,
+        BackgroundTransparency = 0,
         ClipsDescendants     = true,
         ZIndex               = 1,
     })
-    Corner(mainOuter, 14)
-
-    -- frame principal com a cor de fundo, sem clip (o outer já faz isso)
-    local main = Frame(mainOuter, {
-        Name                 = "main",
-        Size                 = UDim2.new(1, 0, 1, 0),
-        BackgroundColor3     = C.bg,
-        BackgroundTransparency = 0,
-        ClipsDescendants     = false,
-        ZIndex               = 1,
-    })
     Corner(main, 14)
-    -- stroke na borda do outer para aparecer por cima do clip
-    Stroke(mainOuter, C.white, 1, 0.93)
+    Stroke(main, C.white, 1, 0.93)
 
     -- inner top-glow line
     Frame(main, {
@@ -201,8 +188,8 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
     local drag, dragStart, startPos
     main.InputBegan:Connect(function(i)
         if i.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
-        if (i.Position.Y - mainOuter.AbsolutePosition.Y) > 38 then return end
-        drag = true; dragStart = i.Position; startPos = mainOuter.Position
+        if (i.Position.Y - main.AbsolutePosition.Y) > 38 then return end
+        drag = true; dragStart = i.Position; startPos = main.Position
         i.Changed:Connect(function()
             if i.UserInputState == Enum.UserInputState.End then drag = false end
         end)
@@ -210,7 +197,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
     UserInputService.InputChanged:Connect(function(i)
         if drag and i.UserInputType == Enum.UserInputType.MouseMovement then
             local d = i.Position - dragStart
-            mainOuter.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + d.X,
+            main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + d.X,
                                            startPos.Y.Scale, startPos.Y.Offset + d.Y)
         end
     end)
@@ -409,7 +396,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
     local toastIdx  = 0
 
     -- animate in
-    tw(mainOuter, {Position = UDim2.new(0.5,0,0.5,0)}, 0.55, Enum.EasingStyle.Quart)
+    tw(main, {Position = UDim2.new(0.5,0,0.5,0)}, 0.55, Enum.EasingStyle.Quart)
 
     -- ═════════════════════════════════════════════════════════════════════
     local window = {}
@@ -420,9 +407,9 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
         visible = not visible
         dbc = true
         if visible then
-            tw(mainOuter, {Position = UDim2.new(0.5,0,0.5,0)}, 0.45)
+            tw(main, {Position = UDim2.new(0.5,0,0.5,0)}, 0.45)
         else
-            tw(mainOuter, {Position = mainOuter.Position + UDim2.new(0,0,2,0)}, 0.45)
+            tw(main, {Position = main.Position + UDim2.new(0,0,2,0)}, 0.45)
         end
         task.delay(0.5, function() dbc = false end)
     end
