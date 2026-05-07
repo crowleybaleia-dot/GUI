@@ -214,8 +214,8 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
 
     -- logo na titlebar
     local logoImg = Image(titlebar, {
-        Position          = UDim2.new(0, 14, 0.5, -16),
-        Size              = UDim2.new(0, 32, 0, 32),
+        Position          = UDim2.new(0, 14, 0.5, -22),
+        Size              = UDim2.new(0, 44, 0, 44),
         Image             = logoAsset or "",
         ImageColor3       = C.white,
         ImageTransparency = logoAsset and 0.1 or 1,
@@ -223,7 +223,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
         ZIndex            = 4,
     })
 
-    local txOff = logoAsset and 54 or 14
+    local txOff = logoAsset and 66 or 14
 
     Label(titlebar, {
         Position       = UDim2.new(0, txOff, 0, 5),
