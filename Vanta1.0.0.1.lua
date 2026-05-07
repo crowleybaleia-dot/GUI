@@ -216,7 +216,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     local iconSize = logoSize or UDim2.new(0, 102, 0, 102)
 
     local titleHolder = Frame(titlebar, {
-        Position             = UDim2.new(0, 10, 0, 0),
+        Position             = UDim2.new(0, 4, 0, 0),
         Size                 = UDim2.new(0, 300, 1, 0),
         BackgroundTransparency = 1,
         ZIndex               = 4,
@@ -225,7 +225,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     titleLayout.FillDirection         = Enum.FillDirection.Horizontal
     titleLayout.HorizontalAlignment   = Enum.HorizontalAlignment.Left
     titleLayout.VerticalAlignment     = Enum.VerticalAlignment.Center
-    titleLayout.Padding               = UDim.new(0, -20)
+    titleLayout.Padding               = UDim.new(0, 8)
     titleLayout.SortOrder             = Enum.SortOrder.LayoutOrder
     titleLayout.Parent                = titleHolder
 
