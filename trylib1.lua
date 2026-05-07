@@ -1067,9 +1067,9 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
                 local val = default
                 local row = baseRow(lbl, 34)
 
-                -- valor à direita do label, antes do track
+                -- valor à esquerda do track
                 local valLbl = Label(row, {
-                    Position       = UDim2.new(1, -90, 0.5, -7),
+                    Position       = UDim2.new(1, -138, 0.5, -7),
                     Size           = UDim2.new(0, 24, 0, 14),
                     Text           = tostring(val),
                     TextColor3     = C.mid,
@@ -1079,26 +1079,25 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
                     ZIndex         = 6,
                 })
 
-                -- track grosso e arredondado
+                -- track fixo à direita, 110px, 5px de altura
                 local trackBg = Frame(row, {
-                    Position             = UDim2.new(0, 0, 1, -6),
-                    Size                 = UDim2.new(1, 0, 0, 4),
+                    Position             = UDim2.new(1, -110, 0.5, -2),
+                    Size                 = UDim2.new(0, 110, 0, 5),
                     BackgroundColor3     = C.white,
                     BackgroundTransparency = 0.88,
                     ZIndex               = 6,
                 })
-                Corner(trackBg, 2)
+                Corner(trackBg, 3)
 
                 local p0 = (val-min)/(max-min)
 
-                -- fill prata arredondado, sem thumb
                 local fill = Frame(trackBg, {
                     Size             = UDim2.new(p0, 0, 1, 0),
                     BackgroundColor3 = C.mid,
                     BackgroundTransparency = 0,
                     ZIndex           = 7,
                 })
-                Corner(fill, 2)
+                Corner(fill, 3)
 
                 local dslider = false
                 local function upd(x)
