@@ -347,7 +347,16 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
     searchBox.ZIndex              = 5
     searchBox.Parent              = searchFrame
 
-    -- sidebar scroll
+    -- activeBar único da sidebar — desliza entre abas
+    local activeBar = Frame(sidebar, {
+        Position             = UDim2.new(0, 0, 0, 42),
+        Size                 = UDim2.new(0, 2, 0, 32),
+        BackgroundColor3     = C.white,
+        BackgroundTransparency = 0.4,
+        ZIndex               = 5,
+    })
+    Corner(activeBar, 2)
+
     local sidebarScroll = Instance.new("ScrollingFrame")
     sidebarScroll.Name                = "sidebarScroll"
     sidebarScroll.Position            = UDim2.new(0,0,0,42)
@@ -722,15 +731,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
             LayoutOrder          = #sidebarScroll:GetChildren() + 1,
         })
 
-        local activeBar = Frame(tabBtn, {
-            Position             = UDim2.new(0,0,0.5,-9),
-            Size                 = UDim2.new(0,2,0,18),
-            BackgroundColor3     = C.white,
-            BackgroundTransparency = 1,
-            ZIndex               = 4,
-        })
-        Corner(activeBar, 2)
-
+        local activeBar_local = nil -- removido: activeBar agora é global na sidebar
         -- ícone do sidebar (sempre criado; invisível se sem asset)
         local tabIcon = Image(tabBtn, {
             Position          = UDim2.new(0, 14, 0.5, -8),
@@ -783,22 +784,23 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
                 if l then tw(l, {TextColor3 = C.low}, 0.12); l.Font = Enum.Font.Gotham end
                 local ic = t:FindFirstChildWhichIsA("ImageLabel")
                 if ic then tw(ic, {ImageColor3 = C.low, ImageTransparency = 0.5}, 0.12) end
-                for _, ch in ipairs(t:GetChildren()) do
-                    if ch:IsA("Frame") then tw(ch, {BackgroundTransparency = 1}, 0.12) end
-                end
             end
             tw(tabBtn,  {BackgroundTransparency = 0.94}, 0.12)
             tw(tabLabel,{TextColor3 = C.hi},             0.12)
             tabLabel.Font = Enum.Font.GothamMedium
             if iconAsset then tw(tabIcon, {ImageColor3 = C.hi, ImageTransparency = 0}, 0.12) end
-            tw(activeBar, {BackgroundTransparency = 0.4}, 0.12)
+
+            -- desliza o activeBar até a posição Y desta tab
+            local relY = tabBtn.AbsolutePosition.Y - sidebar.AbsolutePosition.Y
+            tw(activeBar, {Position = UDim2.new(0, 0, 0, relY)}, 0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+            activeBar.Size = UDim2.new(0, 2, 0, tabBtn.AbsoluteSize.Y)
 
             for _, w in ipairs(workareas) do w.Visible = false end
 
-            -- scale + fade: começa menor e cresce pra tamanho normal
+            -- scale + fade na entrada
             local basePos  = UDim2.new(0, 168, 0, 38)
             local baseSize = UDim2.new(1, -168, 1, -62)
-            local scaleOff = 8 -- px reduzidos em cada lado
+            local scaleOff = 8
 
             workarea.Position = UDim2.new(0, 168 + scaleOff, 0, 38 + scaleOff)
             workarea.Size     = UDim2.new(1, -168 - scaleOff*2, 1, -62 - scaleOff*2)
@@ -817,7 +819,15 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
             Debris:AddItem(overlay, 0.22)
         end
 
-        tabBtn.MouseButton1Click:Connect(function() sec:Select() end)
+        tabBtn.MouseButton1Click:Connect(function()
+            -- ripple: flash sutil de transparência
+            tw(tabBtn, {BackgroundTransparency = 0.88}, 0.06)
+            task.delay(0.06, function()
+                if not tabBtn.Parent then return end
+                tw(tabBtn, {BackgroundTransparency = 0.94}, 0.1)
+            end)
+            sec:Select()
+        end)
         tabBtn.MouseEnter:Connect(function()
             if workarea.Visible then return end
             tw(tabBtn,  {BackgroundTransparency = 0.96}, 0.1)
