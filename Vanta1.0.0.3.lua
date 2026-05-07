@@ -143,7 +143,7 @@ local C = {
 }
 
 -- ═══════════════════════════════════════════════════════════════════════════
-function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
+function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSize)
 
     -- ── ScreenGui ──────────────────────────────────────────────────────────
     local hui = gethui()
@@ -212,50 +212,83 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
         ZIndex               = 4,
     })
 
-    -- logo na titlebar
-    local logoImg = Image(titlebar, {
-        AnchorPoint       = Vector2.new(0, 0.5),
-        Position          = UDim2.new(0, 14, 0.5, 0),
-        Size              = UDim2.new(0, 0, 1, -8),
-        Image             = logoAsset or "",
-        ImageColor3       = C.white,
-        ImageTransparency = logoAsset and 0.1 or 1,
-        ScaleType         = Enum.ScaleType.Fit,
-        ZIndex            = 4,
-    })
+    -- ── TitleHolder (logo + título lado a lado via UIListLayout) ─────────────
+    local iconSize = logoSize or UDim2.new(0, 30, 0, 30)
 
-    local titleLbl = Label(titlebar, {
-        Position       = UDim2.new(0, 14, 0, 5),
-        Size           = UDim2.new(0, 260, 0, 16),
+    local titleHolder = Frame(titlebar, {
+        Position             = UDim2.new(0, 10, 0, 0),
+        Size                 = UDim2.new(0, 300, 1, 0),
+        BackgroundTransparency = 1,
+        ZIndex               = 4,
+    })
+    local titleLayout = Instance.new("UIListLayout")
+    titleLayout.FillDirection         = Enum.FillDirection.Horizontal
+    titleLayout.HorizontalAlignment   = Enum.HorizontalAlignment.Left
+    titleLayout.VerticalAlignment     = Enum.VerticalAlignment.Center
+    titleLayout.Padding               = UDim.new(0, 8)
+    titleLayout.SortOrder             = Enum.SortOrder.LayoutOrder
+    titleLayout.Parent                = titleHolder
+
+    -- ícone ou fallback letra
+    if logoAsset and logoAsset ~= "" then
+        Image(titleHolder, {
+            Size              = iconSize,
+            Image             = logoAsset,
+            ImageColor3       = C.white,
+            ImageTransparency = 0.1,
+            ScaleType         = Enum.ScaleType.Fit,
+            ZIndex            = 4,
+            LayoutOrder       = 1,
+        })
+    else
+        Label(titleHolder, {
+            Size           = iconSize,
+            Text           = string.upper((title or "V"):sub(1, 1)),
+            TextColor3     = C.hi,
+            TextSize       = iconSize.Y.Offset * 0.6,
+            TextScaled     = false,
+            Font           = Enum.Font.GothamBold,
+            ZIndex         = 4,
+            LayoutOrder    = 1,
+        })
+    end
+
+    -- bloco de texto (title + subtitle empilhados)
+    local textBlock = Frame(titleHolder, {
+        Size                 = UDim2.new(0, 220, 1, 0),
+        BackgroundTransparency = 1,
+        ZIndex               = 4,
+        LayoutOrder          = 2,
+    })
+    local textLayout = Instance.new("UIListLayout")
+    textLayout.FillDirection       = Enum.FillDirection.Vertical
+    textLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
+    textLayout.VerticalAlignment   = Enum.VerticalAlignment.Center
+    textLayout.Padding             = UDim.new(0, 2)
+    textLayout.SortOrder           = Enum.SortOrder.LayoutOrder
+    textLayout.Parent              = textBlock
+
+    Label(textBlock, {
+        Size           = UDim2.new(1, 0, 0, 14),
         Text           = string.upper(title or "VANTA"),
         TextColor3     = C.hi,
         TextSize       = 11,
         Font           = Enum.Font.GothamMedium,
         TextXAlignment = Enum.TextXAlignment.Left,
         ZIndex         = 4,
+        LayoutOrder    = 1,
     })
 
-    local subtitleLbl = Label(titlebar, {
-        Position       = UDim2.new(0, 14, 0, 22),
-        Size           = UDim2.new(0, 260, 0, 12),
+    Label(textBlock, {
+        Size           = UDim2.new(1, 0, 0, 11),
         Text           = subtitle or "",
         TextColor3     = C.low,
         TextSize       = 9,
         Font           = Enum.Font.Gotham,
         TextXAlignment = Enum.TextXAlignment.Left,
         ZIndex         = 4,
+        LayoutOrder    = 2,
     })
-
-    local function updateTxOff()
-        if logoAsset then
-            local off = 14 + logoImg.AbsoluteSize.X + 8
-            titleLbl.Position    = UDim2.new(0, off, 0, 5)
-            subtitleLbl.Position = UDim2.new(0, off, 0, 22)
-        end
-    end
-
-    logoImg:GetPropertyChangedSignal("AbsoluteSize"):Connect(updateTxOff)
-    updateTxOff()
 
     Corner(titlebar, 14)
 
