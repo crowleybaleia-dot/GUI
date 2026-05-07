@@ -463,54 +463,26 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
         end)
     end
 
-    -- ── TempNotify (compact, Linoria-style) ──────────────────────────────
+    -- ── TempNotify ────────────────────────────────────────────────────────
     function window:TempNotify(toastTitle, message, notifType, duration)
         duration  = duration  or 4
-        notifType = notifType or "info"
         toastIdx  = toastIdx  + 1
 
-        local accent = ({
-            success = C.success,
-            warn    = C.warn,
-            error   = C.err,
-            info    = C.info,
-        })[notifType] or C.info
-
-        -- ── wrapper: fixed height, auto X, no clipping so bounce works ──
-        local toast = Frame(toastHolder, {
-            Name                   = "toast" .. toastIdx,
+        -- inner card com todo o conteúdo (AutomaticSize X calcula a largura real)
+        local inner = Frame(nil, {
+            Name                   = "inner",
             Size                   = UDim2.new(0,0,0,28),
             AutomaticSize          = Enum.AutomaticSize.X,
             BackgroundColor3       = Color3.fromRGB(14,14,14),
             BackgroundTransparency = 0,
-            ClipsDescendants       = false,
-            ZIndex                 = 30,
-            LayoutOrder            = toastIdx,
+            ZIndex                 = 31,
         })
-        Corner(toast, 5)
-        Stroke(toast, C.white, 1, 0.9)
+        Corner(inner, 5)
+        Stroke(inner, C.white, 1, 0.88)
 
-        -- accent bar: uses UICorner so left side is rounded, right side clipped
-        -- by a square patch frame to look flat on right
-        local barHolder = Frame(toast, {
-            Position             = UDim2.new(0,0,0,0),
-            Size                 = UDim2.new(0,6,1,0),
-            BackgroundTransparency = 1,
-            ClipsDescendants     = true,
-            ZIndex               = 31,
-        })
-        -- bar is 10px wide; left 5px shows rounded, right 5px hidden by ClipsDescendants
-        local accentBar = Frame(barHolder, {
-            Position         = UDim2.new(0,0,0,0),
-            Size             = UDim2.new(0,10,1,0),
-            BackgroundColor3 = accent,
-            ZIndex           = 32,
-        })
-        Corner(accentBar, 5)
-
-        -- content: title · message
-        local titleLbl = Label(toast, {
-            Position       = UDim2.new(0,11,0,0),
+        -- title
+        local titleLbl = Label(inner, {
+            Position       = UDim2.new(0,10,0,0),
             Size           = UDim2.new(0,0,1,0),
             AutomaticSize  = Enum.AutomaticSize.X,
             Text           = toastTitle or "",
@@ -521,48 +493,68 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
             ZIndex         = 32,
         })
 
+        -- dot separator
+        local dotOffset = 10 + titleLbl.TextBounds.X + 5
+        Label(inner, {
+            Position       = UDim2.new(0, dotOffset, 0, 0),
+            Size           = UDim2.new(0,8,1,0),
+            Text           = "·",
+            TextColor3     = C.dim,
+            TextSize       = 10,
+            Font           = Enum.Font.Gotham,
+            ZIndex         = 32,
+        })
+
+        -- message
+        Label(inner, {
+            Position       = UDim2.new(0, dotOffset + 9, 0, 0),
+            Size           = UDim2.new(0,0,1,0),
+            AutomaticSize  = Enum.AutomaticSize.X,
+            Text           = (message or "") .. "  ",
+            TextColor3     = C.mid,
+            TextSize       = 10,
+            Font           = Enum.Font.Gotham,
+            TextXAlignment = Enum.TextXAlignment.Left,
+            ZIndex         = 32,
+        })
+
+        -- outer wrapper: começa com largura 0 e ClipsDescendants esconde o inner
+        local toast = Frame(toastHolder, {
+            Name                   = "toast" .. toastIdx,
+            Size                   = UDim2.new(0,0,0,28),
+            BackgroundTransparency = 1,
+            ClipsDescendants       = true,
+            ZIndex                 = 30,
+            LayoutOrder            = toastIdx,
+        })
+        Corner(toast, 5)
+        inner.Parent = toast
+
+        -- aguarda 1 frame pra AutomaticSize calcular a largura do inner
         task.defer(function()
-            local dotX = 11 + titleLbl.TextBounds.X + 4
-            Label(toast, {
-                Position       = UDim2.new(0, dotX, 0, 0),
-                Size           = UDim2.new(0,8,1,0),
-                Text           = "·",
-                TextColor3     = C.dim,
-                TextSize       = 10,
-                Font           = Enum.Font.Gotham,
-                ZIndex         = 32,
-            })
-            Label(toast, {
-                Position       = UDim2.new(0, dotX + 9, 0, 0),
-                Size           = UDim2.new(0,0,1,0),
-                AutomaticSize  = Enum.AutomaticSize.X,
-                Text           = (message or "") .. "  ",
-                TextColor3     = C.low,
-                TextSize       = 10,
-                Font           = Enum.Font.Gotham,
-                TextXAlignment = Enum.TextXAlignment.Left,
-                ZIndex         = 32,
-            })
-        end)
+            if not inner.Parent then return end
+            local fullW = inner.AbsoluteSize.X
 
-        -- ── animate in: start offscreen left, slide in with Back overshoot ──
-        toast.Position = UDim2.new(0,-300,0,0)
-        toast.BackgroundTransparency = 1
-        tw(toast, {
-            Position             = UDim2.new(0,0,0,0),
-            BackgroundTransparency = 0,
-        }, 0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+            -- entrada: expande de 0 até largura total, Quad Out 0.4s
+            TweenService:Create(
+                toast,
+                TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+                { Size = UDim2.new(0, fullW, 0, 28) }
+            ):Play()
 
-        -- ── animate out after duration ──
-        task.delay(duration, function()
-            if not toast.Parent then return end
-            tw(toast, {
-                Position             = UDim2.new(0,-300,0,0),
-                BackgroundTransparency = 1,
-            }, 0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
-            Debris:AddItem(toast, 0.3)
+            -- saída: contrai de volta pra 0, Quad In 0.3s
+            task.delay(duration, function()
+                if not toast.Parent then return end
+                TweenService:Create(
+                    toast,
+                    TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
+                    { Size = UDim2.new(0, 0, 0, 28) }
+                ):Play()
+                Debris:AddItem(toast, 0.32)
+            end)
         end)
     end
+
     -- ── Notify (1-button modal) ───────────────────────────────────────────
     function window:Notify(t1, t2, btnTxt, iconAsset, callback)
         local overlay = Frame(main, {
