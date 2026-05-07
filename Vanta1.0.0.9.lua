@@ -1176,15 +1176,6 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     TextXAlignment = Enum.TextXAlignment.Left,
                     ZIndex         = 8,
                 })
-                Label(btn, {
-                    Position       = UDim2.new(1,-16,0.5,-5),
-                    Size           = UDim2.new(0,12,0,10),
-                    Text           = "▾",
-                    TextColor3     = C.hi,
-                    TextSize       = 10,
-                    ZIndex         = 8,
-                })
-
                 local panel = Frame(gbox, {
                     Size             = UDim2.new(1,0,0,0),
                     AutomaticSize    = Enum.AutomaticSize.Y,
@@ -1285,15 +1276,6 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     ZIndex               = 8,
                 })
                 Corner(badge, 3)
-
-                Label(btn, {
-                    Position       = UDim2.new(1,-13,0.5,-5),
-                    Size           = UDim2.new(0,10,0,10),
-                    Text           = "▾",
-                    TextColor3     = C.hi,
-                    TextSize       = 10,
-                    ZIndex         = 8,
-                })
 
                 local panel = Frame(gbox, {
                     Size             = UDim2.new(1,0,0,0),
