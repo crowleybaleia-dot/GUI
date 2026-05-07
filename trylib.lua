@@ -468,8 +468,8 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
         -- card: começa com Size.X = 0, ClipsDescendants corta o conteúdo durante expand
         local toast = Frame(scrgui, {
             Name                   = "VantaToast",
-            AnchorPoint            = Vector2.new(0, 1),
-            Position               = UDim2.new(0, 12, 1, -12),
+            AnchorPoint            = Vector2.new(0, 0),
+            Position               = UDim2.new(0, 12, 0, 12),
             Size                   = UDim2.new(0, 0, 0, 28),
             BackgroundColor3       = Color3.fromRGB(14, 14, 14),
             BackgroundTransparency = 0,
