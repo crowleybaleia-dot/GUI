@@ -476,31 +476,41 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
             info    = C.info,
         })[notifType] or C.info
 
-        -- card: 28px tall, auto width, ClipsDescendants=true fixes corner on accent bar
+        -- ── wrapper: fixed height, auto X, no clipping so bounce works ──
         local toast = Frame(toastHolder, {
             Name                   = "toast" .. toastIdx,
             Size                   = UDim2.new(0,0,0,28),
             AutomaticSize          = Enum.AutomaticSize.X,
             BackgroundColor3       = Color3.fromRGB(14,14,14),
             BackgroundTransparency = 0,
-            ClipsDescendants       = true,
+            ClipsDescendants       = false,
             ZIndex                 = 30,
             LayoutOrder            = toastIdx,
         })
         Corner(toast, 5)
         Stroke(toast, C.white, 1, 0.9)
 
-        -- accent bar: wider than 3px so Corner on the card clips the right side naturally
-        Frame(toast, {
-            Position         = UDim2.new(0,0,0,0),
-            Size             = UDim2.new(0,3,1,0),
-            BackgroundColor3 = accent,
-            ZIndex           = 31,
+        -- accent bar: uses UICorner so left side is rounded, right side clipped
+        -- by a square patch frame to look flat on right
+        local barHolder = Frame(toast, {
+            Position             = UDim2.new(0,0,0,0),
+            Size                 = UDim2.new(0,6,1,0),
+            BackgroundTransparency = 1,
+            ClipsDescendants     = true,
+            ZIndex               = 31,
         })
+        -- bar is 10px wide; left 5px shows rounded, right 5px hidden by ClipsDescendants
+        local accentBar = Frame(barHolder, {
+            Position         = UDim2.new(0,0,0,0),
+            Size             = UDim2.new(0,10,1,0),
+            BackgroundColor3 = accent,
+            ZIndex           = 32,
+        })
+        Corner(accentBar, 5)
 
-        -- title label
+        -- content: title · message
         local titleLbl = Label(toast, {
-            Position       = UDim2.new(0,9,0,0),
+            Position       = UDim2.new(0,11,0,0),
             Size           = UDim2.new(0,0,1,0),
             AutomaticSize  = Enum.AutomaticSize.X,
             Text           = toastTitle or "",
@@ -511,44 +521,48 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
             ZIndex         = 32,
         })
 
-        -- separator dot
-        local dotOffset = 9 + titleLbl.TextBounds.X + 5
-        Label(toast, {
-            Position       = UDim2.new(0, dotOffset, 0, 0),
-            Size           = UDim2.new(0,8,1,0),
-            Text           = "·",
-            TextColor3     = C.dim,
-            TextSize       = 10,
-            Font           = Enum.Font.Gotham,
-            ZIndex         = 32,
-        })
+        task.defer(function()
+            local dotX = 11 + titleLbl.TextBounds.X + 4
+            Label(toast, {
+                Position       = UDim2.new(0, dotX, 0, 0),
+                Size           = UDim2.new(0,8,1,0),
+                Text           = "·",
+                TextColor3     = C.dim,
+                TextSize       = 10,
+                Font           = Enum.Font.Gotham,
+                ZIndex         = 32,
+            })
+            Label(toast, {
+                Position       = UDim2.new(0, dotX + 9, 0, 0),
+                Size           = UDim2.new(0,0,1,0),
+                AutomaticSize  = Enum.AutomaticSize.X,
+                Text           = (message or "") .. "  ",
+                TextColor3     = C.low,
+                TextSize       = 10,
+                Font           = Enum.Font.Gotham,
+                TextXAlignment = Enum.TextXAlignment.Left,
+                ZIndex         = 32,
+            })
+        end)
 
-        -- message label
-        local msgOffset = dotOffset + 9
-        Label(toast, {
-            Position       = UDim2.new(0, msgOffset, 0, 0),
-            Size           = UDim2.new(0,0,1,0),
-            AutomaticSize  = Enum.AutomaticSize.X,
-            Text           = (message or "") .. "  ",
-            TextColor3     = C.low,
-            TextSize       = 10,
-            Font           = Enum.Font.Gotham,
-            TextXAlignment = Enum.TextXAlignment.Left,
-            ZIndex         = 32,
-        })
+        -- ── animate in: start offscreen left, slide in with Back overshoot ──
+        toast.Position = UDim2.new(0,-300,0,0)
+        toast.BackgroundTransparency = 1
+        tw(toast, {
+            Position             = UDim2.new(0,0,0,0),
+            BackgroundTransparency = 0,
+        }, 0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
 
-        -- slide in with bounce
-        toast.Position = UDim2.new(0,-220,0,0)
-        toast.BackgroundTransparency = 0.6
-        tw(toast, {Position = UDim2.new(0,0,0,0), BackgroundTransparency = 0}, 0.38, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
-
-        -- slide out after duration
+        -- ── animate out after duration ──
         task.delay(duration, function()
-            tw(toast, {Position = UDim2.new(0,-220,0,0), BackgroundTransparency = 0.8}, 0.22, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
-            Debris:AddItem(toast, 0.25)
+            if not toast.Parent then return end
+            tw(toast, {
+                Position             = UDim2.new(0,-300,0,0),
+                BackgroundTransparency = 1,
+            }, 0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
+            Debris:AddItem(toast, 0.3)
         end)
     end
-
     -- ── Notify (1-button modal) ───────────────────────────────────────────
     function window:Notify(t1, t2, btnTxt, iconAsset, callback)
         local overlay = Frame(main, {
