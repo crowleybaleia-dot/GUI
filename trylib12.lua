@@ -975,10 +975,10 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
                 local waiting = false
                 local row     = baseRow(lbl)
 
-                -- checkbox: quadrado 14×14 no lado direito
+                -- checkbox: quadrado 18×18 no lado direito
                 local box = Button(row, {
-                    Position             = UDim2.new(1, -18, 0.5, -7),
-                    Size                 = UDim2.new(0, 14, 0, 14),
+                    Position             = UDim2.new(1, -22, 0.5, -9),
+                    Size                 = UDim2.new(0, 18, 0, 18),
                     BackgroundColor3     = state and C.white or C.offBg,
                     BackgroundTransparency = state and 0.75 or 0,
                     Text                 = "",
