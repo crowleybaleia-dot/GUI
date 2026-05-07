@@ -1065,7 +1065,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
                 -- track fixo à direita, 110px, 8px de altura
                 local trackBg = Frame(row, {
                     Position             = UDim2.new(1, -110, 1, -12),
-                    Size                 = UDim2.new(0, 110, 0, 8),
+                    Size                 = UDim2.new(0, 110, 0, 9),
                     BackgroundColor3     = C.white,
                     BackgroundTransparency = 0.88,
                     ZIndex               = 6,
