@@ -146,7 +146,7 @@ local C = {
 }
 
 -- ═══════════════════════════════════════════════════════════════════════════
-function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSize)
+function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSize, backgroundAsset)
 
     -- ── ScreenGui ──────────────────────────────────────────────────────────
     local hui = gethui()
@@ -163,6 +163,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     scrgui.Name           = "VantaUI"
     scrgui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     scrgui.ResetOnSpawn   = false
+    scrgui.IgnoreGuiInset = true
     scrgui.Parent         = hui
 
     -- ── main window  820 × 440 ─────────────────────────────────────────
@@ -179,8 +180,17 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     Corner(main, 14)
     Stroke(main, C.border, 1, 0)
 
-
-    -- ── drag (move o outer que contém tudo) ───────────────────────────────────
+    -- background image layer
+    if backgroundAsset and backgroundAsset ~= "" then
+        local bgImg = Image(main, {
+            Size              = UDim2.new(1,0,1,0),
+            Image             = backgroundAsset,
+            ScaleType         = Enum.ScaleType.Crop,
+            ImageTransparency = 0.6,
+            ZIndex            = 0,
+        })
+        Corner(bgImg, 14)
+    end
     local drag, dragStart, startPos
     main.InputBegan:Connect(function(i)
         if i.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
@@ -428,7 +438,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     local sidebarScroll = Instance.new("ScrollingFrame")
     sidebarScroll.Name                = "sidebarScroll"
     sidebarScroll.Position            = UDim2.new(0,0,0,52)
-    sidebarScroll.Size                = UDim2.new(1,0,1,-52)
+    sidebarScroll.Size                = UDim2.new(1,0,1,-88)
     sidebarScroll.BackgroundTransparency = 1
     sidebarScroll.BorderSizePixel     = 0
     sidebarScroll.ScrollBarThickness  = 2
@@ -439,11 +449,54 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     sidebarScroll.Parent              = sidebar
     ListLayout(sidebarScroll, {Padding = UDim.new(0,1)})
 
-    -- searchBox dummy (mantido pra não quebrar o filtro de tabs)
+    -- ── search bar real ───────────────────────────────────────────────────
+    local searchHolder = Frame(sidebar, {
+        Position             = UDim2.new(0, 0, 1, -36),
+        Size                 = UDim2.new(1, 0, 0, 36),
+        BackgroundColor3     = C.sidebar,
+        BackgroundTransparency = 0,
+        ZIndex               = 4,
+    })
+    Frame(searchHolder, {
+        Position             = UDim2.new(0,0,0,0),
+        Size                 = UDim2.new(1,0,0,1),
+        BackgroundColor3     = C.border,
+        BackgroundTransparency = 0,
+        ZIndex               = 4,
+    })
+    local searchBg = Frame(searchHolder, {
+        Position             = UDim2.new(0, 8, 0.5, -9),
+        Size                 = UDim2.new(1, -16, 0, 18),
+        BackgroundColor3     = C.border,
+        BackgroundTransparency = 0,
+        ZIndex               = 5,
+    })
+    Corner(searchBg, 4)
+    -- search icon
+    Image(searchBg, {
+        Position          = UDim2.new(0, 4, 0.5, -6),
+        Size              = UDim2.new(0, 12, 0, 12),
+        Image             = "rbxassetid://3926305904",
+        ImageRectOffset   = Vector2.new(964, 324),
+        ImageRectSize     = Vector2.new(36, 36),
+        ImageColor3       = C.dim,
+        ZIndex            = 6,
+    })
     local searchBox = Instance.new("TextBox")
-    searchBox.Text   = ""
-    searchBox.Parent = sidebarScroll
-    searchBox.Visible = false
+    searchBox.Position            = UDim2.new(0, 20, 0, 0)
+    searchBox.Size                = UDim2.new(1, -24, 1, 0)
+    searchBox.BackgroundTransparency = 1
+    searchBox.BorderSizePixel     = 0
+    searchBox.Font                = Enum.Font.Gotham
+    searchBox.PlaceholderText     = "Search..."
+    searchBox.PlaceholderColor3   = C.dim
+    searchBox.Text                = ""
+    searchBox.TextColor3          = C.hi
+    searchBox.TextSize            = 9
+    searchBox.ClearTextOnFocus    = false
+    searchBox.TextXAlignment      = Enum.TextXAlignment.Left
+    searchBox.ZIndex              = 6
+    searchBox.Parent              = searchBg
 
     -- ── pill indicator (viaja entre os tabs) ──────────────────────────────
     local pill = Frame(sidebar, {
@@ -499,7 +552,22 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     local workareas    = {}
     local visible      = true
     local dbc          = false
-    local currentToast = nil
+    local toastQueue   = {}
+
+    -- toast container (stacks toasts vertically, top-left)
+    local toastContainer = Frame(scrgui, {
+        Name             = "ToastContainer",
+        Position         = UDim2.new(0, 12, 0, 12),
+        Size             = UDim2.new(0, 300, 1, -24),
+        BackgroundTransparency = 1,
+        ZIndex           = 50,
+    })
+    ListLayout(toastContainer, {
+        FillDirection       = Enum.FillDirection.Vertical,
+        HorizontalAlignment = Enum.HorizontalAlignment.Left,
+        VerticalAlignment   = Enum.VerticalAlignment.Top,
+        Padding             = UDim.new(0, 4),
+    })
 
     -- animate in: grow + fade in a partir de 60%
     main.Size = UDim2.new(0, 492, 0, 264)
@@ -539,24 +607,13 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     function window:TempNotify(toastTitle, message, notifType, duration)
         duration = duration or 4
 
-        -- destroi o toast anterior imediatamente
-        if currentToast then
-            currentToast:Destroy()
-            currentToast = nil
-        end
-
-        -- mede o texto pra calcular a largura final
         local ts = game:GetService("TextService")
         local titleW = ts:GetTextSize(toastTitle or "", 10, Enum.Font.GothamMedium, Vector2.new(9999,28)).X
-        local msgW   = ts:GetTextSize((message or "") .. "  ", 10, Enum.Font.Gotham,       Vector2.new(9999,28)).X
-        -- padding(10) + title + dot(8+10) + msg + padding(10)
+        local msgW   = ts:GetTextSize((message or "") .. "  ", 10, Enum.Font.Gotham, Vector2.new(9999,28)).X
         local fullW  = 10 + titleW + 18 + msgW + 10
 
-        -- card: começa com Size.X = 0, ClipsDescendants corta o conteúdo durante expand
-        local toast = Frame(scrgui, {
+        local toast = Frame(toastContainer, {
             Name                   = "VantaToast",
-            AnchorPoint            = Vector2.new(0, 0),
-            Position               = UDim2.new(0, 12, 0, 12),
             Size                   = UDim2.new(0, 0, 0, 28),
             BackgroundColor3       = Color3.fromRGB(14, 14, 14),
             BackgroundTransparency = 0,
@@ -565,9 +622,8 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         })
         Corner(toast, 5)
         Stroke(toast, C.white, 1, 0.88)
-        currentToast = toast
+        table.insert(toastQueue, toast)
 
-        -- title
         Label(toast, {
             Position       = UDim2.new(0, 10, 0, 0),
             Size           = UDim2.new(0, titleW, 1, 0),
@@ -578,8 +634,6 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             TextXAlignment = Enum.TextXAlignment.Left,
             ZIndex         = 51,
         })
-
-        -- dot
         Label(toast, {
             Position       = UDim2.new(0, 10 + titleW + 4, 0, 0),
             Size           = UDim2.new(0, 10, 1, 0),
@@ -589,8 +643,6 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             Font           = Enum.Font.Gotham,
             ZIndex         = 51,
         })
-
-        -- message
         Label(toast, {
             Position       = UDim2.new(0, 10 + titleW + 18, 0, 0),
             Size           = UDim2.new(0, msgW, 1, 0),
@@ -602,32 +654,20 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             ZIndex         = 51,
         })
 
-        -- entrada: expande X de 0 → fullW, Quad Out 0.4s
         pcall(function()
-            toast:TweenSize(
-                UDim2.new(0, fullW, 0, 28),
-                Enum.EasingDirection.Out,
-                Enum.EasingStyle.Quad,
-                0.4,
-                true
-            )
+            toast:TweenSize(UDim2.new(0, fullW, 0, 28), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.4, true)
         end)
 
-        -- saída: contrai X de fullW → 0, Quad In 0.3s
         task.delay(duration, function()
             if not toast.Parent then return end
             pcall(function()
-                toast:TweenSize(
-                    UDim2.new(0, 0, 0, 28),
-                    Enum.EasingDirection.In,
-                    Enum.EasingStyle.Quad,
-                    0.3,
-                    true
-                )
+                toast:TweenSize(UDim2.new(0, 0, 0, 28), Enum.EasingDirection.In, Enum.EasingStyle.Quad, 0.3, true)
             end)
             Debris:AddItem(toast, 0.35)
             task.delay(0.35, function()
-                if currentToast == toast then currentToast = nil end
+                for i, t in ipairs(toastQueue) do
+                    if t == toast then table.remove(toastQueue, i) break end
+                end
             end)
         end)
     end
@@ -809,9 +849,11 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     end
 
     -- ═════════════════════════════════════════════════════════════════════
-    --  window:Section(name, iconAsset)
+    --  window.CreatePage({ Page_Name, Page_Title, iconAsset })
     -- ═════════════════════════════════════════════════════════════════════
-    function window:Section(name, iconAsset)
+    function window.CreatePage(opts)
+        local name      = opts.Page_Name or opts.Page_Title or "Page"
+        local iconAsset = opts.Icon or nil
 
         -- sidebar tab
         local tabBtn = Button(sidebarScroll, {
@@ -870,7 +912,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         -- ── sec object ───────────────────────────────────────────────────
         local sec = {}
 
-        function sec:Select()
+        function sec.Select()
             for _, t in ipairs(sections) do
                 t.BackgroundTransparency = 1
                 local l = t:FindFirstChildWhichIsA("TextLabel")
@@ -912,7 +954,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             Debris:AddItem(overlay, 0.22)
         end
 
-        tabBtn.MouseButton1Click:Connect(function() sec:Select() end)
+        tabBtn.MouseButton1Click:Connect(function() sec.Select() end)
         tabBtn.MouseEnter:Connect(function()
             if workarea.Visible then return end
             tw(tabBtn,  {BackgroundTransparency = 0.94}, 0.1)
@@ -926,22 +968,72 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             if iconAsset then tw(tabIcon, {ImageColor3 = C.low, ImageTransparency = 0.5}, 0.1) end
         end)
 
-        if #sections == 1 then sec:Select() end
+        if #sections == 1 then sec.Select() end
 
-        -- search filter
+        -- search filter: filtra tabs e elementos dentro dos groups
         searchBox:GetPropertyChangedSignal("Text"):Connect(function()
-            local q = string.upper(searchBox.Text)
-            for _, t in ipairs(sections) do
-                local l = t:FindFirstChildWhichIsA("TextLabel")
-                local n = l and string.upper(l.Text) or ""
-                t.Visible = (q == "" or string.find(n, q, 1, true) ~= nil)
+            local q = searchBox.Text:lower()
+            if q == "" then
+                tabBtn.Visible = true
+                -- mostrar todos elementos dentro do workarea
+                for _, grpOuter in ipairs(workarea:GetChildren()) do
+                    if grpOuter:IsA("Frame") then
+                        grpOuter.Visible = true
+                        local gbox = grpOuter:FindFirstChildWhichIsA("Frame")
+                        if gbox then
+                            local body = gbox:FindFirstChild("body")
+                            if body then
+                                for _, row in ipairs(body:GetChildren()) do
+                                    if not row:IsA("UIListLayout") and not row:IsA("UIPadding") then
+                                        row.Visible = true
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+                return
             end
+            -- verifica se o tab name bate
+            local tabMatch = name:lower():find(q, 1, true) ~= nil
+            -- verifica elementos dentro dos groups
+            local anyMatch = tabMatch
+            for _, grpOuter in ipairs(workarea:GetChildren()) do
+                if grpOuter:IsA("Frame") then
+                    local grpMatch = grpOuter.Name:lower():find(q, 1, true) ~= nil
+                    local gbox = grpOuter:FindFirstChildWhichIsA("Frame")
+                    local anyRowMatch = grpMatch
+                    if gbox then
+                        local body = gbox:FindFirstChild("body")
+                        if body then
+                            for _, row in ipairs(body:GetChildren()) do
+                                if not row:IsA("UIListLayout") and not row:IsA("UIPadding") then
+                                    local rowMatch = false
+                                    for _, child in ipairs(row:GetDescendants()) do
+                                        if child:IsA("TextLabel") or child:IsA("TextButton") then
+                                            if child.Text:lower():find(q, 1, true) then
+                                                rowMatch = true
+                                                break
+                                            end
+                                        end
+                                    end
+                                    row.Visible = grpMatch or rowMatch
+                                    if rowMatch then anyRowMatch = true end
+                                end
+                            end
+                        end
+                    end
+                    grpOuter.Visible = anyRowMatch
+                    if anyRowMatch then anyMatch = true end
+                end
+            end
+            tabBtn.Visible = anyMatch
         end)
 
         -- ══════════════════════════════════════════════════════════════════
-        --  sec:Group(groupName, iconAsset)
+        --  sec.CreateSection(sectionName, iconAsset)
         -- ══════════════════════════════════════════════════════════════════
-        function sec:Group(groupName, iconAsset)
+        function sec.CreateSection(groupName, iconAsset)
 
             -- wrapper externo: só corner + stroke, sem filhos de conteúdo
             local gboxOuter = Frame(workarea, {
@@ -1070,13 +1162,23 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             local grp = {}
 
             -- ── Toggle ───────────────────────────────────────────────────
-            function grp:Toggle(lbl, default, cb, keybind, desc)
+            -- API: grp.CreateToggle({ Title, Default, Desc, Keybind, Textbox, TextboxPlaceholder, TextboxDefault, TextboxCallback }, cb)
+            function grp.CreateToggle(opts, cb)
+                local lbl     = opts.Title or ""
+                local default = opts.Default
+                local desc    = opts.Desc
+                local keybind = opts.Keybind
+                local hasTb   = opts.Textbox == true
+                local tbPlch  = opts.TextboxPlaceholder or "Enter value..."
+                local tbDef   = opts.TextboxDefault or ""
+                local tbCb    = opts.TextboxCallback
+
                 local state   = default == true
                 local key     = keybind or nil
                 local waiting = false
                 local row     = baseRow(lbl, nil, desc)
 
-                -- checkbox: quadrado 14×14 no lado direito
+                -- checkbox
                 local box = Button(row, {
                     Position             = UDim2.new(1, -20, 0.5, -7),
                     Size                 = UDim2.new(0, 14, 0, 14),
@@ -1088,7 +1190,6 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 Corner(box, 3)
                 local boxStroke = Stroke(box, state and C.accent or C.dim, 1, 0)
 
-                -- checkmark (✓) visível só quando ON
                 local checkLbl = Label(box, {
                     Size           = UDim2.new(1,0,1,0),
                     Text           = "✓",
@@ -1108,27 +1209,62 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 end
                 box.MouseButton1Click:Connect(flip)
 
-                -- texto de keybind estilo Linoria, à esquerda do checkbox
+                -- textbox inline (à esquerda do checkbox)
+                if hasTb then
+                    local tbBg = Frame(row, {
+                        AnchorPoint          = Vector2.new(1, 0.5),
+                        Position             = UDim2.new(1, -38, 0.5, 0),
+                        Size                 = UDim2.new(0, 60, 0, 18),
+                        BackgroundColor3     = C.border,
+                        BackgroundTransparency = 0,
+                        ZIndex               = 7,
+                    })
+                    Corner(tbBg, 4)
+                    Stroke(tbBg, C.accent, 1, 0.7)
+
+                    local tb = Instance.new("TextBox")
+                    tb.Position              = UDim2.new(0, 5, 0, 0)
+                    tb.Size                  = UDim2.new(1, -10, 1, 0)
+                    tb.BackgroundTransparency = 1
+                    tb.BorderSizePixel       = 0
+                    tb.Font                  = Enum.Font.Gotham
+                    tb.PlaceholderText       = tbPlch
+                    tb.PlaceholderColor3     = C.dim
+                    tb.Text                  = tbDef
+                    tb.TextColor3            = C.hi
+                    tb.TextSize              = 9
+                    tb.ClearTextOnFocus      = false
+                    tb.TextXAlignment        = Enum.TextXAlignment.Left
+                    tb.ZIndex                = 8
+                    tb.Parent                = tbBg
+
+                    tb.FocusLost:Connect(function(entered)
+                        if entered and tbCb then tbCb(tb.Text) end
+                    end)
+                end
+
+                -- keybind badge (à esquerda do checkbox, ou à esquerda do textbox)
                 if keybind then
                     local keyName = tostring(key):gsub("Enum.KeyCode.","")
+                    local kbOffX  = hasTb and -104 or -38
 
                     local kbLbl = Label(row, {
                         AnchorPoint    = Vector2.new(1, 0.5),
-                        Position       = UDim2.new(1, -26, 0.5, 0),
-                        Size           = UDim2.new(0, 60, 0, 20),
+                        Position       = UDim2.new(1, kbOffX, 0.5, 0),
+                        Size           = UDim2.new(0, 60, 0, 18),
                         Text           = "[" .. keyName .. "]",
                         TextColor3     = C.hi,
-                        TextSize       = 11,
+                        TextSize       = 9,
                         Font           = Enum.Font.Code,
-                        TextXAlignment = Enum.TextXAlignment.Right,
+                        TextXAlignment = Enum.TextXAlignment.Center,
                         BackgroundTransparency = 1,
                         ZIndex         = 7,
                     })
 
                     local kbBtn = Button(row, {
                         AnchorPoint          = Vector2.new(1, 0.5),
-                        Position             = UDim2.new(1, -26, 0.5, 0),
-                        Size                 = UDim2.new(0, 60, 0, 20),
+                        Position             = UDim2.new(1, kbOffX, 0.5, 0),
+                        Size                 = UDim2.new(0, 60, 0, 18),
                         BackgroundTransparency = 1,
                         Text                 = "",
                         ZIndex               = 8,
@@ -1137,18 +1273,15 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     kbBtn.MouseButton1Click:Connect(function()
                         waiting        = true
                         kbLbl.Text     = "[...]"
-                        kbLbl.TextColor3 = C.hi
                     end)
 
                     UserInputService.InputBegan:Connect(function(i, gp)
                         if gp then return end
                         if i.UserInputType ~= Enum.UserInputType.Keyboard then return end
                         if waiting then
-                            waiting          = false
-                            key              = i.KeyCode
-                            local newName    = tostring(key):gsub("Enum.KeyCode.","")
-                            kbLbl.Text       = "[" .. newName .. "]"
-                            kbLbl.TextColor3     = C.hi
+                            waiting       = false
+                            key           = i.KeyCode
+                            kbLbl.Text    = "[" .. tostring(key):gsub("Enum.KeyCode.","") .. "]"
                         elseif i.KeyCode == key then
                             flip()
                         end
@@ -1160,14 +1293,21 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 function o:Get() return state end
                 return o
             end
+            -- legacy alias
+            grp.Toggle = function(self, lbl, default, cb, keybind, desc)
+                return grp.CreateToggle({Title=lbl, Default=default, Desc=desc, Keybind=keybind}, cb)
+            end
 
             -- ── Slider ───────────────────────────────────────────────────
-            function grp:Slider(lbl, min, max, default, cb)
-                min = min or 0; max = max or 100; default = default or min
-                local val = default
-                local TRACK_W = 400
+            -- API: grp.CreateSlider({ Title, Min, Max, Default, Precise }, cb)
+            function grp.CreateSlider(opts, cb)
+                local lbl     = opts.Title or ""
+                local min     = opts.Min or 0
+                local max     = opts.Max or 100
+                local default = opts.Default or min
+                local precise = opts.Precise == true
+                local val     = default
 
-                -- frame externo 50px, vai direto pro body
                 local slFrame = Frame(body, {
                     Size                 = UDim2.new(1,0,0,50),
                     BackgroundTransparency = 1,
@@ -1175,7 +1315,6 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     LayoutOrder          = #body:GetChildren(),
                 })
 
-                -- background 1: centralizado
                 local bg1 = Frame(slFrame, {
                     AnchorPoint          = Vector2.new(0.5,0.5),
                     Position             = UDim2.new(0.5,0,0.5,0),
@@ -1186,11 +1325,10 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 })
                 Corner(bg1, 4)
 
-                -- label do título (linha de cima)
                 Label(bg1, {
                     Position       = UDim2.new(0,10,0,0),
                     Size           = UDim2.new(1,-170,0,25),
-                    Text           = lbl or "",
+                    Text           = lbl,
                     TextColor3     = C.hi,
                     TextSize       = 11,
                     Font           = Enum.Font.GothamMedium,
@@ -1198,7 +1336,6 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     ZIndex         = 7,
                 })
 
-                -- TextBox do valor (canto superior direito, editável)
                 local bg2 = Frame(bg1, {
                     AnchorPoint          = Vector2.new(1,0),
                     Position             = UDim2.new(1,-5,0,5),
@@ -1214,7 +1351,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 valBox.BackgroundTransparency = 1
                 valBox.BorderSizePixel       = 0
                 valBox.Font                  = Enum.Font.GothamMedium
-                valBox.Text                  = tostring(val)
+                valBox.Text                  = precise and tostring(val) or tostring(math.floor(val))
                 valBox.TextColor3            = C.hi
                 valBox.TextSize              = 10
                 valBox.ClearTextOnFocus      = false
@@ -1222,11 +1359,11 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 valBox.ZIndex                = 8
                 valBox.Parent                = bg2
 
-                -- track (SliderBar) centralizado horizontalmente
+                -- track uses relative sizing via Scale
                 local trackBg = Frame(slFrame, {
                     AnchorPoint          = Vector2.new(0.5,0.5),
                     Position             = UDim2.new(0.5,0,0.5,14),
-                    Size                 = UDim2.new(0,TRACK_W,0,6),
+                    Size                 = UDim2.new(1,-20,0,6),
                     BackgroundColor3     = C.border,
                     BackgroundTransparency = 0,
                     ZIndex               = 7,
@@ -1235,14 +1372,13 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
 
                 local p0 = (val-min)/(max-min)
                 local fill = Frame(trackBg, {
-                    Size             = UDim2.new(0, p0*TRACK_W, 1, 0),
+                    Size             = UDim2.new(p0, 0, 1, 0),
                     BackgroundColor3 = C.accent,
                     BackgroundTransparency = 0,
                     ZIndex           = 8,
                 })
                 Corner(fill, 3)
 
-                -- botão invisível sobre o track para captura de input
                 local slBtn = Button(trackBg, {
                     Size                 = UDim2.new(1,0,1,0),
                     BackgroundTransparency = 1,
@@ -1253,36 +1389,36 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 local mouse = game.Players.LocalPlayer:GetMouse()
                 local moveConn, releaseConn
 
+                local function round(v)
+                    return precise and (math.floor(v * 100 + 0.5) / 100) or math.floor(v + 0.5)
+                end
+
                 local function setVal(v)
-                    val = math.clamp(v, min, max)
+                    val = math.clamp(round(v), min, max)
                     local p = (val-min)/(max-min)
-                    fill.Size = UDim2.new(0, p*TRACK_W, 1, 0)
+                    fill.Size = UDim2.new(p, 0, 1, 0)
                     valBox.Text = tostring(val)
                     if cb then cb(val) end
                 end
 
-                slBtn.MouseEnter:Connect(function()
-                    tw(fill, {BackgroundColor3 = C.accentBg}, 0.15)
-                end)
-                slBtn.MouseLeave:Connect(function()
-                    tw(fill, {BackgroundColor3 = C.accent}, 0.15)
-                end)
+                local function calcFromMouse()
+                    local tw = trackBg.AbsoluteSize.X
+                    local ox = mouse.X - trackBg.AbsolutePosition.X
+                    local ratio = math.clamp(ox / tw, 0, 1)
+                    return min + (max - min) * ratio
+                end
+
+                slBtn.MouseEnter:Connect(function() tw(fill, {BackgroundColor3 = C.accentBg}, 0.15) end)
+                slBtn.MouseLeave:Connect(function() tw(fill, {BackgroundColor3 = C.accent}, 0.15) end)
 
                 slBtn.MouseButton1Down:Connect(function()
-                    local raw = math.floor((max-min) / TRACK_W * fill.AbsoluteSize.X + min)
-                    setVal(raw)
-                    fill.Size = UDim2.new(0, math.clamp(mouse.X - fill.AbsolutePosition.X, 0, TRACK_W), 1, 0)
-
+                    setVal(calcFromMouse())
                     moveConn = mouse.Move:Connect(function()
-                        local rv = math.floor((max-min) / TRACK_W * fill.AbsoluteSize.X + min)
-                        setVal(rv)
-                        fill.Size = UDim2.new(0, math.clamp(mouse.X - trackBg.AbsolutePosition.X, 0, TRACK_W), 1, 0)
+                        setVal(calcFromMouse())
                     end)
                     releaseConn = UserInputService.InputEnded:Connect(function(i)
                         if i.UserInputType == Enum.UserInputType.MouseButton1 then
-                            local rv = math.floor((max-min) / TRACK_W * fill.AbsoluteSize.X + min)
-                            setVal(rv)
-                            fill.Size = UDim2.new(0, math.clamp(mouse.X - trackBg.AbsolutePosition.X, 0, TRACK_W), 1, 0)
+                            setVal(calcFromMouse())
                             if moveConn then moveConn:Disconnect() end
                             if releaseConn then releaseConn:Disconnect() end
                         end
@@ -1291,19 +1427,26 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
 
                 valBox.FocusLost:Connect(function()
                     local v = tonumber(valBox.Text)
-                    if v then setVal(math.floor(v))
+                    if v then setVal(v)
                     else valBox.Text = tostring(val) end
                 end)
 
                 local o = {}
-                function o:Set(v) setVal(math.floor(v)) end
+                function o:Set(v) setVal(v) end
                 function o:Get() return val end
                 return o
             end
+            -- legacy alias
+            grp.Slider = function(self, lbl, min, max, default, cb)
+                return grp.CreateSlider({Title=lbl, Min=min, Max=max, Default=default}, cb)
+            end
 
             -- ── Dropdown ─────────────────────────────────────────────────
-            function grp:Dropdown(lbl, options, default, cb)
-                local sel  = default or (options and options[1]) or ""
+            function grp.CreateDropdown(opts, cb)
+                local lbl     = opts.Title or ""
+                local options = opts.List or opts.Options or {}
+                local default = opts.Default or (options and options[1]) or ""
+                local sel  = default
                 local open = false
 
                 -- frame externo, largura total, vai direto pro body
@@ -1417,11 +1560,17 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 function o:Get() return sel end
                 return o
             end
+            grp.Dropdown = function(self, lbl, options, default, cb)
+                return grp.CreateDropdown({Title=lbl, List=options, Default=default}, cb)
+            end
 
             -- ── MultiDropdown ─────────────────────────────────────────────
-            function grp:MultiDropdown(lbl, options, defaults, cb)
+            function grp.CreateMultiDropdown(opts, cb)
+                local lbl      = opts.Title or ""
+                local options  = opts.List or opts.Options or {}
+                local defaults = opts.Defaults or {}
                 local sel  = {}
-                for _, v in ipairs(defaults or {}) do sel[v] = true end
+                for _, v in ipairs(defaults) do sel[v] = true end
                 local open = false
                 local row  = baseRow(lbl)
 
@@ -1539,9 +1688,13 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 end
                 return o
             end
+            grp.MultiDropdown = function(self, lbl, options, defaults, cb)
+                return grp.CreateMultiDropdown({Title=lbl, List=options, Defaults=defaults}, cb)
+            end
 
-            -- ── Button (Linoria style: full-width, centered, no side label) ─
-            function grp:Button(lbl, cb)
+            -- ── Button ───────────────────────────────────────────────────
+            function grp.CreateButton(opts, cb)
+                local lbl = opts.Title or ""
                 local btn = Button(body, {
                     Size                 = UDim2.new(1, 0, 0, 28),
                     BackgroundColor3     = C.white,
@@ -1563,12 +1716,16 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     if cb then coroutine.wrap(cb)() end
                 end)
             end
+            grp.Button = function(self, lbl, cb)
+                return grp.CreateButton({Title=lbl}, cb)
+            end
 
             -- ── Label ────────────────────────────────────────────────────
-            function grp:Label(text)
+            function grp.CreateLabel(opts)
+                local text = type(opts) == "table" and (opts.Title or opts.Text or "") or tostring(opts)
                 Label(body, {
                     Size           = UDim2.new(1,0,0,26),
-                    Text           = text or "",
+                    Text           = text,
                     TextColor3     = C.hi,
                     TextSize       = 10,
                     Font           = Enum.Font.Gotham,
@@ -1577,6 +1734,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     LayoutOrder    = #body:GetChildren(),
                 })
             end
+            grp.Label = function(self, text) return grp.CreateLabel(text) end
 
             -- ── Paragraph ────────────────────────────────────────────────
             function grp:Paragraph(text)
@@ -1597,7 +1755,9 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             end
 
             -- ── TextField ────────────────────────────────────────────────
-            function grp:TextField(lbl, placeholder, cb)
+            function grp.CreateTextfield(opts, cb)
+                local lbl         = type(opts) == "table" and (opts.Title or "") or tostring(opts)
+                local placeholder = (type(opts) == "table" and opts.Placeholder) or "Type..."
                 local tfFrame = Frame(body, {
                     Size                 = UDim2.new(1,0,0,60),
                     BackgroundTransparency = 1,
@@ -1675,6 +1835,9 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 function o:Set(v) tb.Text = v end
                 return o
             end
+            grp.TextField = function(self, lbl, placeholder, cb)
+                return grp.CreateTextfield({Title=lbl, Placeholder=placeholder}, cb)
+            end
 
             -- ── ColorDot ─────────────────────────────────────────────────
             function grp:ColorDot(lbl, color, cb)
@@ -1724,25 +1887,21 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     ZIndex         = 8,
                 })
 
-                -- clique no badge: entra em modo de captura
                 kbf.MouseButton1Click:Connect(function()
                     waiting = true
                     kbLbl.Text       = "..."
                     kbLbl.TextColor3 = C.hi
                 end)
 
-                -- escuta global: captura nova tecla OU dispara o callback
                 UserInputService.InputBegan:Connect(function(i, gp)
                     if gp then return end
                     if i.UserInputType ~= Enum.UserInputType.Keyboard then return end
                     if waiting then
-                        -- modo captura: salva nova tecla
                         waiting          = false
                         key              = i.KeyCode
                         kbLbl.Text       = tostring(key):gsub("Enum.KeyCode.","")
                         kbLbl.TextColor3     = C.hi
                     elseif i.KeyCode == key then
-                        -- tecla correta pressionada: dispara callback
                         if cb then cb(key) end
                     end
                 end)
@@ -1751,6 +1910,12 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 function o:Get() return key end
                 function o:Set(k) key=k; kbLbl.Text=tostring(k):gsub("Enum.KeyCode.","") end
                 return o
+            end
+            -- table API alias
+            grp.CreateKeybind = function(opts, cb)
+                local lbl     = opts.Title or ""
+                local default = opts.Default or Enum.KeyCode.Unknown
+                return grp:Keybind(lbl, default, cb)
             end
 
             -- ── SectionLabel (inside group) ───────────────────────────────
@@ -1773,7 +1938,6 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     ZIndex         = 6,
                 })
 
-                -- linha com gradient nas pontas
                 local line = Frame(secContainer, {
                     Position         = UDim2.new(0,0,1,-2),
                     Size             = UDim2.new(1,0,0,1),
@@ -1792,10 +1956,20 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             end
 
             return grp
-        end -- sec:Group
+        end -- sec.CreateSection
+
+        -- legacy alias: sec:Group → sec.CreateSection
+        sec.Group = function(self, groupName, iconAsset)
+            return sec.CreateSection(groupName, iconAsset)
+        end
 
         return sec
-    end -- window:Section
+    end -- window.CreatePage
+
+    -- legacy alias: window:Section → window.CreatePage
+    window.Section = function(self, name, iconAsset)
+        return window.CreatePage({ Page_Name = name, Icon = iconAsset })
+    end
 
     return window
 end -- lib:init
