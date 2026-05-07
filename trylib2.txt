@@ -267,6 +267,22 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
         ZIndex         = 4,
     })
 
+    Corner(titlebar, 14)
+    -- hiders dos cantos inferiores do titlebar (nao devem ser arredondados)
+    Frame(titlebar, {
+        Position             = UDim2.new(0,0,1,-14),
+        Size                 = UDim2.new(0,14,0,14),
+        BackgroundColor3     = C.bg,
+        BackgroundTransparency = 0,
+        ZIndex               = 5,
+    })
+    Frame(titlebar, {
+        Position             = UDim2.new(1,-14,1,-14),
+        Size                 = UDim2.new(0,14,0,14),
+        BackgroundColor3     = C.bg,
+        BackgroundTransparency = 0,
+        ZIndex               = 5,
+    })
     -- (botões de fechar/minimizar removidos — use visibleKey para toggle)
 
     -- ── sidebar  (168px wide) ──────────────────────────────────────────────
@@ -278,6 +294,15 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
         BackgroundTransparency = 0,
         ClipsDescendants     = true,
         ZIndex               = 3,
+    })
+    Corner(sidebar, 14)
+    -- hider do canto superior esquerdo da sidebar
+    Frame(sidebar, {
+        Position             = UDim2.new(0,0,0,0),
+        Size                 = UDim2.new(0,14,0,14),
+        BackgroundColor3     = Color3.fromRGB(0,0,0),
+        BackgroundTransparency = 0,
+        ZIndex               = 4,
     })
     -- right border
     Frame(sidebar, {
@@ -347,6 +372,22 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
         BackgroundColor3     = C.bg,
         BackgroundTransparency = 0.7,
         ZIndex               = 4,
+    })
+    Corner(statusbar, 14)
+    -- hiders dos cantos superiores do statusbar
+    Frame(statusbar, {
+        Position             = UDim2.new(0,0,0,0),
+        Size                 = UDim2.new(0,14,0,14),
+        BackgroundColor3     = C.bg,
+        BackgroundTransparency = 0,
+        ZIndex               = 5,
+    })
+    Frame(statusbar, {
+        Position             = UDim2.new(1,-14,0,0),
+        Size                 = UDim2.new(0,14,0,14),
+        BackgroundColor3     = C.bg,
+        BackgroundTransparency = 0,
+        ZIndex               = 5,
     })
     Frame(statusbar, {
         Size                 = UDim2.new(1,0,0,1),
