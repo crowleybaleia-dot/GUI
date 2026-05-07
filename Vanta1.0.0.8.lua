@@ -1320,23 +1320,13 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     })
                     Padding(ob, 0, 0, 8, 8)
 
-                    local chk = Frame(ob, {
-                        Position         = UDim2.new(0,0,0.5,-6),
-                        Size             = UDim2.new(0,12,0,12),
-                        BackgroundColor3 = on and C.white or C.element,
-                        BackgroundTransparency = on and 0.2 or 1,
-                        ZIndex           = 22,
-                    })
-                    Corner(chk, 3)
-                    Stroke(chk, C.white, 1, on and 0.1 or 0.75)
-
                     local optLbl = Label(ob, {
-                        Position       = UDim2.new(0,18,0,0),
-                        Size           = UDim2.new(1,-18,1,0),
+                        Position       = UDim2.new(0,0,0,0),
+                        Size           = UDim2.new(1,0,1,0),
                         Text           = opt,
                         TextColor3     = on and C.hi or C.low,
                         TextSize       = 10,
-                        Font           = Enum.Font.Gotham,
+                        Font           = on and Enum.Font.GothamMedium or Enum.Font.Gotham,
                         TextXAlignment = Enum.TextXAlignment.Left,
                         ZIndex         = 22,
                     })
@@ -1346,9 +1336,8 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     ob.MouseButton1Click:Connect(function()
                         sel[opt] = not sel[opt]
                         local s = sel[opt]
-                        tw(chk,    {BackgroundColor3 = s and C.white or C.element,
-                                    BackgroundTransparency = s and 0.2 or 1}, 0.12)
                         tw(optLbl, {TextColor3 = s and C.hi or C.low}, 0.12)
+                        optLbl.Font = s and Enum.Font.GothamMedium or Enum.Font.Gotham
                         btnLbl.Text = labelTxt()
                         badge.Text  = tostring(count())
                         if cb then cb(sel) end
