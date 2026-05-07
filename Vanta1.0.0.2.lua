@@ -214,8 +214,9 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
 
     -- logo na titlebar
     local logoImg = Image(titlebar, {
-        Position          = UDim2.new(0, 14, 0.5, -22),
-        Size              = UDim2.new(0, 44, 0, 44),
+        AnchorPoint       = Vector2.new(0, 0.5),
+        Position          = UDim2.new(0, 14, 0.5, 0),
+        Size              = UDim2.new(0, 0, 1, -8),
         Image             = logoAsset or "",
         ImageColor3       = C.white,
         ImageTransparency = logoAsset and 0.1 or 1,
@@ -223,10 +224,8 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
         ZIndex            = 4,
     })
 
-    local txOff = logoAsset and 66 or 14
-
-    Label(titlebar, {
-        Position       = UDim2.new(0, txOff, 0, 5),
+    local titleLbl = Label(titlebar, {
+        Position       = UDim2.new(0, 14, 0, 5),
         Size           = UDim2.new(0, 260, 0, 16),
         Text           = string.upper(title or "VANTA"),
         TextColor3     = C.hi,
@@ -236,8 +235,8 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
         ZIndex         = 4,
     })
 
-    Label(titlebar, {
-        Position       = UDim2.new(0, txOff, 0, 22),
+    local subtitleLbl = Label(titlebar, {
+        Position       = UDim2.new(0, 14, 0, 22),
         Size           = UDim2.new(0, 260, 0, 12),
         Text           = subtitle or "",
         TextColor3     = C.low,
@@ -246,6 +245,17 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
         TextXAlignment = Enum.TextXAlignment.Left,
         ZIndex         = 4,
     })
+
+    local function updateTxOff()
+        if logoAsset then
+            local off = 14 + logoImg.AbsoluteSize.X + 8
+            titleLbl.Position    = UDim2.new(0, off, 0, 5)
+            subtitleLbl.Position = UDim2.new(0, off, 0, 22)
+        end
+    end
+
+    logoImg:GetPropertyChangedSignal("AbsoluteSize"):Connect(updateTxOff)
+    updateTxOff()
 
     Corner(titlebar, 14)
 
