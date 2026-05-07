@@ -363,9 +363,9 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
     ListLayout(sidebarScroll, {Padding = UDim.new(0,1)})
 
     -- ── pill indicator (viaja entre os tabs) ──────────────────────────────
-    local pill = Frame(sidebarScroll, {
+    local pill = Frame(sidebar, {
         Name                 = "pill",
-        Position             = UDim2.new(0, 6, 0, 0),
+        Position             = UDim2.new(0, 6, 0, 42),
         Size                 = UDim2.new(1, -12, 0, 32),
         BackgroundColor3     = C.white,
         BackgroundTransparency = 0.91,
@@ -780,8 +780,8 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
         local sec = {}
 
         function sec:Select()
-            -- desativa todos os tabs
             for _, t in ipairs(sections) do
+                t.BackgroundTransparency = 1
                 local l = t:FindFirstChildWhichIsA("TextLabel")
                 if l then tw(l, {TextColor3 = C.low}, 0.18); l.Font = Enum.Font.Gotham end
                 local ic = t:FindFirstChildWhichIsA("ImageLabel")
@@ -789,7 +789,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
             end
 
             -- pill viaja até a posição do tab ativo
-            local targetY = tabBtn.AbsolutePosition.Y - sidebarScroll.AbsolutePosition.Y + sidebarScroll.CanvasPosition.Y
+            local targetY = 42 + tabBtn.AbsolutePosition.Y - sidebarScroll.AbsolutePosition.Y + sidebarScroll.CanvasPosition.Y
             tw(pill, {Position = UDim2.new(0, 6, 0, targetY)}, 0.28, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
 
             -- ativa o tab atual
@@ -797,10 +797,15 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
             tabLabel.Font = Enum.Font.GothamMedium
             if iconAsset then tw(tabIcon, {ImageColor3 = C.hi, ImageTransparency = 0}, 0.18) end
 
-            -- fade simples da workarea
             for _, w in ipairs(workareas) do w.Visible = false end
-            workarea.Position = UDim2.new(0, 168, 0, 38)
-            workarea.Size     = UDim2.new(1, -168, 1, -62)
+
+            -- workarea original: scale + fade
+            local basePos  = UDim2.new(0, 168, 0, 38)
+            local baseSize = UDim2.new(1, -168, 1, -62)
+            local scaleOff = 8
+
+            workarea.Position = UDim2.new(0, 168 + scaleOff, 0, 38 + scaleOff)
+            workarea.Size     = UDim2.new(1, -168 - scaleOff*2, 1, -62 - scaleOff*2)
             workarea.Visible  = true
 
             local overlay = Frame(main, {
@@ -810,19 +815,23 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
                 BackgroundTransparency = 0,
                 ZIndex               = 50,
             })
-            tw(overlay, {BackgroundTransparency = 1}, 0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-            Debris:AddItem(overlay, 0.18)
+
+            tw(workarea, {Position = basePos, Size = baseSize}, 0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+            tw(overlay,  {BackgroundTransparency = 1},          0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+            Debris:AddItem(overlay, 0.22)
         end
 
         tabBtn.MouseButton1Click:Connect(function() sec:Select() end)
         tabBtn.MouseEnter:Connect(function()
             if workarea.Visible then return end
-            tw(tabLabel, {TextColor3 = C.mid}, 0.1)
+            tw(tabBtn,  {BackgroundTransparency = 0.96}, 0.1)
+            tw(tabLabel,{TextColor3 = C.mid},            0.1)
             if iconAsset then tw(tabIcon, {ImageColor3 = C.mid, ImageTransparency = 0.3}, 0.1) end
         end)
         tabBtn.MouseLeave:Connect(function()
             if workarea.Visible then return end
-            tw(tabLabel, {TextColor3 = C.low}, 0.1)
+            tw(tabBtn,  {BackgroundTransparency = 1},  0.1)
+            tw(tabLabel,{TextColor3 = C.low},           0.1)
             if iconAsset then tw(tabIcon, {ImageColor3 = C.low, ImageTransparency = 0.5}, 0.1) end
         end)
 
