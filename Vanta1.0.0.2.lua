@@ -236,7 +236,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             Image             = logoAsset,
             ImageColor3       = C.white,
             ImageTransparency = 0.1,
-            ScaleType         = Enum.ScaleType.Fit,
+            ScaleType         = Enum.ScaleType.Stretch,
             ZIndex            = 4,
             LayoutOrder       = 1,
         })
