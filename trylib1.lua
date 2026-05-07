@@ -127,19 +127,19 @@ local C = {
     sidebar  = Color3.fromRGB(0,   0,   0),    -- #000000 preto puro
     surface  = Color3.fromRGB(0,   0,   0),    -- #000000 preto puro
     element  = Color3.fromRGB(0,   0,   0),    -- #000000 preto puro
-    white    = Color3.fromRGB(211, 211, 211),  -- #D3D3D3 prata
-    hi       = Color3.fromRGB(211, 211, 211),  -- #D3D3D3 prata
-    mid      = Color3.fromRGB(160, 160, 160),  -- prata médio
-    low      = Color3.fromRGB(95,  95,  95),   -- prata escuro
-    dim      = Color3.fromRGB(45,  45,  45),   -- prata muito escuro
-    onBg     = Color3.fromRGB(211, 211, 211),  -- #D3D3D3 prata (checkbox ON)
+    white    = Color3.fromRGB(255, 255, 255),  -- #ffffff branco
+    hi       = Color3.fromRGB(255, 255, 255),  -- #ffffff branco
+    mid      = Color3.fromRGB(180, 180, 180),  -- cinza médio
+    low      = Color3.fromRGB(100, 100, 100),  -- cinza escuro
+    dim      = Color3.fromRGB(45,  45,  45),   -- cinza muito escuro
+    onBg     = Color3.fromRGB(255, 255, 255),  -- #ffffff branco (checkbox ON)
     offBg    = Color3.fromRGB(0,   0,   0),    -- #000000 preto (checkbox OFF)
     knob     = Color3.fromRGB(0,   0,   0),    -- #000000 preto
     toastBg  = Color3.fromRGB(0,   0,   0),    -- #000000 preto
-    success  = Color3.fromRGB(211, 211, 211),  -- prata
-    warn     = Color3.fromRGB(211, 211, 211),  -- prata
-    err      = Color3.fromRGB(211, 211, 211),  -- prata
-    info     = Color3.fromRGB(211, 211, 211),  -- prata
+    success  = Color3.fromRGB(255, 255, 255),  -- branco
+    warn     = Color3.fromRGB(255, 255, 255),  -- branco
+    err      = Color3.fromRGB(255, 255, 255),  -- branco
+    info     = Color3.fromRGB(255, 255, 255),  -- branco
 }
 
 -- ═══════════════════════════════════════════════════════════════════════════
