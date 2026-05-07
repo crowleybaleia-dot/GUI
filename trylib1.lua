@@ -975,35 +975,29 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
                 local waiting = false
                 local row     = baseRow(lbl)
 
-                -- track sempre na mesma posição fixa
-                local track = Button(row, {
-                    Position             = UDim2.new(1,-34,0.5,-9),
-                    Size                 = UDim2.new(0,34,0,18),
-                    BackgroundColor3     = state and C.onBg or C.offBg,
+                -- checkbox: quadrado 14×14 no lado direito
+                local box = Button(row, {
+                    Position             = UDim2.new(1, -18, 0.5, -7),
+                    Size                 = UDim2.new(0, 14, 0, 14),
+                    BackgroundColor3     = state and C.white or C.offBg,
+                    BackgroundTransparency = state and 0.75 or 0,
                     Text                 = "",
                     ZIndex               = 7,
                 })
-                Corner(track, 9)
-                local tstr = Stroke(track, C.white, 1, state and 0.1 or 0.88)
-
-                local knob = Frame(track, {
-                    Position         = state and UDim2.new(0,16,0,2) or UDim2.new(0,2,0,2),
-                    Size             = UDim2.new(0,12,0,12),
-                    BackgroundColor3 = state and C.knob or C.dim,
-                    ZIndex           = 8,
-                })
-                Corner(knob, 6)
+                Corner(box, 3)
+                Stroke(box, C.white, 1, state and 0.55 or 0.82)
 
                 local function flip()
                     state = not state
-                    tw(track, {BackgroundColor3 = state and C.onBg or C.offBg}, 0.18)
-                    tw(knob,  {Position = state and UDim2.new(0,16,0,2) or UDim2.new(0,2,0,2),
-                               BackgroundColor3 = state and C.knob or C.dim}, 0.18)
+                    tw(box, {
+                        BackgroundColor3     = state and C.white or C.offBg,
+                        BackgroundTransparency = state and 0.75 or 0,
+                    }, 0.14)
                     if cb then cb(state) end
                 end
-                track.MouseButton1Click:Connect(flip)
+                box.MouseButton1Click:Connect(flip)
 
-                -- badge de keybind posicionado dinamicamente à esquerda do track
+                -- badge de keybind posicionado à esquerda do checkbox
                 if keybind then
                     local keyName = tostring(key):gsub("Enum.KeyCode.","")
                     local ts = game:GetService("TextService")
@@ -1012,7 +1006,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
                     local kbf = Button(row, {
                         Size                 = UDim2.new(0, badgeW, 0, 18),
                         AnchorPoint          = Vector2.new(1, 0.5),
-                        Position             = UDim2.new(1, -38, 0.5, 0),
+                        Position             = UDim2.new(1, -24, 0.5, 0),
                         BackgroundColor3     = C.white,
                         BackgroundTransparency = 0.94,
                         Text                 = "",
