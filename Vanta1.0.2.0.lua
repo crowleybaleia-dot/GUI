@@ -123,23 +123,26 @@ end
 
 -- ─── palette ───────────────────────────────────────────────────────────────
 local C = {
-    bg       = Color3.fromRGB(0,   0,   0),    -- #000000 preto puro
-    sidebar  = Color3.fromRGB(0,   0,   0),    -- #000000 preto puro
-    surface  = Color3.fromRGB(0,   0,   0),    -- #000000 preto puro
-    element  = Color3.fromRGB(0,   0,   0),    -- #000000 preto puro
-    white    = Color3.fromRGB(255, 255, 255),  -- #ffffff branco
-    hi       = Color3.fromRGB(255, 255, 255),  -- #ffffff branco
+    bg       = Color3.fromRGB(26,  26,  26),   -- #1a1a1a fundo da janela
+    sidebar  = Color3.fromRGB(17,  17,  17),   -- #111111 sidebar
+    surface  = Color3.fromRGB(17,  17,  17),   -- #111111 surface/modal
+    element  = Color3.fromRGB(17,  17,  17),   -- #111111 elementos
+    white    = Color3.fromRGB(255, 255, 255),  -- #ffffff branco puro
+    hi       = Color3.fromRGB(221, 221, 221),  -- #dddddd texto principal
     mid      = Color3.fromRGB(180, 180, 180),  -- cinza médio
-    low      = Color3.fromRGB(100, 100, 100),  -- cinza escuro
-    dim      = Color3.fromRGB(45,  45,  45),   -- cinza muito escuro
-    onBg     = Color3.fromRGB(255, 255, 255),  -- #ffffff branco (checkbox ON)
-    offBg    = Color3.fromRGB(0,   0,   0),    -- #000000 preto (checkbox OFF)
-    knob     = Color3.fromRGB(0,   0,   0),    -- #000000 preto
-    toastBg  = Color3.fromRGB(0,   0,   0),    -- #000000 preto
-    success  = Color3.fromRGB(255, 255, 255),  -- branco
-    warn     = Color3.fromRGB(255, 255, 255),  -- branco
-    err      = Color3.fromRGB(255, 255, 255),  -- branco
-    info     = Color3.fromRGB(255, 255, 255),  -- branco
+    low      = Color3.fromRGB(102, 102, 102),  -- #666666 texto inativo
+    dim      = Color3.fromRGB(85,  85,  85),   -- #555555 descrição/placeholder
+    border   = Color3.fromRGB(42,  42,  42),   -- #2a2a2a bordas sutis
+    accent   = Color3.fromRGB(179, 136, 255),  -- #b388ff roxo accent
+    accentBg = Color3.fromRGB(30,  26,  42),   -- #1e1a2a fundo tab ativo
+    onBg     = Color3.fromRGB(179, 136, 255),  -- #b388ff checkbox ON
+    offBg    = Color3.fromRGB(17,  17,  17),   -- #111111 checkbox OFF
+    knob     = Color3.fromRGB(17,  17,  17),   -- #111111
+    toastBg  = Color3.fromRGB(17,  17,  17),   -- #111111
+    success  = Color3.fromRGB(179, 136, 255),  -- accent
+    warn     = Color3.fromRGB(179, 136, 255),  -- accent
+    err      = Color3.fromRGB(179, 136, 255),  -- accent
+    info     = Color3.fromRGB(179, 136, 255),  -- accent
 }
 
 -- ═══════════════════════════════════════════════════════════════════════════
@@ -174,7 +177,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         ZIndex               = 1,
     })
     Corner(main, 14)
-    Stroke(main, C.white, 1, 0.93)
+    Stroke(main, C.border, 1, 0)
 
 
     -- ── drag (move o outer que contém tudo) ───────────────────────────────────
@@ -199,16 +202,16 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     local titlebar = Frame(main, {
         Name                 = "titlebar",
         Size                 = UDim2.new(1, 0, 0, 60),
-        BackgroundColor3     = C.white,
-        BackgroundTransparency = 0.98,
+        BackgroundColor3     = C.sidebar,
+        BackgroundTransparency = 0,
         ZIndex               = 4,
     })
     -- bottom border
     Frame(titlebar, {
         Position             = UDim2.new(0,0,1,-1),
         Size                 = UDim2.new(1,0,0,1),
-        BackgroundColor3     = C.white,
-        BackgroundTransparency = 0.95,
+        BackgroundColor3     = C.border,
+        BackgroundTransparency = 0,
         ZIndex               = 4,
     })
 
@@ -312,14 +315,14 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     Frame(titlebar, {
         Position             = UDim2.new(0,0,1,-14),
         Size                 = UDim2.new(0,14,0,14),
-        BackgroundColor3     = C.bg,
+        BackgroundColor3     = C.sidebar,
         BackgroundTransparency = 0,
         ZIndex               = 5,
     })
     Frame(titlebar, {
         Position             = UDim2.new(1,-14,1,-14),
         Size                 = UDim2.new(0,14,0,14),
-        BackgroundColor3     = C.bg,
+        BackgroundColor3     = C.sidebar,
         BackgroundTransparency = 0,
         ZIndex               = 5,
     })
@@ -330,7 +333,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         Name                 = "sidebar",
         Position             = UDim2.new(0,0,0,60),
         Size                 = UDim2.new(0,168,1,-84),
-        BackgroundColor3     = Color3.fromRGB(0,0,0),
+        BackgroundColor3     = C.sidebar,
         BackgroundTransparency = 0,
         ClipsDescendants     = true,
         ZIndex               = 3,
@@ -340,7 +343,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     Frame(sidebar, {
         Position             = UDim2.new(0,0,0,0),
         Size                 = UDim2.new(0,14,0,14),
-        BackgroundColor3     = Color3.fromRGB(0,0,0),
+        BackgroundColor3     = C.sidebar,
         BackgroundTransparency = 0,
         ZIndex               = 4,
     })
@@ -348,53 +351,84 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     Frame(sidebar, {
         Position             = UDim2.new(1,-1,0,0),
         Size                 = UDim2.new(0,1,1,0),
-        BackgroundColor3     = C.white,
-        BackgroundTransparency = 0.95,
+        BackgroundColor3     = C.border,
+        BackgroundTransparency = 0,
         ZIndex               = 3,
     })
 
-    -- search bar
-    local searchFrame = Frame(sidebar, {
-        Position             = UDim2.new(0,8,0,8),
-        Size                 = UDim2.new(1,-16,0,26),
-        BackgroundColor3     = C.white,
-        BackgroundTransparency = 0.96,
+    -- ── sidebar header: avatar + hub name + game subtitle ─────────────────
+    local sidebarHeader = Frame(sidebar, {
+        Position             = UDim2.new(0,0,0,0),
+        Size                 = UDim2.new(1,0,0,52),
+        BackgroundTransparency = 1,
         ZIndex               = 4,
     })
-    Corner(searchFrame, 6)
-    Stroke(searchFrame, C.white, 1, 0.92)
 
-    Image(searchFrame, {
-        Position          = UDim2.new(0,6,0.5,-6),
-        Size              = UDim2.new(0,12,0,12),
-        Image             = "rbxassetid://3926305904",   -- magnifier icon
-        ImageColor3       = C.low,
-        ImageTransparency = 0.4,
-        ScaleType         = Enum.ScaleType.Fit,
-        ZIndex            = 5,
+    -- avatar circular com letra inicial
+    local avatarCircle = Frame(sidebarHeader, {
+        Position             = UDim2.new(0,10,0.5,-14),
+        Size                 = UDim2.new(0,28,0,28),
+        BackgroundColor3     = Color3.fromRGB(51,51,51),
+        BackgroundTransparency = 0,
+        ZIndex               = 5,
+    })
+    Corner(avatarCircle, 14)
+    if logoAsset and logoAsset ~= "" then
+        Image(avatarCircle, {
+            Size              = UDim2.new(1,0,1,0),
+            Image             = logoAsset,
+            ScaleType         = Enum.ScaleType.Fit,
+            ZIndex            = 6,
+        })
+    else
+        Label(avatarCircle, {
+            Size           = UDim2.new(1,0,1,0),
+            Text           = string.upper((title or "V"):sub(1,1)),
+            TextColor3     = C.mid,
+            TextSize       = 12,
+            Font           = Enum.Font.GothamBold,
+            ZIndex         = 6,
+        })
+    end
+
+    -- hub name
+    Label(sidebarHeader, {
+        Position       = UDim2.new(0,46,0,10),
+        Size           = UDim2.new(1,-56,0,16),
+        Text           = title or "VantaHub",
+        TextColor3     = C.hi,
+        TextSize       = 12,
+        Font           = Enum.Font.GothamBold,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        ZIndex         = 5,
     })
 
-    local searchBox = Instance.new("TextBox")
-    searchBox.Position            = UDim2.new(0,22,0,0)
-    searchBox.Size                = UDim2.new(1,-28,1,0)
-    searchBox.BackgroundTransparency = 1
-    searchBox.BorderSizePixel     = 0
-    searchBox.Font                = Enum.Font.Gotham
-    searchBox.PlaceholderText     = "Search..."
-    searchBox.PlaceholderColor3   = C.dim
-    searchBox.Text                = ""
-    searchBox.TextColor3     = C.hi
-    searchBox.TextSize            = 10
-    searchBox.ClearTextOnFocus    = false
-    searchBox.TextXAlignment      = Enum.TextXAlignment.Left
-    searchBox.ZIndex              = 5
-    searchBox.Parent              = searchFrame
+    -- game subtitle
+    Label(sidebarHeader, {
+        Position       = UDim2.new(0,46,0,28),
+        Size           = UDim2.new(1,-56,0,12),
+        Text           = subtitle or "",
+        TextColor3     = C.low,
+        TextSize       = 9,
+        Font           = Enum.Font.Gotham,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        ZIndex         = 5,
+    })
 
-    -- sidebar scroll
+    -- linha separadora abaixo do header
+    Frame(sidebarHeader, {
+        Position             = UDim2.new(0,0,1,-1),
+        Size                 = UDim2.new(1,0,0,1),
+        BackgroundColor3     = C.border,
+        BackgroundTransparency = 0,
+        ZIndex               = 4,
+    })
+
+    -- sidebar scroll (começa após o header)
     local sidebarScroll = Instance.new("ScrollingFrame")
     sidebarScroll.Name                = "sidebarScroll"
-    sidebarScroll.Position            = UDim2.new(0,0,0,42)
-    sidebarScroll.Size                = UDim2.new(1,0,1,-42)
+    sidebarScroll.Position            = UDim2.new(0,0,0,52)
+    sidebarScroll.Size                = UDim2.new(1,0,1,-52)
     sidebarScroll.BackgroundTransparency = 1
     sidebarScroll.BorderSizePixel     = 0
     sidebarScroll.ScrollBarThickness  = 2
@@ -405,17 +439,30 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     sidebarScroll.Parent              = sidebar
     ListLayout(sidebarScroll, {Padding = UDim.new(0,1)})
 
+    -- searchBox dummy (mantido pra não quebrar o filtro de tabs)
+    local searchBox = Instance.new("TextBox")
+    searchBox.Text   = ""
+    searchBox.Parent = sidebarScroll
+    searchBox.Visible = false
+
     -- ── pill indicator (viaja entre os tabs) ──────────────────────────────
     local pill = Frame(sidebar, {
         Name                 = "pill",
-        Position             = UDim2.new(0, 6, 0, 42),
-        Size                 = UDim2.new(1, -12, 0, 32),
-        BackgroundColor3     = C.white,
-        BackgroundTransparency = 0.91,
+        Position             = UDim2.new(0, 0, 0, 52),
+        Size                 = UDim2.new(1, 0, 0, 32),
+        BackgroundColor3     = C.accentBg,
+        BackgroundTransparency = 0,
         ZIndex               = 2,
     })
-    Corner(pill, 8)
-    Stroke(pill, C.white, 1, 0.88)
+    Corner(pill, 0)
+    -- borda esquerda accent
+    Frame(pill, {
+        Position             = UDim2.new(0,0,0,0),
+        Size                 = UDim2.new(0,2,1,0),
+        BackgroundColor3     = C.accent,
+        BackgroundTransparency = 0,
+        ZIndex               = 3,
+    })
 
     -- ── status bar  (24px) ────────────────────────────────────────────────
     local statusbar = Frame(main, {
@@ -443,8 +490,8 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     })
     Frame(statusbar, {
         Size                 = UDim2.new(1,0,0,1),
-        BackgroundColor3     = C.white,
-        BackgroundTransparency = 0.96,
+        BackgroundColor3     = C.border,
+        BackgroundTransparency = 0,
         ZIndex               = 4,
     })
     -- ── state ─────────────────────────────────────────────────────────────
@@ -751,7 +798,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         local lbl = Label(sidebarScroll, {
             Size           = UDim2.new(1,0,0,22),
             Text           = string.upper(name or ""),
-            TextColor3     = C.hi,
+            TextColor3     = C.accent,
             TextSize       = 8,
             Font           = Enum.Font.GothamBold,
             TextXAlignment = Enum.TextXAlignment.Left,
@@ -792,7 +839,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             Position       = UDim2.new(0, iconAsset and 36 or 14, 0, 0),
             Size           = UDim2.new(1, -(iconAsset and 50 or 28), 1, 0),
             Text           = name,
-            TextColor3     = C.hi,
+            TextColor3     = C.low,
             TextSize       = 11,
             Font           = Enum.Font.Gotham,
             TextXAlignment = Enum.TextXAlignment.Left,
@@ -827,19 +874,19 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             for _, t in ipairs(sections) do
                 t.BackgroundTransparency = 1
                 local l = t:FindFirstChildWhichIsA("TextLabel")
-                if l then tw(l, {TextColor3     = C.hi}, 0.18); l.Font = Enum.Font.Gotham end
+                if l then tw(l, {TextColor3 = C.low}, 0.18); l.Font = Enum.Font.Gotham end
                 local ic = t:FindFirstChildWhichIsA("ImageLabel")
                 if ic then tw(ic, {ImageColor3 = C.low, ImageTransparency = 0.5}, 0.18) end
             end
 
             -- pill viaja até a posição do tab ativo
-            local targetY = 42 + tabBtn.AbsolutePosition.Y - sidebarScroll.AbsolutePosition.Y + sidebarScroll.CanvasPosition.Y
-            tw(pill, {Position = UDim2.new(0, 6, 0, targetY)}, 0.28, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+            local targetY = 52 + tabBtn.AbsolutePosition.Y - sidebarScroll.AbsolutePosition.Y + sidebarScroll.CanvasPosition.Y
+            tw(pill, {Position = UDim2.new(0, 0, 0, targetY)}, 0.28, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
 
             -- ativa o tab atual
-            tw(tabLabel, {TextColor3 = C.hi}, 0.18)
+            tw(tabLabel, {TextColor3 = C.accent}, 0.18)
             tabLabel.Font = Enum.Font.GothamMedium
-            if iconAsset then tw(tabIcon, {ImageColor3 = C.hi, ImageTransparency = 0}, 0.18) end
+            if iconAsset then tw(tabIcon, {ImageColor3 = C.accent, ImageTransparency = 0}, 0.18) end
 
             for _, w in ipairs(workareas) do w.Visible = false end
 
@@ -868,14 +915,14 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         tabBtn.MouseButton1Click:Connect(function() sec:Select() end)
         tabBtn.MouseEnter:Connect(function()
             if workarea.Visible then return end
-            tw(tabBtn,  {BackgroundTransparency = 0.96}, 0.1)
-            tw(tabLabel,{TextColor3     = C.hi},            0.1)
+            tw(tabBtn,  {BackgroundTransparency = 0.94}, 0.1)
+            tw(tabLabel,{TextColor3 = C.hi},             0.1)
             if iconAsset then tw(tabIcon, {ImageColor3 = C.mid, ImageTransparency = 0.3}, 0.1) end
         end)
         tabBtn.MouseLeave:Connect(function()
             if workarea.Visible then return end
-            tw(tabBtn,  {BackgroundTransparency = 1},  0.1)
-            tw(tabLabel,{TextColor3     = C.hi},           0.1)
+            tw(tabBtn,  {BackgroundTransparency = 1},   0.1)
+            tw(tabLabel,{TextColor3 = C.low},            0.1)
             if iconAsset then tw(tabIcon, {ImageColor3 = C.low, ImageTransparency = 0.5}, 0.1) end
         end)
 
@@ -906,7 +953,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 LayoutOrder          = #workarea:GetChildren(),
             })
             Corner(gboxOuter, 9)
-            Stroke(gboxOuter, C.white, 1, 0.91)
+            Stroke(gboxOuter, C.border, 1, 0)
 
             -- frame interno com a cor de fundo, ClipsDescendants pra cortar os filhos nos cantos
             local gbox = Frame(gboxOuter, {
@@ -971,8 +1018,10 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             Padding(body, 4, 6, 10, 10)
 
             -- ── base row ─────────────────────────────────────────────────
-            local function baseRow(lbl, h)
-                h = h or 30
+            local function baseRow(lbl, h, desc)
+                -- se tiver descrição, altura maior e layout vertical
+                local hasDesc = desc and desc ~= ""
+                h = h or (hasDesc and 42 or 30)
                 local row = Frame(body, {
                     Size             = UDim2.new(1,0,0,h),
                     BackgroundTransparency = 1,
@@ -980,46 +1029,81 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     LayoutOrder      = #body:GetChildren(),
                 })
 
-                Label(row, {
-                    Position       = UDim2.new(0,0,0,0),
-                    Size           = UDim2.new(0.55,0,1,0),
-                    Text           = lbl or "",
-                    TextColor3     = C.hi,
-                    TextSize       = 11,
-                    Font           = Enum.Font.Gotham,
-                    TextXAlignment = Enum.TextXAlignment.Left,
-                    ZIndex         = 6,
-                })
+                if hasDesc then
+                    -- label principal
+                    Label(row, {
+                        Position       = UDim2.new(0,0,0,6),
+                        Size           = UDim2.new(0.6,0,0,14),
+                        Text           = lbl or "",
+                        TextColor3     = C.hi,
+                        TextSize       = 11,
+                        Font           = Enum.Font.Gotham,
+                        TextXAlignment = Enum.TextXAlignment.Left,
+                        ZIndex         = 6,
+                    })
+                    -- descrição secundária
+                    Label(row, {
+                        Position       = UDim2.new(0,0,0,22),
+                        Size           = UDim2.new(0.75,0,0,12),
+                        Text           = desc,
+                        TextColor3     = C.dim,
+                        TextSize       = 9,
+                        Font           = Enum.Font.Gotham,
+                        TextXAlignment = Enum.TextXAlignment.Left,
+                        ZIndex         = 6,
+                    })
+                else
+                    Label(row, {
+                        Position       = UDim2.new(0,0,0,0),
+                        Size           = UDim2.new(0.55,0,1,0),
+                        Text           = lbl or "",
+                        TextColor3     = C.hi,
+                        TextSize       = 11,
+                        Font           = Enum.Font.Gotham,
+                        TextXAlignment = Enum.TextXAlignment.Left,
+                        ZIndex         = 6,
+                    })
+                end
                 return row
             end
 
             local grp = {}
 
             -- ── Toggle ───────────────────────────────────────────────────
-            function grp:Toggle(lbl, default, cb, keybind)
+            function grp:Toggle(lbl, default, cb, keybind, desc)
                 local state   = default == true
                 local key     = keybind or nil
                 local waiting = false
-                local row     = baseRow(lbl)
+                local row     = baseRow(lbl, nil, desc)
 
-                -- checkbox: quadrado 18×18 no lado direito
+                -- checkbox: quadrado 14×14 no lado direito
                 local box = Button(row, {
-                    Position             = UDim2.new(1, -22, 0.5, -9),
-                    Size                 = UDim2.new(0, 18, 0, 18),
-                    BackgroundColor3     = state and C.white or C.offBg,
+                    Position             = UDim2.new(1, -20, 0.5, -7),
+                    Size                 = UDim2.new(0, 14, 0, 14),
+                    BackgroundColor3     = state and C.onBg or C.offBg,
                     BackgroundTransparency = 0,
                     Text                 = "",
                     ZIndex               = 7,
                 })
                 Corner(box, 3)
-                Stroke(box, C.white, 1, state and 0.55 or 0.82)
+                local boxStroke = Stroke(box, state and C.accent or C.dim, 1, 0)
+
+                -- checkmark (✓) visível só quando ON
+                local checkLbl = Label(box, {
+                    Size           = UDim2.new(1,0,1,0),
+                    Text           = "✓",
+                    TextColor3     = Color3.fromRGB(17,17,17),
+                    TextSize       = 10,
+                    Font           = Enum.Font.GothamBold,
+                    ZIndex         = 8,
+                    Visible        = state,
+                })
 
                 local function flip()
                     state = not state
-                    tw(box, {
-                        BackgroundColor3     = state and C.white or C.offBg,
-                        BackgroundTransparency = 0,
-                    }, 0.14)
+                    tw(box, {BackgroundColor3 = state and C.onBg or C.offBg}, 0.14)
+                    tw(boxStroke, {Color = state and C.accent or C.dim}, 0.14)
+                    checkLbl.Visible = state
                     if cb then cb(state) end
                 end
                 box.MouseButton1Click:Connect(flip)
@@ -1098,22 +1182,22 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 -- track fixo à direita, 110px, 8px de altura
                 local trackBg = Frame(row, {
                     Position             = UDim2.new(1, -110, 1, -12),
-                    Size                 = UDim2.new(0, 110, 0, 9),
-                    BackgroundColor3     = C.white,
-                    BackgroundTransparency = 0.88,
+                    Size                 = UDim2.new(0, 110, 0, 6),
+                    BackgroundColor3     = C.border,
+                    BackgroundTransparency = 0,
                     ZIndex               = 6,
                 })
-                Corner(trackBg, 4)
+                Corner(trackBg, 3)
 
                 local p0 = (val-min)/(max-min)
 
                 local fill = Frame(trackBg, {
                     Size             = UDim2.new(p0, 0, 1, 0),
-                    BackgroundColor3 = C.mid,
+                    BackgroundColor3 = C.accent,
                     BackgroundTransparency = 0,
                     ZIndex           = 7,
                 })
-                Corner(fill, 4)
+                Corner(fill, 3)
 
                 local dslider = false
                 local function upd(x)
@@ -1158,13 +1242,13 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 local btn = Button(row, {
                     Position             = UDim2.new(1,-130,0.5,-11),
                     Size                 = UDim2.new(0,126,0,22),
-                    BackgroundColor3     = C.white,
-                    BackgroundTransparency = 0.96,
+                    BackgroundColor3     = C.element,
+                    BackgroundTransparency = 0,
                     Text                 = "",
                     ZIndex               = 7,
                 })
-                Corner(btn, 5)
-                Stroke(btn, C.white, 1, 0.9)
+                Corner(btn, 4)
+                Stroke(btn, C.border, 1, 0)
 
                 local btnLbl = Label(btn, {
                     Position       = UDim2.new(0,8,0,0),
@@ -1176,17 +1260,27 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     TextXAlignment = Enum.TextXAlignment.Left,
                     ZIndex         = 8,
                 })
+                -- arrow ›
+                Label(btn, {
+                    Position       = UDim2.new(1,-16,0.5,-8),
+                    Size           = UDim2.new(0,12,0,16),
+                    Text           = "›",
+                    TextColor3     = C.dim,
+                    TextSize       = 14,
+                    Font           = Enum.Font.Gotham,
+                    ZIndex         = 8,
+                })
                 local panel = Frame(gbox, {
                     Size             = UDim2.new(1,0,0,0),
                     AutomaticSize    = Enum.AutomaticSize.Y,
                     BackgroundColor3 = C.toastBg,
-                    BackgroundTransparency = 0.05,
+                    BackgroundTransparency = 0,
                     ZIndex           = 20,
                     Visible          = false,
                     ClipsDescendants = true,
                 })
-                Corner(panel, 7)
-                Stroke(panel, C.white, 1, 0.88)
+                Corner(panel, 5)
+                Stroke(panel, C.border, 1, 0)
                 ListLayout(panel)
                 Padding(panel, 4, 4, 0, 0)
 
@@ -1411,12 +1505,12 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 local inputFrame = Frame(row, {
                     Position             = UDim2.new(1,-108,0.5,-11),
                     Size                 = UDim2.new(0,104,0,22),
-                    BackgroundColor3     = C.white,
-                    BackgroundTransparency = 0.96,
+                    BackgroundColor3     = C.element,
+                    BackgroundTransparency = 0,
                     ZIndex               = 7,
                 })
-                Corner(inputFrame, 5)
-                local istr = Stroke(inputFrame, C.white, 1, 0.9)
+                Corner(inputFrame, 4)
+                local istr = Stroke(inputFrame, C.border, 1, 0)
 
                 local tb = Instance.new("TextBox")
                 tb.Position              = UDim2.new(0,6,0,0)
@@ -1434,9 +1528,9 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 tb.ZIndex                = 8
                 tb.Parent                = inputFrame
 
-                tb.Focused:Connect(function()   istr.Transparency = 0.78 end)
+                tb.Focused:Connect(function()   istr.Color = C.accent end)
                 tb.FocusLost:Connect(function()
-                    istr.Transparency = 0.9
+                    istr.Color = C.border
                     if cb then cb(tb.Text) end
                 end)
 
@@ -1525,16 +1619,40 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
 
             -- ── SectionLabel (inside group) ───────────────────────────────
             function grp:SectionLabel(name)
-                Label(body, {
-                    Size           = UDim2.new(1,0,0,20),
-                    Text           = string.upper(name or ""),
-                    TextColor3     = C.hi,
-                    TextSize       = 8,
-                    Font           = Enum.Font.GothamBold,
-                    TextXAlignment = Enum.TextXAlignment.Left,
-                    ZIndex         = 5,
-                    LayoutOrder    = #body:GetChildren(),
+                local secContainer = Frame(body, {
+                    Size        = UDim2.new(1,0,0,28),
+                    BackgroundTransparency = 1,
+                    ZIndex      = 5,
+                    LayoutOrder = #body:GetChildren(),
                 })
+
+                Label(secContainer, {
+                    Size           = UDim2.new(1,0,0,18),
+                    Position       = UDim2.new(0,0,0,4),
+                    Text           = string.upper(name or ""),
+                    TextColor3     = C.accent,
+                    TextSize       = 9,
+                    Font           = Enum.Font.GothamBold,
+                    TextXAlignment = Enum.TextXAlignment.Center,
+                    ZIndex         = 6,
+                })
+
+                -- linha com gradient nas pontas
+                local line = Frame(secContainer, {
+                    Position         = UDim2.new(0,0,1,-2),
+                    Size             = UDim2.new(1,0,0,1),
+                    BackgroundColor3 = C.accent,
+                    BackgroundTransparency = 0,
+                    ZIndex           = 6,
+                })
+                local grad = Instance.new("UIGradient")
+                grad.Transparency = NumberSequence.new({
+                    NumberSequenceKeypoint.new(0,   1),
+                    NumberSequenceKeypoint.new(0.2, 0),
+                    NumberSequenceKeypoint.new(0.8, 0),
+                    NumberSequenceKeypoint.new(1,   1),
+                })
+                grad.Parent = line
             end
 
             return grp
