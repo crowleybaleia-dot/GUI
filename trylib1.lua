@@ -490,11 +490,19 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
         Corner(toast, 5)
         Stroke(toast, C.white, 1, 0.9)
 
-        -- accent bar left edge
-        Frame(toast, {
+        -- accent bar (left edge, with left corners matching card)
+        local bar = Frame(toast, {
             Size             = UDim2.new(0,3,1,0),
             BackgroundColor3 = accent,
             ZIndex           = 31,
+        })
+        Corner(bar, 5)
+        -- hide right corners of bar so only left side is rounded
+        Frame(bar, {
+            Position         = UDim2.new(1,-5,0,0),
+            Size             = UDim2.new(0,5,1,0),
+            BackgroundColor3 = accent,
+            ZIndex           = 32,
         })
 
         -- title label
@@ -536,13 +544,61 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
             ZIndex         = 32,
         })
 
-        -- slide in from left
+        -- shimmer frame (passes left→right 3x then fades)
+        local shimmer = Frame(toast, {
+            Position             = UDim2.new(0,-80,0,0),
+            Size                 = UDim2.new(0,60,1,0),
+            BackgroundColor3     = Color3.fromRGB(255,255,255),
+            BackgroundTransparency = 0.88,
+            ZIndex               = 35,
+        })
+        -- gradient effect via two nested frames
+        local shimLeft = Frame(shimmer, {
+            Size             = UDim2.new(0.5,0,1,0),
+            BackgroundColor3 = Color3.fromRGB(255,255,255),
+            BackgroundTransparency = 1,
+            ZIndex           = 36,
+        })
+        local shimRight = Frame(shimmer, {
+            Position         = UDim2.new(0.5,0,0,0),
+            Size             = UDim2.new(0.5,0,1,0),
+            BackgroundColor3 = Color3.fromRGB(255,255,255),
+            BackgroundTransparency = 1,
+            ZIndex           = 36,
+        })
+
+        -- slide in with bounce (Back easing = overshoot)
         toast.Position = UDim2.new(0,-220,0,0)
-        tw(toast, {Position = UDim2.new(0,0,0,0)}, 0.28, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+        toast.BackgroundTransparency = 0.6
+        tw(toast, {Position = UDim2.new(0,0,0,0), BackgroundTransparency = 0}, 0.38, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+
+        -- shimmer: run 3 passes after card lands
+        task.delay(0.32, function()
+            local toastW = toast.AbsoluteSize.X + 80
+            local passTime = 0.5
+            local gap      = 0.28
+            for pass = 1, 3 do
+                local delay = (pass - 1) * (passTime + gap)
+                task.delay(delay, function()
+                    if not toast.Parent then return end
+                    shimmer.Position = UDim2.new(0, -70, 0, 0)
+                    -- fade out last pass
+                    local endTrans = (pass == 3) and 1 or 0.88
+                    tw(shimmer, {Position = UDim2.new(0, toastW, 0, 0)}, passTime, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
+                    if pass == 3 then
+                        task.delay(passTime - 0.05, function()
+                            if shimmer.Parent then
+                                tw(shimmer, {BackgroundTransparency = 1}, 0.15)
+                            end
+                        end)
+                    end
+                end)
+            end
+        end)
 
         -- slide out after duration
         task.delay(duration, function()
-            tw(toast, {Position = UDim2.new(0,-220,0,0)}, 0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
+            tw(toast, {Position = UDim2.new(0,-220,0,0), BackgroundTransparency = 0.8}, 0.22, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
             Debris:AddItem(toast, 0.25)
         end)
     end
