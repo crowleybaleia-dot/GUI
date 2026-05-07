@@ -991,41 +991,38 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
                 end
                 box.MouseButton1Click:Connect(flip)
 
-                -- badge de keybind posicionado à esquerda do checkbox
+                -- texto de keybind estilo Linoria, à esquerda do checkbox
                 if keybind then
                     local keyName = tostring(key):gsub("Enum.KeyCode.","")
-                    local ts = game:GetService("TextService")
-                    local badgeW = ts:GetTextSize("[" .. keyName .. "]", 9, Enum.Font.Code, Vector2.new(9999,18)).X + 10
 
-                    local kbf = Button(row, {
-                        Size                 = UDim2.new(0, badgeW, 0, 18),
-                        AnchorPoint          = Vector2.new(1, 0.5),
-                        Position             = UDim2.new(1, -24, 0.5, 0),
-                        BackgroundColor3     = C.white,
-                        BackgroundTransparency = 0.94,
-                        Text                 = "",
-                        ZIndex               = 7,
-                    })
-                    Corner(kbf, 4)
-                    Stroke(kbf, C.white, 1, 0.88)
-
-                    local kbLbl = Label(kbf, {
-                        Size           = UDim2.new(1,0,1,0),
+                    local kbLbl = Label(row, {
+                        AnchorPoint    = Vector2.new(1, 0.5),
+                        Position       = UDim2.new(1, -26, 0.5, 0),
+                        Size           = UDim2.new(0, 60, 0, 20),
                         Text           = "[" .. keyName .. "]",
-                        TextColor3     = C.dim,
-                        TextSize       = 9,
+                        TextColor3     = C.low,
+                        TextSize       = 11,
                         Font           = Enum.Font.Code,
-                        ZIndex         = 8,
+                        TextXAlignment = Enum.TextXAlignment.Right,
+                        BackgroundTransparency = 1,
+                        ZIndex         = 7,
                     })
 
-                    -- clique no badge: entra em modo captura
-                    kbf.MouseButton1Click:Connect(function()
-                        waiting          = true
-                        kbLbl.Text       = "[...]"
+                    local kbBtn = Button(row, {
+                        AnchorPoint          = Vector2.new(1, 0.5),
+                        Position             = UDim2.new(1, -26, 0.5, 0),
+                        Size                 = UDim2.new(0, 60, 0, 20),
+                        BackgroundTransparency = 1,
+                        Text                 = "",
+                        ZIndex               = 8,
+                    })
+
+                    kbBtn.MouseButton1Click:Connect(function()
+                        waiting        = true
+                        kbLbl.Text     = "[...]"
                         kbLbl.TextColor3 = C.hi
                     end)
 
-                    -- captura tecla OU dispara flip
                     UserInputService.InputBegan:Connect(function(i, gp)
                         if gp then return end
                         if i.UserInputType ~= Enum.UserInputType.Keyboard then return end
@@ -1033,10 +1030,8 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious)
                             waiting          = false
                             key              = i.KeyCode
                             local newName    = tostring(key):gsub("Enum.KeyCode.","")
-                            local newW       = ts:GetTextSize("[" .. newName .. "]", 9, Enum.Font.Code, Vector2.new(9999,18)).X + 10
-                            kbf.Size         = UDim2.new(0, newW, 0, 18)
                             kbLbl.Text       = "[" .. newName .. "]"
-                            kbLbl.TextColor3 = C.dim
+                            kbLbl.TextColor3 = C.low
                         elseif i.KeyCode == key then
                             flip()
                         end
