@@ -2225,10 +2225,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             )
         end)
 
-        grp:Button("🔄  Atualizar Lista", function()
-            local list = refreshDropdown()
-            window:TempNotify("Configs", #list .. " config(s) encontrada(s)", "info", 3)
-        end)
+
     end)
 
     return window
