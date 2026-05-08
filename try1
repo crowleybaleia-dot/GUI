@@ -1672,27 +1672,35 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 ListLayout(panel)
                 Padding(panel, 4, 4, 0, 0)
 
-                for _, opt in ipairs(options or {}) do
-                    local ob = Button(panel, {
-                        Size                 = UDim2.new(1,0,0,24),
-                        BackgroundColor3     = C.white,
-                        BackgroundTransparency = 1,
-                        Text                 = opt,
-                        TextColor3           = opt == sel and C.hi or C.low,
-                        TextSize             = 10,
-                        Font                 = opt == sel and Enum.Font.GothamMedium or Enum.Font.Gotham,
-                        ZIndex               = 21,
-                    })
-                    Padding(ob, 0, 0, 8, 8)
-                    ob.MouseEnter:Connect(function() tw(ob, {BackgroundTransparency = 0.94}, 0.1) end)
-                    ob.MouseLeave:Connect(function() tw(ob, {BackgroundTransparency = 1},    0.1) end)
-                    ob.MouseButton1Click:Connect(function()
-                        sel = opt
-                        btnLbl.Text = lbl .. ": " .. opt
-                        panel.Visible = false; open = false
-                        if cb then cb(opt) end
-                    end)
+                -- reconstrói as opções do painel (igual ao Feral: GetNewList)
+                local function buildOptions(opts)
+                    for _, ch in ipairs(panel:GetChildren()) do
+                        if ch:IsA("TextButton") then ch:Destroy() end
+                    end
+                    for _, opt in ipairs(opts or {}) do
+                        local ob = Button(panel, {
+                            Size                 = UDim2.new(1,0,0,24),
+                            BackgroundColor3     = C.white,
+                            BackgroundTransparency = 1,
+                            Text                 = opt,
+                            TextColor3           = opt == sel and C.hi or C.low,
+                            TextSize             = 10,
+                            Font                 = opt == sel and Enum.Font.GothamMedium or Enum.Font.Gotham,
+                            ZIndex               = 21,
+                        })
+                        Padding(ob, 0, 0, 8, 8)
+                        ob.MouseEnter:Connect(function() tw(ob, {BackgroundTransparency = 0.94}, 0.1) end)
+                        ob.MouseLeave:Connect(function() tw(ob, {BackgroundTransparency = 1},    0.1) end)
+                        ob.MouseButton1Click:Connect(function()
+                            sel = opt
+                            btnLbl.Text = lbl .. ": " .. opt
+                            panel.Visible = false; open = false
+                            if cb then cb(opt) end
+                        end)
+                    end
                 end
+
+                buildOptions(options)
 
                 ddBtn.MouseButton1Click:Connect(function()
                     open = not open
@@ -1706,6 +1714,19 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 local o = {}
                 function o:Set(v) sel = v; btnLbl.Text = lbl .. ": " .. v; if cb then cb(v) end end
                 function o:Get() return sel end
+                -- igual ao Feral: atualiza opções sem recriar o elemento
+                function o:GetNewList(newOpts)
+                    panel.Visible = false; open = false
+                    buildOptions(newOpts)
+                    local found = false
+                    for _, v in ipairs(newOpts or {}) do
+                        if v == sel then found = true; break end
+                    end
+                    if not found then
+                        sel = (newOpts and newOpts[1]) or ""
+                        btnLbl.Text = lbl .. ": " .. sel
+                    end
+                end
                 if id then Registry.Dropdowns[id] = o end
                 return o
             end
@@ -2115,26 +2136,29 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         nameField:Set("default")
 
         -- Dropdown de configs existentes
-        -- Recriado sempre que a lista muda (salvar / deletar / refresh)
+        -- Criado uma vez; atualizado via :GetNewList() igual ao Feral
         local ddConfigs = nil
 
         local function refreshDropdown()
             local list = window:ListConfigs()
-            -- recria o dropdown com a lista atualizada
-            -- (Dropdown da lib não tem GetNewList, então destruímos e recriamos)
-            ddConfigs = grp:Dropdown(
-                "Configs Salvas",
-                #list > 0 and list or { "(nenhuma)" },
-                #list > 0 and list[1] or "(nenhuma)",
-                function(v)
-                    -- ao selecionar uma config → sincroniza o TextField
-                    if v and v ~= "(nenhuma)" then
-                        currentName = v
-                        nameField:Set(v)
+            local opts = #list > 0 and list or { "(nenhuma)" }
+            if ddConfigs then
+                -- atualiza as opções sem recriar o elemento (igual ao Feral)
+                ddConfigs:GetNewList(opts)
+            else
+                -- primeira vez: cria o dropdown
+                ddConfigs = grp:Dropdown(
+                    "Configs Salvas",
+                    opts,
+                    opts[1],
+                    function(v)
+                        if v and v ~= "(nenhuma)" then
+                            currentName = v
+                            nameField:Set(v)
+                        end
                     end
-                end
-            )
-            -- se já tem configs, sincroniza o currentName com o primeiro item
+                )
+            end
             if #list > 0 then
                 currentName = list[1]
                 nameField:Set(list[1])
