@@ -538,7 +538,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         for id, obj in pairs(Registry.Toggles)   do local ok,v = pcall(obj.Get,obj); if ok then data.Toggles[id]   = v end end
         for id, obj in pairs(Registry.Sliders)   do local ok,v = pcall(obj.Get,obj); if ok then data.Sliders[id]   = v end end
         for id, obj in pairs(Registry.Dropdowns) do local ok,v = pcall(obj.Get,obj); if ok then data.Dropdowns[id] = v end end
-        for id, obj in pairs(Registry.Keybinds)  do local ok,v = pcall(obj.Get,obj); if ok then data.Keybinds[id]  = tostring(v) end end
+        for id, obj in pairs(Registry.Keybinds)  do local ok,v = pcall(obj.Get,obj); if ok then data.Keybinds[id] = tostring(v):gsub("Enum%.KeyCode%.","") end end
         for id, obj in pairs(Registry.Boxes)     do local ok,v = pcall(obj.Get,obj); if ok then data.Boxes[id]     = v end end
         local ok, err = pcall(function()
             writefile(ConfigFolder .. "/" .. name .. ".json", HttpService:JSONEncode(data))
@@ -569,14 +569,16 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         task.spawn(apply, Registry.Sliders,   data.Sliders)
         task.spawn(apply, Registry.Dropdowns, data.Dropdowns)
         task.spawn(apply, Registry.Boxes,     data.Boxes)
-        -- Keybinds: converte string → Enum.KeyCode
+        -- Keybinds: string "E" ou "Enum.KeyCode.E" → Enum.KeyCode
         if data.Keybinds then
             for id, val in pairs(data.Keybinds) do
                 local obj = Registry.Keybinds[id]
                 if obj and obj.Set then
                     task.spawn(function()
-                        local kc = Enum.KeyCode[val]
-                        if kc then pcall(obj.Set, obj, kc) end
+                        local name = tostring(val):gsub("Enum%.KeyCode%.","")
+                        local kc = Enum.KeyCode[name]
+                        if kc then pcall(obj.Set, obj, kc)
+                        else warn("[VantaConfig] KeyCode inválido:", val) end
                     end)
                 end
             end
@@ -586,11 +588,16 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
 
     function window:ListConfigs()
         ensureFolder()
-        local files = listfiles(ConfigFolder)
+        local ok, files = pcall(listfiles, ConfigFolder)
+        if not ok or type(files) ~= "table" then return {} end
         local names = {}
         for _, f in ipairs(files) do
-            local n = f:match(".+[/\\](.+)%.json$")
-            if n then table.insert(names, n) end
+            -- suporta  /  e  \  como separador, com ou sem .json
+            local n = tostring(f):match("[/\\]([^/\\]+)$") or tostring(f)
+            n = n:gsub("%.json$", "")
+            if n and n ~= "" then
+                table.insert(names, n)
+            end
         end
         return names
     end
