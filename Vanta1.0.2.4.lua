@@ -1209,6 +1209,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     Size                 = UDim2.new(0, 46, 0, 20),
                     BackgroundColor3     = C.border,
                     BackgroundTransparency = 0,
+                    ClipsDescendants     = true,
                     ZIndex               = 7,
                 })
                 Corner(inputBg, 4)
@@ -1232,7 +1233,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 tb.TextColor3            = C.hi
                 tb.TextSize              = 10
                 tb.ClearTextOnFocus      = false
-                tb.TextXAlignment        = Enum.TextXAlignment.Center
+                tb.TextXAlignment        = Enum.TextXAlignment.Left
                 tb.ZIndex                = 8
                 tb.Parent                = inputBg
 
