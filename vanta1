@@ -1249,7 +1249,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                             local newName    = tostring(key):gsub("Enum.KeyCode.","")
                             kbLbl.Text       = "[" .. newName .. "]"
                             kbLbl.TextColor3     = C.hi
-                        elseif i.KeyCode == key then
+                        elseif key ~= Enum.KeyCode.Unknown and i.KeyCode == key then
                             flip()
                         end
                     end)
@@ -1437,7 +1437,8 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                         key            = i.KeyCode
                         kbLbl.Text     = tostring(key):gsub("Enum.KeyCode.","")
                         kbLbl.TextColor3 = C.hi
-                    elseif i.KeyCode == key then
+                    elseif key ~= Enum.KeyCode.Unknown and i.KeyCode == key then
+                        -- só dispara se a tecla foi explicitamente definida
                         flip()
                     end
                 end)
