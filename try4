@@ -2093,64 +2093,106 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     end -- window:Section
 
     -- ═══════════════════════════════════════════════════════════════════════
-    -- ── Tab de Configs automática ─────────────────────────────────────────
-    -- Cria a aba "Configs" na sidebar com Save/Load/Delete/List integrados.
-    -- Roda após lib:init() retornar a window, mas dentro do mesmo closure
-    -- para ter acesso ao Registry, HttpService e helpers visuais.
+    -- ── Tab de Configs automática (lógica igual ao Feral) ─────────────────
+    -- • Dropdown lista as configs salvas e sincroniza o TextField ao clicar
+    -- • Salvar/Deletar recriam o Dropdown com a lista atualizada
+    -- • Atualizar Lista força o refresh manual
     -- ══════════════════════════════════════════════════════════════════════
     task.spawn(function()
-        task.wait() -- aguarda a window ser totalmente inicializada
+        task.wait()
         local cfgTab = window:Section("Configs", "")
+        local grp    = cfgTab:Group("Save / Load", "")
 
-        -- ── grupo principal ──────────────────────────────────────────────
-        local grp = cfgTab:Group("Save / Load", "")
+        -- nome atual da config (estado compartilhado entre os botões)
+        local currentName = "default"
 
-        -- campo: nome da config
-        local nameField = grp:TextField("Nome", "minha_config", nil)
+        -- TextField: digitar nome manualmente
+        local nameField = grp:TextField("Nome", "default", function(v)
+            if v and v:gsub("%s","") ~= "" then
+                currentName = v
+            end
+        end)
+        nameField:Set("default")
 
-        -- botões de ação
+        -- Dropdown de configs existentes
+        -- Recriado sempre que a lista muda (salvar / deletar / refresh)
+        local ddConfigs = nil
+
+        local function refreshDropdown()
+            local list = window:ListConfigs()
+            -- recria o dropdown com a lista atualizada
+            -- (Dropdown da lib não tem GetNewList, então destruímos e recriamos)
+            ddConfigs = grp:Dropdown(
+                "Configs Salvas",
+                #list > 0 and list or { "(nenhuma)" },
+                #list > 0 and list[1] or "(nenhuma)",
+                function(v)
+                    -- ao selecionar uma config → sincroniza o TextField
+                    if v and v ~= "(nenhuma)" then
+                        currentName = v
+                        nameField:Set(v)
+                    end
+                end
+            )
+            -- se já tem configs, sincroniza o currentName com o primeiro item
+            if #list > 0 then
+                currentName = list[1]
+                nameField:Set(list[1])
+            end
+            return list
+        end
+
+        -- popula ao abrir a aba pela primeira vez
+        refreshDropdown()
+
+        grp:SectionLabel("Ações")
+
         grp:Button("💾  Salvar", function()
-            local name = nameField:Get()
+            local name = currentName
             if not name or name:gsub("%s","") == "" then
                 window:TempNotify("Configs", "Digite um nome!", "warn", 3)
                 return
             end
             local ok, err = window:SaveConfig(name)
             if ok then
-                window:TempNotify("Configs", "Salvo: " .. name, "success", 3)
+                window:TempNotify("Configs", 'Salvo como "' .. name .. '"', "success", 4)
+                refreshDropdown()   -- atualiza dropdown com o novo arquivo
             else
                 window:TempNotify("Configs", "Erro: " .. tostring(err), "error", 4)
             end
         end)
 
         grp:Button("📂  Carregar", function()
-            local name = nameField:Get()
+            local name = currentName
             if not name or name:gsub("%s","") == "" then
-                window:TempNotify("Configs", "Digite um nome!", "warn", 3)
+                window:TempNotify("Configs", "Selecione uma config!", "warn", 3)
                 return
             end
             local ok, err = window:LoadConfig(name)
             if ok then
-                window:TempNotify("Configs", "Carregado: " .. name, "success", 3)
+                window:TempNotify("Configs", 'Carregado "' .. name .. '"', "success", 4)
             else
                 window:TempNotify("Configs", "Erro: " .. tostring(err), "error", 4)
             end
         end)
 
         grp:Button("🗑  Deletar", function()
-            local name = nameField:Get()
+            local name = currentName
             if not name or name:gsub("%s","") == "" then
-                window:TempNotify("Configs", "Digite um nome!", "warn", 3)
+                window:TempNotify("Configs", "Selecione uma config!", "warn", 3)
                 return
             end
             window:Notify2(
                 "Deletar Config",
-                'Tem certeza que quer deletar "' .. name .. '"?',
+                'Deletar "' .. name .. '"?',
                 "Deletar", "Cancelar", "",
                 function()
                     local ok, err = window:DeleteConfig(name)
                     if ok then
-                        window:TempNotify("Configs", "Deletado: " .. name, "success", 3)
+                        window:TempNotify("Configs", 'Deletado "' .. name .. '"', "success", 4)
+                        currentName = "default"
+                        nameField:Set("default")
+                        refreshDropdown()   -- atualiza dropdown sem o arquivo deletado
                     else
                         window:TempNotify("Configs", "Erro: " .. tostring(err), "error", 4)
                     end
@@ -2159,21 +2201,9 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             )
         end)
 
-        -- ── grupo: configs salvas ────────────────────────────────────────
-        local listGrp = cfgTab:Group("Configs Salvas", "")
-        local refreshLbl = listGrp:Label("Clique em Atualizar para listar")
-
-        listGrp:Button("🔄  Atualizar Lista", function()
-            local configs = window:ListConfigs()
-            if #configs == 0 then
-                window:TempNotify("Configs", "Nenhuma config salva", "info", 3)
-                return
-            end
-            -- preenche o campo com a primeira da lista
-            nameField:Set(configs[1])
-            -- mostra via notify
-            local txt = table.concat(configs, ", ")
-            window:TempNotify("Configs", #configs .. " config(s): " .. txt, "info", 5)
+        grp:Button("🔄  Atualizar Lista", function()
+            local list = refreshDropdown()
+            window:TempNotify("Configs", #list .. " config(s) encontrada(s)", "info", 3)
         end)
     end)
 
