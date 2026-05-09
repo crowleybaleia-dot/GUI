@@ -2140,7 +2140,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 currentName = v
             end
         end)
-        nameField:Set("default")
+        nameField.Set("default")
 
         -- Dropdown de configs existentes
         -- Criado uma vez; atualizado via :GetNewList() igual ao Feral
@@ -2151,7 +2151,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             local opts = #list > 0 and list or { "(nenhuma)" }
             if ddConfigs then
                 -- atualiza as opções sem recriar o elemento (igual ao Feral)
-                ddConfigs:GetNewList(opts)
+                ddConfigs.GetNewList(opts)
             else
                 -- primeira vez: cria o dropdown
                 ddConfigs = grp:Dropdown(
@@ -2161,14 +2161,14 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     function(v)
                         if v and v ~= "(nenhuma)" then
                             currentName = v
-                            nameField:Set(v)
+                            nameField.Set(v)
                         end
                     end
                 )
             end
             if #list > 0 then
                 currentName = list[1]
-                nameField:Set(list[1])
+                nameField.Set(list[1])
             end
             return list
         end
@@ -2222,7 +2222,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     if ok then
                         window:TempNotify("Configs", 'Deletado "' .. name .. '"', "success", 4)
                         currentName = "default"
-                        nameField:Set("default")
+                        nameField.Set("default")
                         refreshDropdown()   -- atualiza dropdown sem o arquivo deletado
                     else
                         window:TempNotify("Configs", "Erro: " .. tostring(err), "error", 4)
