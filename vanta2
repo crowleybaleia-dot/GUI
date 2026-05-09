@@ -513,17 +513,8 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     -- ═════════════════════════════════════════════════════════════════════
     local window = {}
 
-    -- ── Config Registry ───────────────────────────────────────────────────
-    -- Cada elemento registrável (Toggle, Slider, Dropdown, etc.) se adiciona
-    -- aqui com um id único. Save/Load iteram esse registry.
-    local Registry = {
-        Toggles   = {},
-        Sliders   = {},
-        Dropdowns = {},
-        Keybinds  = {},
-        Boxes     = {},
-    }
-
+    -- ── Config Registry (copiado do Feral) ───────────────────────────────
+    local Registry = { Toggles = {}, Sliders = {}, Dropdowns = {}, Keybinds = {}, Boxes = {} }
     local ConfigFolder = "VantaUI/Configs"
     local HttpService  = game:GetService("HttpService")
 
@@ -532,72 +523,70 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         if not isfolder(ConfigFolder) then makefolder(ConfigFolder) end
     end
 
+    -- List: copiado do Feral
+    function window:ListConfigs()
+        ensureFolder()
+        local files = listfiles(ConfigFolder)
+        local names = {}
+        for _, f in ipairs(files) do
+            local n = f:match(".+[/\\](.+)\.json$")
+            if n then table.insert(names, n) end
+        end
+        return names
+    end
+
+    -- Save: copiado do Feral
     function window:SaveConfig(name)
-        if not name or name == "" then return false, "Nome vazio" end
+        if not name or name == "" then return false, "No config name" end
         ensureFolder()
         local data = { Toggles = {}, Sliders = {}, Dropdowns = {}, Keybinds = {}, Boxes = {} }
-        -- igual ao Feral: pcall(obj.Get) sem self — Get é function o.Get()
-        for id, obj in pairs(Registry.Toggles)   do local ok,v = pcall(obj.Get); if ok then data.Toggles[id]   = v end end
-        for id, obj in pairs(Registry.Sliders)   do local ok,v = pcall(obj.Get); if ok then data.Sliders[id]   = v end end
-        for id, obj in pairs(Registry.Dropdowns) do local ok,v = pcall(obj.Get); if ok then data.Dropdowns[id] = v end end
-        for id, obj in pairs(Registry.Keybinds)  do local ok,v = pcall(obj.Get); if ok then data.Keybinds[id]  = v end end
-        for id, obj in pairs(Registry.Boxes)     do local ok,v = pcall(obj.Get); if ok then data.Boxes[id]     = v end end
+        for id, obj in pairs(Registry.Toggles)   do local ok, v = pcall(obj.Get); if ok then data.Toggles[id]   = v end end
+        for id, obj in pairs(Registry.Sliders)   do local ok, v = pcall(obj.Get); if ok then data.Sliders[id]   = v end end
+        for id, obj in pairs(Registry.Dropdowns) do local ok, v = pcall(obj.Get); if ok then data.Dropdowns[id] = v end end
+        for id, obj in pairs(Registry.Keybinds)  do local ok, v = pcall(obj.Get); if ok then data.Keybinds[id]  = v end end
+        for id, obj in pairs(Registry.Boxes)     do local ok, v = pcall(obj.Get); if ok then data.Boxes[id]     = v end end
         local ok, err = pcall(function()
             writefile(ConfigFolder .. "/" .. name .. ".json", HttpService:JSONEncode(data))
         end)
         return ok, err
     end
 
+    -- Load: copiado do Feral
     function window:LoadConfig(name)
-        if not name or name == "" then return false, "Nome vazio" end
+        if not name or name == "" then return false, "No config name" end
         ensureFolder()
         local path = ConfigFolder .. "/" .. name .. ".json"
-        if not isfile(path) then return false, "Config não encontrada" end
-        local ok, data = pcall(function() return HttpService:JSONDecode(readfile(path)) end)
-        if not ok or type(data) ~= "table" then return false, "Arquivo inválido" end
-        -- igual ao Feral: apply genérico para todos os tipos, pcall(obj.Set, val) sem self
-        local function apply(label, reg, saved)
+        if not isfile(path) then return false, "Config not found" end
+        local raw = readfile(path)
+        local ok, data = pcall(function() return HttpService:JSONDecode(raw) end)
+        if not ok or type(data) ~= "table" then return false, "Invalid config data" end
+        local apply = function(label, reg, saved)
             if not saved then return end
             for id, val in pairs(saved) do
                 local obj = reg[id]
                 if obj and obj.Set then
                     task.spawn(function()
                         local s, e = pcall(obj.Set, val)
-                        if not s then warn("[VantaConfig]", label, "Set falhou para id:", id, e) end
+                        if not s then warn("[Config]", label, "Set failed for id:", id, e) end
                     end)
                 end
             end
         end
-        task.spawn(apply, "Toggle",   Registry.Toggles,   data.Toggles)
-        task.spawn(apply, "Slider",   Registry.Sliders,   data.Sliders)
-        task.spawn(apply, "Dropdown", Registry.Dropdowns, data.Dropdowns)
-        task.spawn(apply, "Keybind",  Registry.Keybinds,  data.Keybinds)
-        task.spawn(apply, "Box",      Registry.Boxes,     data.Boxes)
+        task.spawn(function() apply("Toggle",   Registry.Toggles,   data.Toggles)   end)
+        task.spawn(function() apply("Slider",   Registry.Sliders,   data.Sliders)   end)
+        task.spawn(function() apply("Dropdown", Registry.Dropdowns, data.Dropdowns) end)
+        task.spawn(function() apply("Keybind",  Registry.Keybinds,  data.Keybinds)  end)
+        task.spawn(function() apply("Box",      Registry.Boxes,     data.Boxes)     end)
         return true
     end
 
-    function window:ListConfigs()
-        ensureFolder()
-        local ok, files = pcall(listfiles, ConfigFolder)
-        if not ok or type(files) ~= "table" then return {} end
-        local names = {}
-        for _, f in ipairs(files) do
-            -- suporta  /  e  \  como separador, com ou sem .json
-            local n = tostring(f):match("[/\\]([^/\\]+)$") or tostring(f)
-            n = n:gsub("%.json$", "")
-            if n and n ~= "" then
-                table.insert(names, n)
-            end
-        end
-        return names
-    end
-
+    -- Delete: copiado do Feral
     function window:DeleteConfig(name)
-        if not name or name == "" then return false, "Nome vazio" end
+        if not name or name == "" then return false, "No config name" end
         ensureFolder()
         local path = ConfigFolder .. "/" .. name .. ".json"
-        if not isfile(path) then return false, "Config não encontrada" end
-        local ok, err = pcall(delfile, path)
+        if not isfile(path) then return false, "Config not found" end
+        local ok, err = pcall(function() delfile(path) end)
         return ok, err
     end
 
@@ -1254,7 +1243,12 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 local o = {}
                 function o.Set(v) if state ~= v then flip() end end
                 function o.Get() return state end
-                if id then Registry.Toggles[id] = o end
+                if id then
+                    Registry.Toggles[id] = {
+                        Get = function() return state end,
+                        Set = function(v) if state ~= (not not v) then flip() end end
+                    }
+                end
                 return o
             end
 
@@ -1352,7 +1346,12 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     if n ~= nil then num = n; tb.Text = tostring(n) end
                 end
                 function o.Get() return state, num end
-                if id then Registry.Toggles[id] = o end
+                if id then
+                    Registry.Toggles[id] = {
+                        Get = function() return state end,
+                        Set = function(v) if state ~= (not not v) then flip() end end
+                    }
+                end
                 return o
             end
 
@@ -1449,12 +1448,16 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 function o.Set(v) if state ~= v then flip() end end
                 function o.Get() return state end
                 function o.SetKey(k)
-                    -- aceita Enum.KeyCode ou string
                     key = type(k) == "string" and k or k.Name
                     kbLbl.Text = key
                 end
                 function o.GetKey() return key end
-                if id then Registry.Toggles[id] = o end
+                if id then
+                    Registry.Toggles[id] = {
+                        Get = function() return state end,
+                        Set = function(v) if state ~= (not not v) then flip() end end
+                    }
+                end
                 return o
             end
 
@@ -1595,7 +1598,12 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 local o = {}
                 function o.Set(v) setVal(math.floor(v)) end
                 function o.Get() return val end
-                if id then Registry.Sliders[id] = o end
+                if id then
+                    Registry.Sliders[id] = {
+                        Get = function() return val end,
+                        Set = function(v) setVal(tonumber(v) or val) end
+                    }
+                end
                 return o
             end
 
@@ -1719,10 +1727,9 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 end)
 
                 local o = {}
-                function o.Set(v) sel = v; btnLbl.Text = lbl .. ": " .. v; if cb then cb(v) end end
+                function o.Set(v) sel = v; btnLbl.Text = lbl .. ": " .. tostring(v); if cb then cb(v) end end
                 function o.Get() return sel end
-                -- igual ao Feral: atualiza opções sem recriar o elemento
-                function o:GetNewList(newOpts)
+                function o.GetNewList(newOpts)
                     panel.Visible = false; open = false
                     buildOptions(newOpts)
                     local found = false
@@ -1734,7 +1741,12 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                         btnLbl.Text = lbl .. ": " .. sel
                     end
                 end
-                if id then Registry.Dropdowns[id] = o end
+                if id then
+                    Registry.Dropdowns[id] = {
+                        Get = function() return sel end,
+                        Set = function(v) sel = v; btnLbl.Text = lbl .. ": " .. tostring(v); if cb then cb(v) end end
+                    }
+                end
                 return o
             end
 
@@ -1993,8 +2005,13 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
 
                 local o = {}
                 function o.Get() return tb.Text end
-                function o.Set(v) tb.Text = v end
-                if id then Registry.Boxes[id] = o end
+                function o.Set(v) tb.Text = tostring(v) end
+                if id then
+                    Registry.Boxes[id] = {
+                        Get = function() return tb.Text end,
+                        Set = function(v) tb.Text = tostring(v) end
+                    }
+                end
                 return o
             end
 
@@ -2072,7 +2089,24 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 local o = {}
                 function o.Get() return key end
                 function o.Set(k) key=k; kbLbl.Text=tostring(k):gsub("Enum.KeyCode.","") end
-                if id then Registry.Keybinds[id] = o end
+                if id then
+                    -- Keybind: Get retorna string do nome, Set aceita string ou EnumItem
+                    -- copiado do Feral
+                    Registry.Keybinds[id] = {
+                        Get = function() return tostring(key) end,
+                        Set = function(v)
+                            if not v then return end
+                            local s = tostring(v)
+                            for _, kc in ipairs(Enum.KeyCode:GetEnumItems()) do
+                                if kc.Name == s or "Enum.KeyCode." .. kc.Name == s then
+                                    key = kc
+                                    kbLbl.Text = kc.Name
+                                    return
+                                end
+                            end
+                        end
+                    }
+                end
                 return o
             end
 
