@@ -536,11 +536,12 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         if not name or name == "" then return false, "Nome vazio" end
         ensureFolder()
         local data = { Toggles = {}, Sliders = {}, Dropdowns = {}, Keybinds = {}, Boxes = {} }
-        for id, obj in pairs(Registry.Toggles)   do local ok,v = pcall(obj.Get,obj); if ok then data.Toggles[id]   = v end end
-        for id, obj in pairs(Registry.Sliders)   do local ok,v = pcall(obj.Get,obj); if ok then data.Sliders[id]   = v end end
-        for id, obj in pairs(Registry.Dropdowns) do local ok,v = pcall(obj.Get,obj); if ok then data.Dropdowns[id] = v end end
-        for id, obj in pairs(Registry.Keybinds)  do local ok,v = pcall(obj.Get,obj); if ok then data.Keybinds[id] = tostring(v):gsub("Enum%.KeyCode%.","") end end
-        for id, obj in pairs(Registry.Boxes)     do local ok,v = pcall(obj.Get,obj); if ok then data.Boxes[id]     = v end end
+        -- igual ao Feral: pcall(obj.Get) sem self — Get é function o.Get()
+        for id, obj in pairs(Registry.Toggles)   do local ok,v = pcall(obj.Get); if ok then data.Toggles[id]   = v end end
+        for id, obj in pairs(Registry.Sliders)   do local ok,v = pcall(obj.Get); if ok then data.Sliders[id]   = v end end
+        for id, obj in pairs(Registry.Dropdowns) do local ok,v = pcall(obj.Get); if ok then data.Dropdowns[id] = v end end
+        for id, obj in pairs(Registry.Keybinds)  do local ok,v = pcall(obj.Get); if ok then data.Keybinds[id]  = v end end
+        for id, obj in pairs(Registry.Boxes)     do local ok,v = pcall(obj.Get); if ok then data.Boxes[id]     = v end end
         local ok, err = pcall(function()
             writefile(ConfigFolder .. "/" .. name .. ".json", HttpService:JSONEncode(data))
         end)
@@ -554,35 +555,24 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         if not isfile(path) then return false, "Config não encontrada" end
         local ok, data = pcall(function() return HttpService:JSONDecode(readfile(path)) end)
         if not ok or type(data) ~= "table" then return false, "Arquivo inválido" end
-        local function apply(reg, saved)
+        -- igual ao Feral: apply genérico para todos os tipos, pcall(obj.Set, val) sem self
+        local function apply(label, reg, saved)
             if not saved then return end
             for id, val in pairs(saved) do
                 local obj = reg[id]
                 if obj and obj.Set then
                     task.spawn(function()
-                        local s, e = pcall(obj.Set, obj, val)
-                        if not s then warn("[VantaConfig] Set falhou para id:", id, e) end
+                        local s, e = pcall(obj.Set, val)
+                        if not s then warn("[VantaConfig]", label, "Set falhou para id:", id, e) end
                     end)
                 end
             end
         end
-        task.spawn(apply, Registry.Toggles,   data.Toggles)
-        task.spawn(apply, Registry.Sliders,   data.Sliders)
-        task.spawn(apply, Registry.Dropdowns, data.Dropdowns)
-        task.spawn(apply, Registry.Boxes,     data.Boxes)
-        -- Keybinds: string "E" ou "Enum.KeyCode.E" → Enum.KeyCode
-        if data.Keybinds then
-            for id, val in pairs(data.Keybinds) do
-                local obj = Registry.Keybinds[id]
-                if obj and obj.Set then
-                    task.spawn(function()
-                        local name = tostring(val):gsub("Enum%.KeyCode%.","")
-                        -- SetKey agora aceita string diretamente
-                        pcall(obj.Set, obj, name)
-                    end)
-                end
-            end
-        end
+        task.spawn(apply, "Toggle",   Registry.Toggles,   data.Toggles)
+        task.spawn(apply, "Slider",   Registry.Sliders,   data.Sliders)
+        task.spawn(apply, "Dropdown", Registry.Dropdowns, data.Dropdowns)
+        task.spawn(apply, "Keybind",  Registry.Keybinds,  data.Keybinds)
+        task.spawn(apply, "Box",      Registry.Boxes,     data.Boxes)
         return true
     end
 
@@ -1262,8 +1252,8 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 end
 
                 local o = {}
-                function o:Set(v) if state ~= v then flip() end end
-                function o:Get() return state end
+                function o.Set(v) if state ~= v then flip() end end
+                function o.Get() return state end
                 if id then Registry.Toggles[id] = o end
                 return o
             end
@@ -1357,11 +1347,11 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 end)
 
                 local o = {}
-                function o:Set(s, n)
+                function o.Set(s, n)
                     if s ~= nil and state ~= s then flip() end
                     if n ~= nil then num = n; tb.Text = tostring(n) end
                 end
-                function o:Get() return state, num end
+                function o.Get() return state, num end
                 if id then Registry.Toggles[id] = o end
                 return o
             end
@@ -1456,14 +1446,14 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 end)
 
                 local o = {}
-                function o:Set(v) if state ~= v then flip() end end
-                function o:Get() return state end
-                function o:SetKey(k)
+                function o.Set(v) if state ~= v then flip() end end
+                function o.Get() return state end
+                function o.SetKey(k)
                     -- aceita Enum.KeyCode ou string
                     key = type(k) == "string" and k or k.Name
                     kbLbl.Text = key
                 end
-                function o:GetKey() return key end
+                function o.GetKey() return key end
                 if id then Registry.Toggles[id] = o end
                 return o
             end
@@ -1603,8 +1593,8 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 end)
 
                 local o = {}
-                function o:Set(v) setVal(math.floor(v)) end
-                function o:Get() return val end
+                function o.Set(v) setVal(math.floor(v)) end
+                function o.Get() return val end
                 if id then Registry.Sliders[id] = o end
                 return o
             end
@@ -1729,8 +1719,8 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 end)
 
                 local o = {}
-                function o:Set(v) sel = v; btnLbl.Text = lbl .. ": " .. v; if cb then cb(v) end end
-                function o:Get() return sel end
+                function o.Set(v) sel = v; btnLbl.Text = lbl .. ": " .. v; if cb then cb(v) end end
+                function o.Get() return sel end
                 -- igual ao Feral: atualiza opções sem recriar o elemento
                 function o:GetNewList(newOpts)
                     panel.Visible = false; open = false
@@ -1858,12 +1848,12 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 end)
 
                 local o = {}
-                function o:Get()
+                function o.Get()
                     local out = {}
                     for k,v in pairs(sel) do if v then table.insert(out,k) end end
                     return out
                 end
-                function o:Set(tbl)
+                function o.Set(tbl)
                     sel = {}; for _,v in ipairs(tbl) do sel[v] = true end
                     btnLbl.Text = labelTxt(); badge.Text = tostring(count())
                 end
@@ -2002,8 +1992,8 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 end)
 
                 local o = {}
-                function o:Get() return tb.Text end
-                function o:Set(v) tb.Text = v end
+                function o.Get() return tb.Text end
+                function o.Set(v) tb.Text = v end
                 if id then Registry.Boxes[id] = o end
                 return o
             end
@@ -2025,8 +2015,8 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 dot.MouseButton1Click:Connect(function() if cb then cb(color) end end)
 
                 local o = {}
-                function o:Set(c) color = c; dot.BackgroundColor3 = c end
-                function o:Get() return color end
+                function o.Set(c) color = c; dot.BackgroundColor3 = c end
+                function o.Get() return color end
                 return o
             end
 
@@ -2080,8 +2070,8 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 end)
 
                 local o = {}
-                function o:Get() return key end
-                function o:Set(k) key=k; kbLbl.Text=tostring(k):gsub("Enum.KeyCode.","") end
+                function o.Get() return key end
+                function o.Set(k) key=k; kbLbl.Text=tostring(k):gsub("Enum.KeyCode.","") end
                 if id then Registry.Keybinds[id] = o end
                 return o
             end
