@@ -545,9 +545,6 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         for id, obj in pairs(Registry.Dropdowns) do local ok, v = pcall(obj.Get); if ok then data.Dropdowns[id] = v end end
         for id, obj in pairs(Registry.Keybinds)  do local ok, v = pcall(obj.Get); if ok then data.Keybinds[id]  = v end end
         for id, obj in pairs(Registry.Boxes)     do local ok, v = pcall(obj.Get); if ok then data.Boxes[id]     = v end end
-        -- DEBUG
-        print("[VantaConfig] Saving keybinds:")
-        for id, v in pairs(data.Keybinds) do print("  ", id, "=", v) end
         local ok, err = pcall(function()
             writefile(ConfigFolder .. "/" .. name .. ".json", HttpService:JSONEncode(data))
         end)
@@ -563,13 +560,6 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         local raw = readfile(path)
         local ok, data = pcall(function() return HttpService:JSONDecode(raw) end)
         if not ok or type(data) ~= "table" then return false, "Invalid config data" end
-        -- DEBUG
-        print("[VantaConfig] Loading keybinds:")
-        if data.Keybinds then
-            for id, v in pairs(data.Keybinds) do print("  ", id, "=", v) end
-        end
-        print("[VantaConfig] Registry.Keybinds keys:")
-        for id, _ in pairs(Registry.Keybinds) do print("  ", id) end
         local apply = function(label, reg, saved)
             if not saved then return end
             for id, val in pairs(saved) do
@@ -1258,6 +1248,23 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                         Get = function() return state end,
                         Set = function(v) if state ~= (not not v) then flip() end end
                     }
+                    -- registra keybind embutida separado, igual ao Feral
+                    if keybind then
+                        Registry.Keybinds[id .. "_key"] = {
+                            Get = function() return tostring(key) end,
+                            Set = function(v)
+                                if not v then return end
+                                local s = tostring(v)
+                                for _, kc in ipairs(Enum.KeyCode:GetEnumItems()) do
+                                    if kc.Name == s or "Enum.KeyCode." .. kc.Name == s then
+                                        key = kc
+                                        kbLbl.Text = "[" .. kc.Name .. "]"
+                                        return
+                                    end
+                                end
+                            end
+                        }
+                    end
                 end
                 return o
             end
@@ -1767,9 +1774,21 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     end
                 end
                 if id then
+                    -- copiado do Feral: Set verifica se valor existe na lista antes de aplicar
                     Registry.Dropdowns[id] = {
                         Get = function() return sel end,
-                        Set = function(v) sel = v; btnLbl.Text = lbl .. ": " .. tostring(v); if cb then cb(v) end end
+                        Set = function(v)
+                            if not v then return end
+                            local s = tostring(v)
+                            local found = false
+                            for _, opt in ipairs(options) do
+                                if tostring(opt) == s then found = true; break end
+                            end
+                            if not found then return end
+                            sel = s
+                            btnLbl.Text = lbl .. ": " .. s
+                            if cb then cb(s) end
+                        end
                     }
                 end
                 return o
@@ -1894,7 +1913,28 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     sel = {}; for _,v in ipairs(tbl) do sel[v] = true end
                     btnLbl.Text = labelTxt(); badge.Text = tostring(count())
                 end
-                if id then Registry.Dropdowns[id] = o end
+                if id then
+                    -- copiado do Feral: Get retorna {k=bool}, Set itera tabela
+                    Registry.Dropdowns[id] = {
+                        Get = function()
+                            local out = {}
+                            for k, v in pairs(sel) do out[k] = not not v end
+                            return out
+                        end,
+                        Set = function(v)
+                            if type(v) ~= "table" then return end
+                            for k, val in pairs(v) do
+                                if sel[k] ~= nil then
+                                    sel[k] = not not val
+                                end
+                            end
+                            -- atualiza visualmente e dispara callbacks
+                            for k, val in pairs(sel) do
+                                pcall(cb, k, val)
+                            end
+                        end
+                    }
+                end
                 return o
             end
 
@@ -2032,9 +2072,13 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 function o.Get() return tb.Text end
                 function o.Set(v) tb.Text = tostring(v) end
                 if id then
+                    -- copiado do Feral: Set dispara callback depois de setar
                     Registry.Boxes[id] = {
                         Get = function() return tb.Text end,
-                        Set = function(v) tb.Text = tostring(v) end
+                        Set = function(v)
+                            tb.Text = tostring(v or "")
+                            if tb.Text ~= "" and cb then pcall(cb, tb.Text) end
+                        end
                     }
                 end
                 return o
@@ -2115,8 +2159,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 function o.Get() return key end
                 function o.Set(k) key=k; kbLbl.Text=tostring(k):gsub("Enum.KeyCode.","") end
                 if id then
-                    -- Keybind: Get retorna string do nome, Set aceita string ou EnumItem
-                    -- copiado do Feral
+                    -- copiado do Feral: Get retorna tostring(key), Set itera KeyCode+UserInputType
                     Registry.Keybinds[id] = {
                         Get = function() return tostring(key) end,
                         Set = function(v)
@@ -2126,6 +2169,13 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                                 if kc.Name == s or "Enum.KeyCode." .. kc.Name == s then
                                     key = kc
                                     kbLbl.Text = kc.Name
+                                    return
+                                end
+                            end
+                            for _, uit in ipairs(Enum.UserInputType:GetEnumItems()) do
+                                if uit.Name == s or "Enum.UserInputType." .. uit.Name == s then
+                                    key = uit
+                                    kbLbl.Text = uit.Name
                                     return
                                 end
                             end
