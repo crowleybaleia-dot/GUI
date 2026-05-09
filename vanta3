@@ -1457,6 +1457,21 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                         Get = function() return state end,
                         Set = function(v) if state ~= (not not v) then flip() end end
                     }
+                    -- keybind salva/carrega separado, igual ao Feral
+                    Registry.Keybinds[id .. "_key"] = {
+                        Get = function() return tostring(key) end,
+                        Set = function(v)
+                            if not v then return end
+                            local s = tostring(v)
+                            for _, kc in ipairs(Enum.KeyCode:GetEnumItems()) do
+                                if kc.Name == s or "Enum.KeyCode." .. kc.Name == s then
+                                    key = kc.Name
+                                    kbLbl.Text = kc.Name
+                                    return
+                                end
+                            end
+                        end
+                    }
                 end
                 return o
             end
