@@ -545,6 +545,9 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         for id, obj in pairs(Registry.Dropdowns) do local ok, v = pcall(obj.Get); if ok then data.Dropdowns[id] = v end end
         for id, obj in pairs(Registry.Keybinds)  do local ok, v = pcall(obj.Get); if ok then data.Keybinds[id]  = v end end
         for id, obj in pairs(Registry.Boxes)     do local ok, v = pcall(obj.Get); if ok then data.Boxes[id]     = v end end
+        -- DEBUG
+        print("[VantaConfig] Saving keybinds:")
+        for id, v in pairs(data.Keybinds) do print("  ", id, "=", v) end
         local ok, err = pcall(function()
             writefile(ConfigFolder .. "/" .. name .. ".json", HttpService:JSONEncode(data))
         end)
@@ -560,6 +563,13 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         local raw = readfile(path)
         local ok, data = pcall(function() return HttpService:JSONDecode(raw) end)
         if not ok or type(data) ~= "table" then return false, "Invalid config data" end
+        -- DEBUG
+        print("[VantaConfig] Loading keybinds:")
+        if data.Keybinds then
+            for id, v in pairs(data.Keybinds) do print("  ", id, "=", v) end
+        end
+        print("[VantaConfig] Registry.Keybinds keys:")
+        for id, _ in pairs(Registry.Keybinds) do print("  ", id) end
         local apply = function(label, reg, saved)
             if not saved then return end
             for id, val in pairs(saved) do
