@@ -523,6 +523,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         Keybinds  = {},
         Boxes     = {},
     }
+
     local ConfigFolder = "VantaUI/Configs"
     local HttpService  = game:GetService("HttpService")
 
@@ -576,9 +577,8 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 if obj and obj.Set then
                     task.spawn(function()
                         local name = tostring(val):gsub("Enum%.KeyCode%.","")
-                        local kc = Enum.KeyCode[name]
-                        if kc then pcall(obj.Set, obj, kc)
-                        else warn("[VantaConfig] KeyCode inválido:", val) end
+                        -- SetKey agora aceita string diretamente
+                        pcall(obj.Set, obj, name)
                     end)
                 end
             end
@@ -1234,22 +1234,28 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                         ZIndex               = 8,
                     })
 
+                    -- captura: igual ao Feral — conexão temporária que se desconecta
                     kbBtn.MouseButton1Click:Connect(function()
-                        waiting        = true
-                        kbLbl.Text     = "[...]"
-                        kbLbl.TextColor3 = C.hi
+                        if waiting then return end
+                        waiting      = true
+                        kbLbl.Text   = "[...]"
+                        local conn
+                        conn = UserInputService.InputBegan:Connect(function(i, gp)
+                            if gp then return end
+                            if i.UserInputType ~= Enum.UserInputType.Keyboard then return end
+                            key          = i.KeyCode.Name   -- guarda como STRING, igual ao Feral
+                            kbLbl.Text   = "[" .. key .. "]"
+                            waiting      = false
+                            conn:Disconnect()               -- desconecta imediatamente
+                        end)
                     end)
 
+                    -- ação: permanente — só dispara se não está capturando E a tecla bate
                     UserInputService.InputBegan:Connect(function(i, gp)
                         if gp then return end
-                        if i.UserInputType ~= Enum.UserInputType.Keyboard then return end
-                        if waiting then
-                            waiting          = false
-                            key              = i.KeyCode
-                            local newName    = tostring(key):gsub("Enum.KeyCode.","")
-                            kbLbl.Text       = "[" .. newName .. "]"
-                            kbLbl.TextColor3     = C.hi
-                        elseif key ~= Enum.KeyCode.Unknown and i.KeyCode == key then
+                        if waiting then return end
+                        if not key or key == "Unknown" then return end
+                        if i.UserInputType == Enum.UserInputType.Keyboard and i.KeyCode.Name == key then
                             flip()
                         end
                     end)
@@ -1366,7 +1372,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             -- cb(state) ao flip; keybind também faz flip
             function grp:ToggleKeybind(lbl, desc, defaultKey, defaultBool, cb, id)
                 local state   = defaultBool == true
-                local key     = defaultKey or Enum.KeyCode.Unknown
+                local key     = defaultKey and defaultKey.Name or "Unknown"  -- string, igual ao Feral
                 local waiting = false
                 local row     = baseRow(lbl, nil, desc)
 
@@ -1401,7 +1407,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 box.MouseButton1Click:Connect(flip)
 
                 -- badge do keybind à esquerda do checkbox
-                local keyName = tostring(key):gsub("Enum.KeyCode.","")
+                local keyName = key ~= "Unknown" and key or ""
                 local kbf = Button(row, {
                     AnchorPoint          = Vector2.new(1, 0.5),
                     Position             = UDim2.new(1, -40, 0.5, 0),
@@ -1423,22 +1429,28 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     ZIndex         = 8,
                 })
 
+                -- captura: conexão temporária que se desconecta, igual ao Feral
                 kbf.MouseButton1Click:Connect(function()
+                    if waiting then return end
                     waiting      = true
                     kbLbl.Text   = "..."
-                    kbLbl.TextColor3 = C.hi
+                    local conn
+                    conn = UserInputService.InputBegan:Connect(function(i, gp)
+                        if gp then return end
+                        if i.UserInputType ~= Enum.UserInputType.Keyboard then return end
+                        key          = i.KeyCode.Name   -- string, igual ao Feral
+                        kbLbl.Text   = key
+                        waiting      = false
+                        conn:Disconnect()               -- desconecta imediatamente
+                    end)
                 end)
 
+                -- ação: permanente — só dispara se não está capturando E a tecla bate
                 UserInputService.InputBegan:Connect(function(i, gp)
                     if gp then return end
-                    if i.UserInputType ~= Enum.UserInputType.Keyboard then return end
-                    if waiting then
-                        waiting        = false
-                        key            = i.KeyCode
-                        kbLbl.Text     = tostring(key):gsub("Enum.KeyCode.","")
-                        kbLbl.TextColor3 = C.hi
-                    elseif key ~= Enum.KeyCode.Unknown and i.KeyCode == key then
-                        -- só dispara se a tecla foi explicitamente definida
+                    if waiting then return end
+                    if not key or key == "Unknown" then return end
+                    if i.UserInputType == Enum.UserInputType.Keyboard and i.KeyCode.Name == key then
                         flip()
                     end
                 end)
@@ -1446,7 +1458,11 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 local o = {}
                 function o:Set(v) if state ~= v then flip() end end
                 function o:Get() return state end
-                function o:SetKey(k) key = k; kbLbl.Text = tostring(k):gsub("Enum.KeyCode.","") end
+                function o:SetKey(k)
+                    -- aceita Enum.KeyCode ou string
+                    key = type(k) == "string" and k or k.Name
+                    kbLbl.Text = key
+                end
                 function o:GetKey() return key end
                 if id then Registry.Toggles[id] = o end
                 return o
