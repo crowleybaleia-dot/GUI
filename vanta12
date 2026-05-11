@@ -1946,15 +1946,12 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                         end,
                         Set = function(v)
                             if type(v) ~= "table" then return end
+                            local asList = {}
                             for k, val in pairs(v) do
-                                if sel[k] ~= nil then
-                                    sel[k] = not not val
-                                end
+                                if val then table.insert(asList, k) end
                             end
-                            -- atualiza visualmente e dispara callbacks
-                            for k, val in pairs(sel) do
-                                pcall(cb, k, val)
-                            end
+                            o.Set(asList)
+                            if cb then pcall(cb, sel) end
                         end
                     }
                 end
