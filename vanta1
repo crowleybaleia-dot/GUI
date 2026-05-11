@@ -456,7 +456,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         BackgroundTransparency = 0,
         ZIndex               = 2,
     })
-    Corner(pill, 0)
+    Corner(pill, 6)
     -- borda esquerda accent
     Frame(pill, {
         Position             = UDim2.new(0,0,0,0),
@@ -902,6 +902,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             ZIndex               = 3,
             LayoutOrder          = #sidebarScroll:GetChildren() + 1,
         })
+        Corner(tabBtn, 6)
 
         -- ícone do sidebar (sempre criado; invisível se sem asset)
         local tabIcon = Image(tabBtn, {
