@@ -457,14 +457,6 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         ZIndex               = 2,
     })
     Corner(pill, 12)
-    -- borda esquerda accent
-    Frame(pill, {
-        Position             = UDim2.new(0,0,0,0),
-        Size                 = UDim2.new(0,2,1,0),
-        BackgroundColor3     = C.accent,
-        BackgroundTransparency = 0,
-        ZIndex               = 3,
-    })
 
     -- ── status bar  (24px) ────────────────────────────────────────────────
     local statusbar = Frame(main, {
