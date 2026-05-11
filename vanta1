@@ -185,7 +185,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     -- ── drag (move o outer que contém tudo) ───────────────────────────────────
     local drag, dragStart, startPos
     main.InputBegan:Connect(function(i)
-        if i.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
+        if i.UserInputType ~= Enum.UserInputType.MouseButton1 and i.UserInputType ~= Enum.UserInputType.Touch then return end
         if (i.Position.Y - main.AbsolutePosition.Y) > 60 then return end
         drag = true; dragStart = i.Position; startPos = main.Position
         i.Changed:Connect(function()
@@ -193,7 +193,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         end)
     end)
     UserInputService.InputChanged:Connect(function(i)
-        if drag and i.UserInputType == Enum.UserInputType.MouseMovement then
+        if drag and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then
             local d = i.Position - dragStart
             main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + d.X,
                                            startPos.Y.Scale, startPos.Y.Offset + d.Y)
@@ -1600,21 +1600,28 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     tw(fill, {BackgroundColor3 = C.accent}, 0.15)
                 end)
 
-                slBtn.MouseButton1Down:Connect(function()
-                    local raw = math.floor((max-min) / TRACK_W * fill.AbsoluteSize.X + min)
-                    setVal(raw)
-                    fill.Size = UDim2.new(0, math.clamp(mouse.X - fill.AbsolutePosition.X, 0, TRACK_W), 1, 0)
+                local sliding = false
 
-                    moveConn = mouse.Move:Connect(function()
-                        local rv = math.floor((max-min) / TRACK_W * fill.AbsoluteSize.X + min)
-                        setVal(rv)
-                        fill.Size = UDim2.new(0, math.clamp(mouse.X - trackBg.AbsolutePosition.X, 0, TRACK_W), 1, 0)
+                local function onSlide(inputX)
+                    local offset = math.clamp(inputX - trackBg.AbsolutePosition.X, 0, TRACK_W)
+                    fill.Size = UDim2.new(0, offset, 1, 0)
+                    local rv = math.floor((max - min) / TRACK_W * offset + min)
+                    setVal(rv)
+                end
+
+                slBtn.InputBegan:Connect(function(i)
+                    if i.UserInputType ~= Enum.UserInputType.MouseButton1 and i.UserInputType ~= Enum.UserInputType.Touch then return end
+                    sliding = true
+                    onSlide(i.Position.X)
+                    moveConn = UserInputService.InputChanged:Connect(function(i2)
+                        if not sliding then return end
+                        if i2.UserInputType == Enum.UserInputType.MouseMovement or i2.UserInputType == Enum.UserInputType.Touch then
+                            onSlide(i2.Position.X)
+                        end
                     end)
-                    releaseConn = UserInputService.InputEnded:Connect(function(i)
-                        if i.UserInputType == Enum.UserInputType.MouseButton1 then
-                            local rv = math.floor((max-min) / TRACK_W * fill.AbsoluteSize.X + min)
-                            setVal(rv)
-                            fill.Size = UDim2.new(0, math.clamp(mouse.X - trackBg.AbsolutePosition.X, 0, TRACK_W), 1, 0)
+                    releaseConn = UserInputService.InputEnded:Connect(function(i2)
+                        if i2.UserInputType == Enum.UserInputType.MouseButton1 or i2.UserInputType == Enum.UserInputType.Touch then
+                            sliding = false
                             if moveConn then moveConn:Disconnect() end
                             if releaseConn then releaseConn:Disconnect() end
                         end
