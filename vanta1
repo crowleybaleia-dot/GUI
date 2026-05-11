@@ -53,6 +53,10 @@ local function slideOpen(panel)
     local padding = panel:FindFirstChildWhichIsA("UIPadding")
     local padY = padding and (padding.PaddingTop.Offset + padding.PaddingBottom.Offset) or 0
     local targetH = (layout and layout.AbsoluteContentSize.Y or 0) + padY
+    if targetH == 0 then
+        task.wait()
+        targetH = (layout and layout.AbsoluteContentSize.Y or 0) + padY
+    end
     tw(panel, {Size = UDim2.new(panel.Size.X.Scale, panel.Size.X.Offset, 0, targetH)}, 0.2)
     task.delay(0.21, function() panel.AutomaticSize = Enum.AutomaticSize.Y end)
 end
