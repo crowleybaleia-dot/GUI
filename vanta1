@@ -440,7 +440,6 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     sidebarScroll.ZIndex              = 3
     sidebarScroll.Parent              = sidebar
     ListLayout(sidebarScroll, {Padding = UDim.new(0,1)})
-    Padding(sidebarScroll, 0, 0, 8, 8)
 
     -- searchBox dummy (mantido pra não quebrar o filtro de tabs)
     local searchBox = Instance.new("TextBox")
@@ -888,7 +887,8 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         -- sidebar tab
         local tabBtn = Button(sidebarScroll, {
             Name                 = "tab_" .. name,
-            Size                 = UDim2.new(1,0,0,32),
+            Size                 = UDim2.new(1, -20, 0, 32),
+            Position             = UDim2.new(0, 10, 0, 0),
             BackgroundColor3     = C.white,
             BackgroundTransparency = 1,
             Text                 = "",
