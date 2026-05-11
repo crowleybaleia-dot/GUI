@@ -1802,7 +1802,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 local row  = baseRow(lbl)
 
                 local function count()
-                    local n = 0; for _ in pairs(sel) do n+=1 end; return n
+                    local n = 0; for _, v in pairs(sel) do if v then n+=1 end end; return n
                 end
                 local function labelTxt()
                     local n = count(); local tot = #(options or {})
