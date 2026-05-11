@@ -450,9 +450,8 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     -- ── pill indicator (viaja entre os tabs) ──────────────────────────────
     local pill = Frame(sidebar, {
         Name                 = "pill",
-        AnchorPoint          = Vector2.new(0.5, 0),
-        Position             = UDim2.new(0.5, 0, 0, 52),
-        Size                 = UDim2.new(0.85, 0, 0, 32),
+        Position             = UDim2.new(0, 0, 0, 52),
+        Size                 = UDim2.new(1, 0, 0, 32),
         BackgroundColor3     = C.accentBg,
         BackgroundTransparency = 0,
         ZIndex               = 2,
@@ -954,7 +953,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
 
             -- pill viaja até a posição do tab ativo
             local targetY = 52 + tabBtn.AbsolutePosition.Y - sidebarScroll.AbsolutePosition.Y + sidebarScroll.CanvasPosition.Y
-            tw(pill, {Position = UDim2.new(0.5, 0, 0, targetY)}, 0.28, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+            tw(pill, {Position = UDim2.new(0, 0, 0, targetY)}, 0.28, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
 
             -- ativa o tab atual
             tw(tabLabel, {TextColor3 = C.accent}, 0.18)
@@ -1885,7 +1884,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     ob.MouseEnter:Connect(function() tw(ob, {BackgroundTransparency = 0.94}, 0.1) end)
                     ob.MouseLeave:Connect(function() tw(ob, {BackgroundTransparency = 1},    0.1) end)
                     ob.MouseButton1Click:Connect(function()
-                        sel[opt] = not sel[opt]
+                        sel[opt] = sel[opt] and nil or true
                         local s = sel[opt]
                         tw(optLbl, {TextColor3 = s and C.hi or C.low}, 0.12)
                         optLbl.Font = s and Enum.Font.GothamMedium or Enum.Font.Gotham
