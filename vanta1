@@ -45,6 +45,24 @@ local function tw(obj, props, t, style, dir)
     ):Play()
 end
 
+local function slideOpen(panel)
+    panel.AutomaticSize = Enum.AutomaticSize.None
+    panel.Size = UDim2.new(panel.Size.X.Scale, panel.Size.X.Offset, 0, 0)
+    panel.Visible = true
+    local layout = panel:FindFirstChildWhichIsA("UIListLayout")
+    local padding = panel:FindFirstChildWhichIsA("UIPadding")
+    local padY = padding and (padding.PaddingTop.Offset + padding.PaddingBottom.Offset) or 0
+    local targetH = (layout and layout.AbsoluteContentSize.Y or 0) + padY
+    tw(panel, {Size = UDim2.new(panel.Size.X.Scale, panel.Size.X.Offset, 0, targetH)}, 0.2)
+    task.delay(0.21, function() panel.AutomaticSize = Enum.AutomaticSize.Y end)
+end
+
+local function slideClose(panel)
+    panel.AutomaticSize = Enum.AutomaticSize.None
+    tw(panel, {Size = UDim2.new(panel.Size.X.Scale, panel.Size.X.Offset, 0, 0)}, 0.15)
+    task.delay(0.16, function() panel.Visible = false end)
+end
+
 -- ─── instance shortcuts ────────────────────────────────────────────────────
 local function applyProps(inst, props)
     for k, v in pairs(props or {}) do inst[k] = v end
@@ -1754,8 +1772,10 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     if open then
                         local relY = ddFrame.AbsolutePosition.Y - gbox.AbsolutePosition.Y + 25
                         panel.Position = UDim2.new(0,0,0,relY)
+                        slideOpen(panel)
+                    else
+                        slideClose(panel)
                     end
-                    panel.Visible = open
                 end)
 
                 local o = {}
@@ -1900,8 +1920,10 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     if open then
                         local relY = row.AbsolutePosition.Y - gbox.AbsolutePosition.Y + 28
                         panel.Position = UDim2.new(0,0,0,relY)
+                        slideOpen(panel)
+                    else
+                        slideClose(panel)
                     end
-                    panel.Visible = open
                 end)
 
                 local o = {}
