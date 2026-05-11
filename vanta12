@@ -1884,7 +1884,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     ob.MouseEnter:Connect(function() tw(ob, {BackgroundTransparency = 0.94}, 0.1) end)
                     ob.MouseLeave:Connect(function() tw(ob, {BackgroundTransparency = 1},    0.1) end)
                     ob.MouseButton1Click:Connect(function()
-                        sel[opt] = sel[opt] and nil or true
+                        if sel[opt] then sel[opt] = nil else sel[opt] = true end
                         local s = sel[opt]
                         tw(optLbl, {TextColor3 = s and C.hi or C.low}, 0.12)
                         optLbl.Font = s and Enum.Font.GothamMedium or Enum.Font.Gotham
