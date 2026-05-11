@@ -1891,6 +1891,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                         btnLbl.Text = labelTxt()
                         badge.Text  = tostring(count())
                         if cb then cb(sel) end
+                        for k,v in pairs(sel) do print("[MultiDropdown debug]", k, v) end
                     end)
                 end
 
