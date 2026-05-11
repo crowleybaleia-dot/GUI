@@ -433,7 +433,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     sidebarScroll.Size                = UDim2.new(1,0,1,-52)
     sidebarScroll.BackgroundTransparency = 1
     sidebarScroll.BorderSizePixel     = 0
-    sidebarScroll.ScrollBarThickness  = 2
+    sidebarScroll.ScrollBarThickness  = 0
     sidebarScroll.ScrollBarImageColor3 = C.dim
     sidebarScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
     sidebarScroll.CanvasSize          = UDim2.new(0,0,0,0)
