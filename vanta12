@@ -125,26 +125,26 @@ end
 
 -- ─── palette ───────────────────────────────────────────────────────────────
 local C = {
-    bg       = Color3.fromRGB(26,  26,  26),   -- #1a1a1a fundo da janela
-    sidebar  = Color3.fromRGB(17,  17,  17),   -- #111111 sidebar
-    surface  = Color3.fromRGB(17,  17,  17),   -- #111111 surface/modal
-    element  = Color3.fromRGB(17,  17,  17),   -- #111111 elementos
+    bg       = Color3.fromRGB(15,  15,  15),   -- #0f0f0f fundo da janela
+    sidebar  = Color3.fromRGB(10,  10,  10),   -- #0a0a0a sidebar
+    surface  = Color3.fromRGB(15,  15,  15),   -- #0f0f0f surface/modal
+    element  = Color3.fromRGB(15,  15,  15),   -- #0f0f0f elementos
     white    = Color3.fromRGB(255, 255, 255),  -- #ffffff branco puro
-    hi       = Color3.fromRGB(221, 221, 221),  -- #dddddd texto principal
-    mid      = Color3.fromRGB(180, 180, 180),  -- cinza médio
+    hi       = Color3.fromRGB(224, 224, 224),  -- #e0e0e0 texto principal
+    mid      = Color3.fromRGB(170, 170, 170),  -- #aaaaaa cinza médio
     low      = Color3.fromRGB(102, 102, 102),  -- #666666 texto inativo
-    dim      = Color3.fromRGB(85,  85,  85),   -- #555555 descrição/placeholder
+    dim      = Color3.fromRGB(68,  68,  68),   -- #444444 descrição/placeholder
     border   = Color3.fromRGB(42,  42,  42),   -- #2a2a2a bordas sutis
-    accent   = Color3.fromRGB(179, 136, 255),  -- #b388ff roxo accent
-    accentBg = Color3.fromRGB(30,  26,  42),   -- #1e1a2a fundo tab ativo
-    onBg     = Color3.fromRGB(179, 136, 255),  -- #b388ff checkbox ON
-    offBg    = Color3.fromRGB(17,  17,  17),   -- #111111 checkbox OFF
-    knob     = Color3.fromRGB(17,  17,  17),   -- #111111
-    toastBg  = Color3.fromRGB(17,  17,  17),   -- #111111
-    success  = Color3.fromRGB(179, 136, 255),  -- accent
-    warn     = Color3.fromRGB(179, 136, 255),  -- accent
-    err      = Color3.fromRGB(179, 136, 255),  -- accent
-    info     = Color3.fromRGB(179, 136, 255),  -- accent
+    accent   = Color3.fromRGB(200, 200, 200),  -- #c8c8c8 branco apagado accent
+    accentBg = Color3.fromRGB(30,  30,  30),   -- #1e1e1e fundo tab ativo
+    onBg     = Color3.fromRGB(200, 200, 200),  -- #c8c8c8 checkbox ON
+    offBg    = Color3.fromRGB(15,  15,  15),   -- #0f0f0f checkbox OFF
+    knob     = Color3.fromRGB(15,  15,  15),   -- #0f0f0f
+    toastBg  = Color3.fromRGB(10,  10,  10),   -- #0a0a0a
+    success  = Color3.fromRGB(76,  175, 80),   -- #4caf50 verde
+    warn     = Color3.fromRGB(255, 179, 0),    -- #ffb300 amarelo
+    err      = Color3.fromRGB(244, 67,  54),   -- #f44336 vermelho
+    info     = Color3.fromRGB(200, 200, 200),  -- #c8c8c8 cinza claro
 }
 
 -- ═══════════════════════════════════════════════════════════════════════════
