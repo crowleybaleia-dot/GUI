@@ -1777,6 +1777,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     if open then
                         local relY = ddFrame.AbsolutePosition.Y - gbox.AbsolutePosition.Y + 25
                         panel.Position = UDim2.new(0,0,0,relY)
+                        buildOptions(options)
                         slideOpen(panel)
                     else
                         slideClose(panel)
