@@ -147,10 +147,10 @@ end
 
 -- ─── palette ───────────────────────────────────────────────────────────────
 local C = {
-    bg       = Color3.fromRGB(20,  20,  20),   -- #141414 fundo da janela
-    sidebar  = Color3.fromRGB(14,  14,  14),   -- #0e0e0e sidebar
-    surface  = Color3.fromRGB(26,  26,  26),   -- #1a1a1a surface/modal
-    element  = Color3.fromRGB(26,  26,  26),   -- #1a1a1a elementos
+    bg       = Color3.fromRGB(12,  12,  12),   -- #0c0c0c fundo da janela
+    sidebar  = Color3.fromRGB(12,  12,  12),   -- #0c0c0c sidebar
+    surface  = Color3.fromRGB(18,  18,  18),   -- #121212 surface/modal
+    element  = Color3.fromRGB(18,  18,  18),   -- #121212 elementos
     white    = Color3.fromRGB(255, 255, 255),  -- #ffffff branco puro
     hi       = Color3.fromRGB(224, 224, 224),  -- #e0e0e0 texto principal
     mid      = Color3.fromRGB(170, 170, 170),  -- #aaaaaa cinza médio
@@ -158,7 +158,7 @@ local C = {
     dim      = Color3.fromRGB(68,  68,  68),   -- #444444 descrição/placeholder
     border   = Color3.fromRGB(42,  42,  42),   -- #2a2a2a bordas sutis
     accent   = Color3.fromRGB(200, 200, 200),  -- #c8c8c8 branco apagado accent
-    accentBg = Color3.fromRGB(32,  32,  32),   -- #202020 fundo tab ativo
+    accentBg = Color3.fromRGB(20,  20,  20),   -- #141414 fundo tab ativo
     onBg     = Color3.fromRGB(200, 200, 200),  -- #c8c8c8 checkbox ON
     offBg    = Color3.fromRGB(15,  15,  15),   -- #0f0f0f checkbox OFF
     knob     = Color3.fromRGB(15,  15,  15),   -- #0f0f0f
