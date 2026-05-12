@@ -2171,117 +2171,103 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     end -- window:Section
 
     -- ═══════════════════════════════════════════════════════════════════════
-    -- ── Tab de Configs automática (lógica igual ao Feral) ─────────────────
-    -- • Dropdown lista as configs salvas e sincroniza o TextField ao clicar
-    -- • Salvar/Deletar recriam o Dropdown com a lista atualizada
-    -- • Atualizar Lista força o refresh manual
+    -- ── Tab de Configs (padrão Feral) ────────────────────────────────────
+    -- • Delete direto sem modal, refresh imediato igual ao Feral
     -- ══════════════════════════════════════════════════════════════════════
     task.spawn(function()
         task.wait()
         local cfgTab = window:Section("Configs", "")
         local grp    = cfgTab:Group("Save / Load", "")
 
-        -- nome atual da config (estado compartilhado entre os botões)
+        -- nome atual da config (igual ao L_1595 do Feral)
         local currentName = "default"
 
-        -- TextField: digitar nome manualmente
+        -- TextField: digitar nome manualmente (igual ao CreateBox do Feral)
         local nameField = grp:TextField("Nome", "default", function(v)
-            if v and v:gsub("%s","") ~= "" then
+            if v and v ~= "" then
                 currentName = v
             end
         end)
         nameField.Set("default")
 
-        -- Dropdown de configs existentes
-        -- Criado uma vez; atualizado via :GetNewList() igual ao Feral
+        -- Dropdown de configs (igual ao L_1600 do Feral)
         local ddConfigs = nil
 
         local function refreshDropdown()
-            local list = window:ListConfigs()
-            local opts = #list > 0 and list or { "(nenhuma)" }
+            local ok, list = pcall(function()
+                return window:ListConfigs()
+            end)
+            if not ok or type(list) ~= "table" then
+                list = {}
+            end
             if ddConfigs then
-                -- atualiza as opções sem recriar o elemento (igual ao Feral)
-                ddConfigs.GetNewList(opts)
+                ddConfigs.GetNewList(list)
             else
-                -- primeira vez: cria o dropdown
                 ddConfigs = grp:Dropdown(
                     "Configs Salvas",
-                    opts,
-                    opts[1],
+                    list,
+                    list[1] or "",
                     function(v)
-                        if v and v ~= "(nenhuma)" then
+                        if v and v ~= "" then
                             currentName = v
                             nameField.Set(v)
                         end
                     end
                 )
             end
-            if #list > 0 then
-                currentName = list[1]
-                nameField.Set(list[1])
-            end
-            return list
         end
 
-        -- popula ao abrir a aba pela primeira vez
+        -- popula ao abrir
         refreshDropdown()
 
         grp:SectionLabel("Ações")
 
+        -- Salvar (igual ao Feral: salva e refresh imediato)
         grp:Button("💾  Salvar", function()
-            local name = currentName
-            if not name or name:gsub("%s","") == "" then
-                window:TempNotify("Configs", "Digite um nome!", "warn", 3)
-                return
-            end
+            local name = currentName ~= "" and currentName or "default"
             local ok, err = window:SaveConfig(name)
             if ok then
-                window:TempNotify("Configs", 'Salvo como "' .. name .. '"', "success", 4)
-                refreshDropdown()   -- atualiza dropdown com o novo arquivo
+                window:TempNotify("Configs", 'Salvo como "' .. name .. '"', "success", 5)
+                refreshDropdown()
             else
-                window:TempNotify("Configs", "Erro: " .. tostring(err), "error", 4)
+                window:TempNotify("Configs", "Erro ao salvar: " .. tostring(err), "error", 5)
             end
         end)
 
+        -- Carregar (igual ao Feral)
         grp:Button("📂  Carregar", function()
-            local name = currentName
-            if not name or name:gsub("%s","") == "" then
-                window:TempNotify("Configs", "Selecione uma config!", "warn", 3)
-                return
-            end
+            local name = currentName ~= "" and currentName or "default"
             local ok, err = window:LoadConfig(name)
             if ok then
-                window:TempNotify("Configs", 'Carregado "' .. name .. '"', "success", 4)
+                window:TempNotify("Configs", 'Carregado "' .. name .. '"', "success", 5)
             else
-                window:TempNotify("Configs", "Erro: " .. tostring(err), "error", 4)
+                window:TempNotify("Configs", "Erro ao carregar: " .. tostring(err), "error", 5)
             end
         end)
 
+        -- Deletar (igual ao Feral: sem modal, delete direto, refresh imediato)
         grp:Button("🗑  Deletar", function()
             local name = currentName
-            if not name or name:gsub("%s","") == "" then
-                window:TempNotify("Configs", "Selecione uma config!", "warn", 3)
+            if not name or name == "" then
+                window:TempNotify("Configs", "Nenhuma config selecionada.", "warn", 5)
                 return
             end
-            window:Notify2(
-                "Deletar Config",
-                'Deletar "' .. name .. '"?',
-                "Deletar", "Cancelar", "",
-                function()
-                    local ok, err = window:DeleteConfig(name)
-                    if ok then
-                        window:TempNotify("Configs", 'Deletado "' .. name .. '"', "success", 4)
-                        currentName = "default"
-                        nameField.Set("default")
-                        task.delay(0.2, refreshDropdown)  -- thread separada, delay garantido
-                    else
-                        window:TempNotify("Configs", "Erro: " .. tostring(err), "error", 4)
-                    end
-                end,
-                nil
-            )
+            local ok, err = window:DeleteConfig(name)
+            if ok then
+                window:TempNotify("Configs", 'Deletado "' .. name .. '"', "success", 5)
+                currentName = "default"
+                nameField.Set("default")
+                refreshDropdown()
+            else
+                window:TempNotify("Configs", "Erro ao deletar: " .. tostring(err), "error", 5)
+            end
         end)
 
+        -- Atualizar Lista (igual ao Feral: Refresh Config List)
+        grp:Button("🔄  Atualizar Lista", function()
+            refreshDropdown()
+            window:TempNotify("Configs", "Lista atualizada.", "info", 3)
+        end)
 
     end)
 
