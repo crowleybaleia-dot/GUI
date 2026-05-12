@@ -200,7 +200,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         ClipsDescendants     = true,
         ZIndex               = 1,
     })
-    Corner(main, 14)
+    Corner(main, 6)
     Stroke(main, C.border, 1, 0)
 
 
