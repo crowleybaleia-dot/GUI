@@ -30,6 +30,32 @@
 --   win:Divider("SYSTEM")
 --   win:ToggleVisible()
 
+-- ─── filesystem compat (copiado do Linoria SaveManager) ───────────────────────
+-- corrige exploiters onde isfolder/isfile/listfiles erram em vez de retornar false/{}
+if copyfunction and isfolder then
+    local isfolder_  = copyfunction(isfolder)
+    local isfile_    = copyfunction(isfile)
+    local listfiles_ = copyfunction(listfiles)
+    local ok, err = pcall(function() return isfolder_(tostring(math.random(999999999, 999999999999))) end)
+    if ok == false or (tostring(err):match("not") and tostring(err):match("found")) then
+        getgenv().isfolder = function(folder)
+            local s, data = pcall(function() return isfolder_(folder) end)
+            if not s then return nil end
+            return data
+        end
+        getgenv().isfile = function(file)
+            local s, data = pcall(function() return isfile_(file) end)
+            if not s then return nil end
+            return data
+        end
+        getgenv().listfiles = function(folder)
+            local s, data = pcall(function() return listfiles_(folder) end)
+            if not s then return {} end
+            return data
+        end
+    end
+end
+
 local lib = {}
 
 local TweenService      = game:GetService("TweenService")
@@ -411,14 +437,30 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         if not isfolder(ConfigFolder) then makefolder(ConfigFolder) end
     end
 
-    -- List: copiado do Feral
+    -- List: igual ao Linoria RefreshConfigList — faz makefolder antes do listfiles
+    -- para forçar sincronização do filesystem no exploiter
     function window:ListConfigs()
-        ensureFolder()
+        -- CheckFolderTree: recria as pastas pra forçar sync do filesystem (Linoria)
+        local paths = { "VantaUI", ConfigFolder }
+        for _, p in ipairs(paths) do
+            if not isfolder(p) then makefolder(p) end
+        end
         local files = listfiles(ConfigFolder)
         local names = {}
-        for _, f in ipairs(files) do
-            local n = f:match(".+[/\\](.+)\.json$")
-            if n then table.insert(names, n) end
+        for i = 1, #files do
+            local f = files[i]
+            if f:sub(-5) == ".json" then
+                local pos = f:find(".json", 1, true)
+                local start = pos
+                local char = f:sub(pos, pos)
+                while char ~= "/" and char ~= "\\" and char ~= "" do
+                    pos = pos - 1
+                    char = f:sub(pos, pos)
+                end
+                if char == "/" or char == "\\" then
+                    table.insert(names, f:sub(pos + 1, start - 1))
+                end
+            end
         end
         return names
     end
