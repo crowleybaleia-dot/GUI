@@ -352,16 +352,6 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         BackgroundTransparency = 0,
         ZIndex               = 3,
     })
-    Corner(sidebar, 14)
-    -- hider do canto superior esquerdo da sidebar
-    Frame(sidebar, {
-        Position             = UDim2.new(0,0,0,0),
-        Size                 = UDim2.new(0,14,0,14),
-        BackgroundColor3     = C.sidebar,
-        BackgroundTransparency = 0,
-        ZIndex               = 4,
-    })
-
     -- sidebar scroll (começa do topo, sem header)
     local sidebarScroll = Instance.new("ScrollingFrame")
     sidebarScroll.Name                = "sidebarScroll"
