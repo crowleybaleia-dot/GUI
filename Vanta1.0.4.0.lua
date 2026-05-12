@@ -2273,8 +2273,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                         window:TempNotify("Configs", 'Deletado "' .. name .. '"', "success", 4)
                         currentName = "default"
                         nameField.Set("default")
-                        task.wait(0.2)          -- aguarda filesystem confirmar o delfile
-                        refreshDropdown()   -- atualiza dropdown sem o arquivo deletado
+                        task.delay(0.2, refreshDropdown)  -- thread separada, delay garantido
                     else
                         window:TempNotify("Configs", "Erro: " .. tostring(err), "error", 4)
                     end
