@@ -147,7 +147,7 @@ end
 
 -- ─── palette ───────────────────────────────────────────────────────────────
 local C = {
-    bg       = Color3.fromRGB(12,  12,  12),   -- #0c0c0c fundo da janela
+    bg       = Color3.fromRGB(18,  18,  18),   -- #121212 fundo da janela
     sidebar  = Color3.fromRGB(12,  12,  12),   -- #0c0c0c sidebar
     surface  = Color3.fromRGB(18,  18,  18),   -- #121212 surface/modal
     element  = Color3.fromRGB(18,  18,  18),   -- #121212 elementos
