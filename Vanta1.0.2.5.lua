@@ -45,6 +45,28 @@ local function tw(obj, props, t, style, dir)
     ):Play()
 end
 
+local function slideOpen(panel)
+    panel.AutomaticSize = Enum.AutomaticSize.None
+    panel.Size = UDim2.new(panel.Size.X.Scale, panel.Size.X.Offset, 0, 0)
+    panel.Visible = true
+    local layout = panel:FindFirstChildWhichIsA("UIListLayout")
+    local padding = panel:FindFirstChildWhichIsA("UIPadding")
+    local padY = padding and (padding.PaddingTop.Offset + padding.PaddingBottom.Offset) or 0
+    local targetH = (layout and layout.AbsoluteContentSize.Y or 0) + padY
+    if targetH == 0 then
+        task.wait()
+        targetH = (layout and layout.AbsoluteContentSize.Y or 0) + padY
+    end
+    tw(panel, {Size = UDim2.new(panel.Size.X.Scale, panel.Size.X.Offset, 0, targetH)}, 0.2)
+    task.delay(0.21, function() panel.AutomaticSize = Enum.AutomaticSize.Y end)
+end
+
+local function slideClose(panel)
+    panel.AutomaticSize = Enum.AutomaticSize.None
+    tw(panel, {Size = UDim2.new(panel.Size.X.Scale, panel.Size.X.Offset, 0, 0)}, 0.15)
+    task.delay(0.16, function() panel.Visible = false end)
+end
+
 -- ─── instance shortcuts ────────────────────────────────────────────────────
 local function applyProps(inst, props)
     for k, v in pairs(props or {}) do inst[k] = v end
@@ -125,26 +147,26 @@ end
 
 -- ─── palette ───────────────────────────────────────────────────────────────
 local C = {
-    bg       = Color3.fromRGB(26,  26,  26),   -- #1a1a1a fundo da janela
-    sidebar  = Color3.fromRGB(17,  17,  17),   -- #111111 sidebar
-    surface  = Color3.fromRGB(17,  17,  17),   -- #111111 surface/modal
-    element  = Color3.fromRGB(17,  17,  17),   -- #111111 elementos
+    bg       = Color3.fromRGB(15,  15,  15),   -- #0f0f0f fundo da janela
+    sidebar  = Color3.fromRGB(10,  10,  10),   -- #0a0a0a sidebar
+    surface  = Color3.fromRGB(15,  15,  15),   -- #0f0f0f surface/modal
+    element  = Color3.fromRGB(15,  15,  15),   -- #0f0f0f elementos
     white    = Color3.fromRGB(255, 255, 255),  -- #ffffff branco puro
-    hi       = Color3.fromRGB(221, 221, 221),  -- #dddddd texto principal
-    mid      = Color3.fromRGB(180, 180, 180),  -- cinza médio
+    hi       = Color3.fromRGB(224, 224, 224),  -- #e0e0e0 texto principal
+    mid      = Color3.fromRGB(170, 170, 170),  -- #aaaaaa cinza médio
     low      = Color3.fromRGB(102, 102, 102),  -- #666666 texto inativo
-    dim      = Color3.fromRGB(85,  85,  85),   -- #555555 descrição/placeholder
+    dim      = Color3.fromRGB(68,  68,  68),   -- #444444 descrição/placeholder
     border   = Color3.fromRGB(42,  42,  42),   -- #2a2a2a bordas sutis
-    accent   = Color3.fromRGB(179, 136, 255),  -- #b388ff roxo accent
-    accentBg = Color3.fromRGB(30,  26,  42),   -- #1e1a2a fundo tab ativo
-    onBg     = Color3.fromRGB(179, 136, 255),  -- #b388ff checkbox ON
-    offBg    = Color3.fromRGB(17,  17,  17),   -- #111111 checkbox OFF
-    knob     = Color3.fromRGB(17,  17,  17),   -- #111111
-    toastBg  = Color3.fromRGB(17,  17,  17),   -- #111111
-    success  = Color3.fromRGB(179, 136, 255),  -- accent
-    warn     = Color3.fromRGB(179, 136, 255),  -- accent
-    err      = Color3.fromRGB(179, 136, 255),  -- accent
-    info     = Color3.fromRGB(179, 136, 255),  -- accent
+    accent   = Color3.fromRGB(200, 200, 200),  -- #c8c8c8 branco apagado accent
+    accentBg = Color3.fromRGB(30,  30,  30),   -- #1e1e1e fundo tab ativo
+    onBg     = Color3.fromRGB(200, 200, 200),  -- #c8c8c8 checkbox ON
+    offBg    = Color3.fromRGB(15,  15,  15),   -- #0f0f0f checkbox OFF
+    knob     = Color3.fromRGB(15,  15,  15),   -- #0f0f0f
+    toastBg  = Color3.fromRGB(10,  10,  10),   -- #0a0a0a
+    success  = Color3.fromRGB(76,  175, 80),   -- #4caf50 verde
+    warn     = Color3.fromRGB(255, 179, 0),    -- #ffb300 amarelo
+    err      = Color3.fromRGB(244, 67,  54),   -- #f44336 vermelho
+    info     = Color3.fromRGB(200, 200, 200),  -- #c8c8c8 cinza claro
 }
 
 -- ═══════════════════════════════════════════════════════════════════════════
@@ -185,7 +207,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     -- ── drag (move o outer que contém tudo) ───────────────────────────────────
     local drag, dragStart, startPos
     main.InputBegan:Connect(function(i)
-        if i.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
+        if i.UserInputType ~= Enum.UserInputType.MouseButton1 and i.UserInputType ~= Enum.UserInputType.Touch then return end
         if (i.Position.Y - main.AbsolutePosition.Y) > 60 then return end
         drag = true; dragStart = i.Position; startPos = main.Position
         i.Changed:Connect(function()
@@ -193,7 +215,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         end)
     end)
     UserInputService.InputChanged:Connect(function(i)
-        if drag and i.UserInputType == Enum.UserInputType.MouseMovement then
+        if drag and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then
             local d = i.Position - dragStart
             main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + d.X,
                                            startPos.Y.Scale, startPos.Y.Offset + d.Y)
@@ -433,7 +455,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     sidebarScroll.Size                = UDim2.new(1,0,1,-52)
     sidebarScroll.BackgroundTransparency = 1
     sidebarScroll.BorderSizePixel     = 0
-    sidebarScroll.ScrollBarThickness  = 2
+    sidebarScroll.ScrollBarThickness  = 0
     sidebarScroll.ScrollBarImageColor3 = C.dim
     sidebarScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
     sidebarScroll.CanvasSize          = UDim2.new(0,0,0,0)
@@ -456,15 +478,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         BackgroundTransparency = 0,
         ZIndex               = 2,
     })
-    Corner(pill, 0)
-    -- borda esquerda accent
-    Frame(pill, {
-        Position             = UDim2.new(0,0,0,0),
-        Size                 = UDim2.new(0,2,1,0),
-        BackgroundColor3     = C.accent,
-        BackgroundTransparency = 0,
-        ZIndex               = 3,
-    })
+    Corner(pill, 12)
 
     -- ── status bar  (24px) ────────────────────────────────────────────────
     local statusbar = Frame(main, {
@@ -513,6 +527,83 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     -- ═════════════════════════════════════════════════════════════════════
     local window = {}
 
+    -- ── Config Registry (copiado do Feral) ───────────────────────────────
+    local Registry = { Toggles = {}, Sliders = {}, Dropdowns = {}, Keybinds = {}, Boxes = {} }
+    local ConfigFolder = "VantaUI/Configs"
+    local HttpService  = game:GetService("HttpService")
+
+    local function ensureFolder()
+        if not isfolder("VantaUI") then makefolder("VantaUI") end
+        if not isfolder(ConfigFolder) then makefolder(ConfigFolder) end
+    end
+
+    -- List: copiado do Feral
+    function window:ListConfigs()
+        ensureFolder()
+        local files = listfiles(ConfigFolder)
+        local names = {}
+        for _, f in ipairs(files) do
+            local n = f:match(".+[/\\](.+)\.json$")
+            if n then table.insert(names, n) end
+        end
+        return names
+    end
+
+    -- Save: copiado do Feral
+    function window:SaveConfig(name)
+        if not name or name == "" then return false, "No config name" end
+        ensureFolder()
+        local data = { Toggles = {}, Sliders = {}, Dropdowns = {}, Keybinds = {}, Boxes = {} }
+        for id, obj in pairs(Registry.Toggles)   do local ok, v = pcall(obj.Get); if ok then data.Toggles[id]   = v end end
+        for id, obj in pairs(Registry.Sliders)   do local ok, v = pcall(obj.Get); if ok then data.Sliders[id]   = v end end
+        for id, obj in pairs(Registry.Dropdowns) do local ok, v = pcall(obj.Get); if ok then data.Dropdowns[id] = v end end
+        for id, obj in pairs(Registry.Keybinds)  do local ok, v = pcall(obj.Get); if ok then data.Keybinds[id]  = v end end
+        for id, obj in pairs(Registry.Boxes)     do local ok, v = pcall(obj.Get); if ok then data.Boxes[id]     = v end end
+        local ok, err = pcall(function()
+            writefile(ConfigFolder .. "/" .. name .. ".json", HttpService:JSONEncode(data))
+        end)
+        return ok, err
+    end
+
+    -- Load: copiado do Feral
+    function window:LoadConfig(name)
+        if not name or name == "" then return false, "No config name" end
+        ensureFolder()
+        local path = ConfigFolder .. "/" .. name .. ".json"
+        if not isfile(path) then return false, "Config not found" end
+        local raw = readfile(path)
+        local ok, data = pcall(function() return HttpService:JSONDecode(raw) end)
+        if not ok or type(data) ~= "table" then return false, "Invalid config data" end
+        local apply = function(label, reg, saved)
+            if not saved then return end
+            for id, val in pairs(saved) do
+                local obj = reg[id]
+                if obj and obj.Set then
+                    task.spawn(function()
+                        local s, e = pcall(obj.Set, val)
+                        if not s then warn("[Config]", label, "Set failed for id:", id, e) end
+                    end)
+                end
+            end
+        end
+        task.spawn(function() apply("Toggle",   Registry.Toggles,   data.Toggles)   end)
+        task.spawn(function() apply("Slider",   Registry.Sliders,   data.Sliders)   end)
+        task.spawn(function() apply("Dropdown", Registry.Dropdowns, data.Dropdowns) end)
+        task.spawn(function() apply("Keybind",  Registry.Keybinds,  data.Keybinds)  end)
+        task.spawn(function() apply("Box",      Registry.Boxes,     data.Boxes)     end)
+        return true
+    end
+
+    -- Delete: copiado do Feral
+    function window:DeleteConfig(name)
+        if not name or name == "" then return false, "No config name" end
+        ensureFolder()
+        local path = ConfigFolder .. "/" .. name .. ".json"
+        if not isfile(path) then return false, "Config not found" end
+        local ok, err = pcall(function() delfile(path) end)
+        return ok, err
+    end
+
     -- ── ToggleVisible ─────────────────────────────────────────────────────
     function window:ToggleVisible()
         if dbc then return end
@@ -523,11 +614,12 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             main.Size = UDim2.new(0, 492, 0, 264)
             main.BackgroundTransparency = 1
             tw(main, {Size = UDim2.new(0, 820, 0, 440), BackgroundTransparency = 0}, 0.55, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+            task.delay(0.55, function() dbc = false end)
         else
             tw(main, {Size = UDim2.new(0, 779, 0, 418), BackgroundTransparency = 1}, 0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
             task.delay(0.28, function() main.Visible = false end)
+            task.delay(0.25, function() dbc = false end)
         end
-        task.delay(0.4, function() dbc = false end)
     end
 
     -- toggle via keybind
@@ -825,6 +917,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             ZIndex               = 3,
             LayoutOrder          = #sidebarScroll:GetChildren() + 1,
         })
+        Corner(tabBtn, 12)
 
         -- ícone do sidebar (sempre criado; invisível se sem asset)
         local tabIcon = Image(tabBtn, {
@@ -1072,7 +1165,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             local grp = {}
 
             -- ── Toggle ───────────────────────────────────────────────────
-            function grp:Toggle(lbl, default, cb, keybind, desc)
+            function grp:Toggle(lbl, default, cb, keybind, desc, id)
                 local state   = default == true
                 local key     = keybind or nil
                 local waiting = false
@@ -1136,30 +1229,59 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                         ZIndex               = 8,
                     })
 
+                    -- captura: igual ao Feral — conexão temporária que se desconecta
                     kbBtn.MouseButton1Click:Connect(function()
-                        waiting        = true
-                        kbLbl.Text     = "[...]"
-                        kbLbl.TextColor3 = C.hi
+                        if waiting then return end
+                        waiting      = true
+                        kbLbl.Text   = "[...]"
+                        local conn
+                        conn = UserInputService.InputBegan:Connect(function(i, gp)
+                            if gp then return end
+                            if i.UserInputType ~= Enum.UserInputType.Keyboard then return end
+                            key          = i.KeyCode.Name   -- guarda como STRING, igual ao Feral
+                            kbLbl.Text   = "[" .. key .. "]"
+                            waiting      = false
+                            conn:Disconnect()               -- desconecta imediatamente
+                        end)
                     end)
 
+                    -- ação: permanente — só dispara se não está capturando E a tecla bate
                     UserInputService.InputBegan:Connect(function(i, gp)
                         if gp then return end
-                        if i.UserInputType ~= Enum.UserInputType.Keyboard then return end
-                        if waiting then
-                            waiting          = false
-                            key              = i.KeyCode
-                            local newName    = tostring(key):gsub("Enum.KeyCode.","")
-                            kbLbl.Text       = "[" .. newName .. "]"
-                            kbLbl.TextColor3     = C.hi
-                        elseif i.KeyCode == key then
+                        if waiting then return end
+                        if not key or key == "Unknown" then return end
+                        if i.UserInputType == Enum.UserInputType.Keyboard and i.KeyCode.Name == key then
                             flip()
                         end
                     end)
                 end
 
                 local o = {}
-                function o:Set(v) if state ~= v then flip() end end
-                function o:Get() return state end
+                function o.Set(v) if state ~= v then flip() end end
+                function o.Get() return state end
+                if id then
+                    Registry.Toggles[id] = {
+                        Get = function() return state end,
+                        Set = function(v) if state ~= (not not v) then flip() end end
+                    }
+                    -- registra keybind embutida separado, igual ao Feral
+                    if keybind then
+                        Registry.Keybinds[id .. "_key"] = {
+                            Get = function() return tostring(key) end,
+                            Set = function(v)
+                                if not v then return end
+                                local s = tostring(v)
+                                for _, kc in ipairs(Enum.KeyCode:GetEnumItems()) do
+                                    if kc.Name == s or "Enum.KeyCode." .. kc.Name == s then
+                                        key = kc
+                                        kbLbl.Text = "[" .. kc.Name .. "]"
+                                        return
+                                    end
+                                end
+                            end
+                        }
+                    end
+                end
                 return o
             end
 
@@ -1167,7 +1289,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             -- toggle + input numérico na mesma linha
             -- uso: grp:ToggleInput(lbl, desc, defaultNum, defaultBool, cb)
             -- cb(state, num)
-            function grp:ToggleInput(lbl, desc, defaultNum, defaultBool, cb)
+            function grp:ToggleInput(lbl, desc, defaultNum, defaultBool, cb, id)
                 local state  = defaultBool == true
                 local num    = defaultNum or 0
                 local row    = baseRow(lbl, nil, desc)
@@ -1252,11 +1374,17 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 end)
 
                 local o = {}
-                function o:Set(s, n)
+                function o.Set(s, n)
                     if s ~= nil and state ~= s then flip() end
                     if n ~= nil then num = n; tb.Text = tostring(n) end
                 end
-                function o:Get() return state, num end
+                function o.Get() return state, num end
+                if id then
+                    Registry.Toggles[id] = {
+                        Get = function() return state end,
+                        Set = function(v) if state ~= (not not v) then flip() end end
+                    }
+                end
                 return o
             end
 
@@ -1264,9 +1392,9 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             -- toggle + keybind clicável na mesma linha
             -- uso: grp:ToggleKeybind(lbl, desc, defaultKey, defaultBool, cb)
             -- cb(state) ao flip; keybind também faz flip
-            function grp:ToggleKeybind(lbl, desc, defaultKey, defaultBool, cb)
+            function grp:ToggleKeybind(lbl, desc, defaultKey, defaultBool, cb, id)
                 local state   = defaultBool == true
-                local key     = defaultKey or Enum.KeyCode.Unknown
+                local key     = defaultKey and defaultKey.Name or "Unknown"  -- string, igual ao Feral
                 local waiting = false
                 local row     = baseRow(lbl, nil, desc)
 
@@ -1301,7 +1429,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 box.MouseButton1Click:Connect(flip)
 
                 -- badge do keybind à esquerda do checkbox
-                local keyName = tostring(key):gsub("Enum.KeyCode.","")
+                local keyName = key ~= "Unknown" and key or ""
                 local kbf = Button(row, {
                     AnchorPoint          = Vector2.new(1, 0.5),
                     Position             = UDim2.new(1, -40, 0.5, 0),
@@ -1323,35 +1451,66 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     ZIndex         = 8,
                 })
 
+                -- captura: conexão temporária que se desconecta, igual ao Feral
                 kbf.MouseButton1Click:Connect(function()
+                    if waiting then return end
                     waiting      = true
                     kbLbl.Text   = "..."
-                    kbLbl.TextColor3 = C.hi
+                    local conn
+                    conn = UserInputService.InputBegan:Connect(function(i, gp)
+                        if gp then return end
+                        if i.UserInputType ~= Enum.UserInputType.Keyboard then return end
+                        key          = i.KeyCode.Name   -- string, igual ao Feral
+                        kbLbl.Text   = key
+                        waiting      = false
+                        conn:Disconnect()               -- desconecta imediatamente
+                    end)
                 end)
 
+                -- ação: permanente — só dispara se não está capturando E a tecla bate
                 UserInputService.InputBegan:Connect(function(i, gp)
                     if gp then return end
-                    if i.UserInputType ~= Enum.UserInputType.Keyboard then return end
-                    if waiting then
-                        waiting        = false
-                        key            = i.KeyCode
-                        kbLbl.Text     = tostring(key):gsub("Enum.KeyCode.","")
-                        kbLbl.TextColor3 = C.hi
-                    elseif i.KeyCode == key then
+                    if waiting then return end
+                    if not key or key == "Unknown" then return end
+                    if i.UserInputType == Enum.UserInputType.Keyboard and i.KeyCode.Name == key then
                         flip()
                     end
                 end)
 
                 local o = {}
-                function o:Set(v) if state ~= v then flip() end end
-                function o:Get() return state end
-                function o:SetKey(k) key = k; kbLbl.Text = tostring(k):gsub("Enum.KeyCode.","") end
-                function o:GetKey() return key end
+                function o.Set(v) if state ~= v then flip() end end
+                function o.Get() return state end
+                function o.SetKey(k)
+                    key = type(k) == "string" and k or k.Name
+                    kbLbl.Text = key
+                end
+                function o.GetKey() return key end
+                if id then
+                    Registry.Toggles[id] = {
+                        Get = function() return state end,
+                        Set = function(v) if state ~= (not not v) then flip() end end
+                    }
+                    -- keybind salva/carrega separado, igual ao Feral
+                    Registry.Keybinds[id .. "_key"] = {
+                        Get = function() return tostring(key) end,
+                        Set = function(v)
+                            if not v then return end
+                            local s = tostring(v)
+                            for _, kc in ipairs(Enum.KeyCode:GetEnumItems()) do
+                                if kc.Name == s or "Enum.KeyCode." .. kc.Name == s then
+                                    key = kc.Name
+                                    kbLbl.Text = kc.Name
+                                    return
+                                end
+                            end
+                        end
+                    }
+                end
                 return o
             end
 
             -- ── Slider ───────────────────────────────────────────────────
-            function grp:Slider(lbl, min, max, default, cb)
+            function grp:Slider(lbl, min, max, default, cb, id)
                 min = min or 0; max = max or 100; default = default or min
                 local val = default
                 local TRACK_W = 400
@@ -1457,21 +1616,28 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     tw(fill, {BackgroundColor3 = C.accent}, 0.15)
                 end)
 
-                slBtn.MouseButton1Down:Connect(function()
-                    local raw = math.floor((max-min) / TRACK_W * fill.AbsoluteSize.X + min)
-                    setVal(raw)
-                    fill.Size = UDim2.new(0, math.clamp(mouse.X - fill.AbsolutePosition.X, 0, TRACK_W), 1, 0)
+                local sliding = false
 
-                    moveConn = mouse.Move:Connect(function()
-                        local rv = math.floor((max-min) / TRACK_W * fill.AbsoluteSize.X + min)
-                        setVal(rv)
-                        fill.Size = UDim2.new(0, math.clamp(mouse.X - trackBg.AbsolutePosition.X, 0, TRACK_W), 1, 0)
+                local function onSlide(inputX)
+                    local offset = math.clamp(inputX - trackBg.AbsolutePosition.X, 0, TRACK_W)
+                    fill.Size = UDim2.new(0, offset, 1, 0)
+                    local rv = math.floor((max - min) / TRACK_W * offset + min)
+                    setVal(rv)
+                end
+
+                slBtn.InputBegan:Connect(function(i)
+                    if i.UserInputType ~= Enum.UserInputType.MouseButton1 and i.UserInputType ~= Enum.UserInputType.Touch then return end
+                    sliding = true
+                    onSlide(i.Position.X)
+                    moveConn = UserInputService.InputChanged:Connect(function(i2)
+                        if not sliding then return end
+                        if i2.UserInputType == Enum.UserInputType.MouseMovement or i2.UserInputType == Enum.UserInputType.Touch then
+                            onSlide(i2.Position.X)
+                        end
                     end)
-                    releaseConn = UserInputService.InputEnded:Connect(function(i)
-                        if i.UserInputType == Enum.UserInputType.MouseButton1 then
-                            local rv = math.floor((max-min) / TRACK_W * fill.AbsoluteSize.X + min)
-                            setVal(rv)
-                            fill.Size = UDim2.new(0, math.clamp(mouse.X - trackBg.AbsolutePosition.X, 0, TRACK_W), 1, 0)
+                    releaseConn = UserInputService.InputEnded:Connect(function(i2)
+                        if i2.UserInputType == Enum.UserInputType.MouseButton1 or i2.UserInputType == Enum.UserInputType.Touch then
+                            sliding = false
                             if moveConn then moveConn:Disconnect() end
                             if releaseConn then releaseConn:Disconnect() end
                         end
@@ -1485,13 +1651,19 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 end)
 
                 local o = {}
-                function o:Set(v) setVal(math.floor(v)) end
-                function o:Get() return val end
+                function o.Set(v) setVal(math.floor(v)) end
+                function o.Get() return val end
+                if id then
+                    Registry.Sliders[id] = {
+                        Get = function() return val end,
+                        Set = function(v) setVal(tonumber(v) or val) end
+                    }
+                end
                 return o
             end
 
             -- ── Dropdown ─────────────────────────────────────────────────
-            function grp:Dropdown(lbl, options, default, cb)
+            function grp:Dropdown(lbl, options, default, cb, id)
                 local sel  = default or (options and options[1]) or ""
                 local open = false
 
@@ -1570,52 +1742,92 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 ListLayout(panel)
                 Padding(panel, 4, 4, 0, 0)
 
-                for _, opt in ipairs(options or {}) do
-                    local ob = Button(panel, {
-                        Size                 = UDim2.new(1,0,0,24),
-                        BackgroundColor3     = C.white,
-                        BackgroundTransparency = 1,
-                        Text                 = opt,
-                        TextColor3           = opt == sel and C.hi or C.low,
-                        TextSize             = 10,
-                        Font                 = opt == sel and Enum.Font.GothamMedium or Enum.Font.Gotham,
-                        ZIndex               = 21,
-                    })
-                    Padding(ob, 0, 0, 8, 8)
-                    ob.MouseEnter:Connect(function() tw(ob, {BackgroundTransparency = 0.94}, 0.1) end)
-                    ob.MouseLeave:Connect(function() tw(ob, {BackgroundTransparency = 1},    0.1) end)
-                    ob.MouseButton1Click:Connect(function()
-                        sel = opt
-                        btnLbl.Text = lbl .. ": " .. opt
-                        panel.Visible = false; open = false
-                        if cb then cb(opt) end
-                    end)
+                -- reconstrói as opções do painel (igual ao Feral: GetNewList)
+                local function buildOptions(opts)
+                    for _, ch in ipairs(panel:GetChildren()) do
+                        if ch:IsA("TextButton") then ch:Destroy() end
+                    end
+                    for _, opt in ipairs(opts or {}) do
+                        local ob = Button(panel, {
+                            Size                 = UDim2.new(1,0,0,24),
+                            BackgroundColor3     = C.white,
+                            BackgroundTransparency = 1,
+                            Text                 = opt,
+                            TextColor3           = opt == sel and C.hi or C.low,
+                            TextSize             = 10,
+                            Font                 = opt == sel and Enum.Font.GothamMedium or Enum.Font.Gotham,
+                            ZIndex               = 21,
+                        })
+                        Padding(ob, 0, 0, 8, 8)
+                        ob.MouseEnter:Connect(function() tw(ob, {BackgroundTransparency = 0.94}, 0.1) end)
+                        ob.MouseLeave:Connect(function() tw(ob, {BackgroundTransparency = 1},    0.1) end)
+                        ob.MouseButton1Click:Connect(function()
+                            sel = opt
+                            btnLbl.Text = lbl .. ": " .. opt
+                            slideClose(panel); open = false
+                            if cb then cb(opt) end
+                        end)
+                    end
                 end
+
+                buildOptions(options)
 
                 ddBtn.MouseButton1Click:Connect(function()
                     open = not open
                     if open then
                         local relY = ddFrame.AbsolutePosition.Y - gbox.AbsolutePosition.Y + 25
                         panel.Position = UDim2.new(0,0,0,relY)
+                        slideOpen(panel)
+                    else
+                        slideClose(panel)
                     end
-                    panel.Visible = open
                 end)
 
                 local o = {}
-                function o:Set(v) sel = v; btnLbl.Text = lbl .. ": " .. v; if cb then cb(v) end end
-                function o:Get() return sel end
+                function o.Set(v) sel = v; btnLbl.Text = lbl .. ": " .. tostring(v); if cb then cb(v) end end
+                function o.Get() return sel end
+                function o.GetNewList(newOpts)
+                    panel.Visible = false; open = false
+                    buildOptions(newOpts)
+                    local found = false
+                    for _, v in ipairs(newOpts or {}) do
+                        if v == sel then found = true; break end
+                    end
+                    if not found then
+                        sel = (newOpts and newOpts[1]) or ""
+                        btnLbl.Text = lbl .. ": " .. sel
+                    end
+                end
+                if id then
+                    -- copiado do Feral: Set verifica se valor existe na lista antes de aplicar
+                    Registry.Dropdowns[id] = {
+                        Get = function() return sel end,
+                        Set = function(v)
+                            if not v then return end
+                            local s = tostring(v)
+                            local found = false
+                            for _, opt in ipairs(options) do
+                                if tostring(opt) == s then found = true; break end
+                            end
+                            if not found then return end
+                            sel = s
+                            btnLbl.Text = lbl .. ": " .. s
+                            if cb then cb(s) end
+                        end
+                    }
+                end
                 return o
             end
 
             -- ── MultiDropdown ─────────────────────────────────────────────
-            function grp:MultiDropdown(lbl, options, defaults, cb)
+            function grp:MultiDropdown(lbl, options, defaults, cb, id)
                 local sel  = {}
                 for _, v in ipairs(defaults or {}) do sel[v] = true end
                 local open = false
                 local row  = baseRow(lbl)
 
                 local function count()
-                    local n = 0; for _ in pairs(sel) do n+=1 end; return n
+                    local n = 0; for _, v in pairs(sel) do if v then n+=1 end end; return n
                 end
                 local function labelTxt()
                     local n = count(); local tot = #(options or {})
@@ -1697,13 +1909,14 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     ob.MouseEnter:Connect(function() tw(ob, {BackgroundTransparency = 0.94}, 0.1) end)
                     ob.MouseLeave:Connect(function() tw(ob, {BackgroundTransparency = 1},    0.1) end)
                     ob.MouseButton1Click:Connect(function()
-                        sel[opt] = not sel[opt]
+                        if sel[opt] then sel[opt] = nil else sel[opt] = true end
                         local s = sel[opt]
                         tw(optLbl, {TextColor3 = s and C.hi or C.low}, 0.12)
                         optLbl.Font = s and Enum.Font.GothamMedium or Enum.Font.Gotham
                         btnLbl.Text = labelTxt()
                         badge.Text  = tostring(count())
                         if cb then cb(sel) end
+                        for k,v in pairs(sel) do print("[MultiDropdown debug]", k, v) end
                     end)
                 end
 
@@ -1712,19 +1925,40 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     if open then
                         local relY = row.AbsolutePosition.Y - gbox.AbsolutePosition.Y + 28
                         panel.Position = UDim2.new(0,0,0,relY)
+                        slideOpen(panel)
+                    else
+                        slideClose(panel)
                     end
-                    panel.Visible = open
                 end)
 
                 local o = {}
-                function o:Get()
+                function o.Get()
                     local out = {}
                     for k,v in pairs(sel) do if v then table.insert(out,k) end end
                     return out
                 end
-                function o:Set(tbl)
+                function o.Set(tbl)
                     sel = {}; for _,v in ipairs(tbl) do sel[v] = true end
                     btnLbl.Text = labelTxt(); badge.Text = tostring(count())
+                end
+                if id then
+                    -- copiado do Feral: Get retorna {k=bool}, Set itera tabela
+                    Registry.Dropdowns[id] = {
+                        Get = function()
+                            local out = {}
+                            for k, v in pairs(sel) do out[k] = not not v end
+                            return out
+                        end,
+                        Set = function(v)
+                            if type(v) ~= "table" then return end
+                            local asList = {}
+                            for k, val in pairs(v) do
+                                if val then table.insert(asList, k) end
+                            end
+                            o.Set(asList)
+                            if cb then pcall(cb, sel) end
+                        end
+                    }
                 end
                 return o
             end
@@ -1786,7 +2020,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             end
 
             -- ── TextField ────────────────────────────────────────────────
-            function grp:TextField(lbl, placeholder, cb)
+            function grp:TextField(lbl, placeholder, cb, id)
                 local tfFrame = Frame(body, {
                     Size                 = UDim2.new(1,0,0,60),
                     BackgroundTransparency = 1,
@@ -1860,8 +2094,18 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 end)
 
                 local o = {}
-                function o:Get() return tb.Text end
-                function o:Set(v) tb.Text = v end
+                function o.Get() return tb.Text end
+                function o.Set(v) tb.Text = tostring(v) end
+                if id then
+                    -- copiado do Feral: Set dispara callback depois de setar
+                    Registry.Boxes[id] = {
+                        Get = function() return tb.Text end,
+                        Set = function(v)
+                            tb.Text = tostring(v or "")
+                            if tb.Text ~= "" and cb then pcall(cb, tb.Text) end
+                        end
+                    }
+                end
                 return o
             end
 
@@ -1882,13 +2126,13 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 dot.MouseButton1Click:Connect(function() if cb then cb(color) end end)
 
                 local o = {}
-                function o:Set(c) color = c; dot.BackgroundColor3 = c end
-                function o:Get() return color end
+                function o.Set(c) color = c; dot.BackgroundColor3 = c end
+                function o.Get() return color end
                 return o
             end
 
             -- ── Keybind ──────────────────────────────────────────────────
-            function grp:Keybind(lbl, default, cb)
+            function grp:Keybind(lbl, default, cb, id)
                 local key     = default or Enum.KeyCode.Unknown
                 local waiting = false
                 local row     = baseRow(lbl)
@@ -1918,6 +2162,12 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     waiting = true
                     kbLbl.Text       = "..."
                     kbLbl.TextColor3 = C.hi
+                    task.delay(10, function()
+                        if waiting then
+                            waiting = false
+                            kbLbl.Text = tostring(key):gsub("Enum.KeyCode.","")
+                        end
+                    end)
                 end)
 
                 -- escuta global: captura nova tecla OU dispara o callback
@@ -1937,8 +2187,32 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 end)
 
                 local o = {}
-                function o:Get() return key end
-                function o:Set(k) key=k; kbLbl.Text=tostring(k):gsub("Enum.KeyCode.","") end
+                function o.Get() return key end
+                function o.Set(k) key=k; kbLbl.Text=tostring(k):gsub("Enum.KeyCode.","") end
+                if id then
+                    -- copiado do Feral: Get retorna tostring(key), Set itera KeyCode+UserInputType
+                    Registry.Keybinds[id] = {
+                        Get = function() return tostring(key) end,
+                        Set = function(v)
+                            if not v then return end
+                            local s = tostring(v)
+                            for _, kc in ipairs(Enum.KeyCode:GetEnumItems()) do
+                                if kc.Name == s or "Enum.KeyCode." .. kc.Name == s then
+                                    key = kc
+                                    kbLbl.Text = kc.Name
+                                    return
+                                end
+                            end
+                            for _, uit in ipairs(Enum.UserInputType:GetEnumItems()) do
+                                if uit.Name == s or "Enum.UserInputType." .. uit.Name == s then
+                                    key = uit
+                                    kbLbl.Text = uit.Name
+                                    return
+                                end
+                            end
+                        end
+                    }
+                end
                 return o
             end
 
@@ -1985,6 +2259,121 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
 
         return sec
     end -- window:Section
+
+    -- ═══════════════════════════════════════════════════════════════════════
+    -- ── Tab de Configs automática (lógica igual ao Feral) ─────────────────
+    -- • Dropdown lista as configs salvas e sincroniza o TextField ao clicar
+    -- • Salvar/Deletar recriam o Dropdown com a lista atualizada
+    -- • Atualizar Lista força o refresh manual
+    -- ══════════════════════════════════════════════════════════════════════
+    task.spawn(function()
+        task.wait()
+        local cfgTab = window:Section("Configs", "")
+        local grp    = cfgTab:Group("Save / Load", "")
+
+        -- nome atual da config (estado compartilhado entre os botões)
+        local currentName = "default"
+
+        -- TextField: digitar nome manualmente
+        local nameField = grp:TextField("Nome", "default", function(v)
+            if v and v:gsub("%s","") ~= "" then
+                currentName = v
+            end
+        end)
+        nameField.Set("default")
+
+        -- Dropdown de configs existentes
+        -- Criado uma vez; atualizado via :GetNewList() igual ao Feral
+        local ddConfigs = nil
+
+        local function refreshDropdown()
+            local list = window:ListConfigs()
+            local opts = #list > 0 and list or { "(nenhuma)" }
+            if ddConfigs then
+                -- atualiza as opções sem recriar o elemento (igual ao Feral)
+                ddConfigs.GetNewList(opts)
+            else
+                -- primeira vez: cria o dropdown
+                ddConfigs = grp:Dropdown(
+                    "Configs Salvas",
+                    opts,
+                    opts[1],
+                    function(v)
+                        if v and v ~= "(nenhuma)" then
+                            currentName = v
+                            nameField.Set(v)
+                        end
+                    end
+                )
+            end
+            if #list > 0 then
+                currentName = list[1]
+                nameField.Set(list[1])
+            end
+            return list
+        end
+
+        -- popula ao abrir a aba pela primeira vez
+        refreshDropdown()
+
+        grp:SectionLabel("Ações")
+
+        grp:Button("💾  Salvar", function()
+            local name = currentName
+            if not name or name:gsub("%s","") == "" then
+                window:TempNotify("Configs", "Digite um nome!", "warn", 3)
+                return
+            end
+            local ok, err = window:SaveConfig(name)
+            if ok then
+                window:TempNotify("Configs", 'Salvo como "' .. name .. '"', "success", 4)
+                refreshDropdown()   -- atualiza dropdown com o novo arquivo
+            else
+                window:TempNotify("Configs", "Erro: " .. tostring(err), "error", 4)
+            end
+        end)
+
+        grp:Button("📂  Carregar", function()
+            local name = currentName
+            if not name or name:gsub("%s","") == "" then
+                window:TempNotify("Configs", "Selecione uma config!", "warn", 3)
+                return
+            end
+            local ok, err = window:LoadConfig(name)
+            if ok then
+                window:TempNotify("Configs", 'Carregado "' .. name .. '"', "success", 4)
+            else
+                window:TempNotify("Configs", "Erro: " .. tostring(err), "error", 4)
+            end
+        end)
+
+        grp:Button("🗑  Deletar", function()
+            local name = currentName
+            if not name or name:gsub("%s","") == "" then
+                window:TempNotify("Configs", "Selecione uma config!", "warn", 3)
+                return
+            end
+            window:Notify2(
+                "Deletar Config",
+                'Deletar "' .. name .. '"?',
+                "Deletar", "Cancelar", "",
+                function()
+                    local ok, err = window:DeleteConfig(name)
+                    if ok then
+                        window:TempNotify("Configs", 'Deletado "' .. name .. '"', "success", 4)
+                        currentName = "default"
+                        nameField.Set("default")
+                        refreshDropdown()   -- atualiza dropdown sem o arquivo deletado
+                    else
+                        window:TempNotify("Configs", "Erro: " .. tostring(err), "error", 4)
+                    end
+                end,
+                nil
+            )
+        end)
+
+
+    end)
 
     return window
 end -- lib:init
