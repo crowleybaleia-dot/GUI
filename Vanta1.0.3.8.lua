@@ -1540,6 +1540,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             function grp:Dropdown(lbl, options, default, cb, id)
                 local sel  = default or (options and options[1]) or ""
                 local open = false
+                local currentOptions = options  -- cópia mutável para GetNewList
 
                 -- frame externo, largura total, vai direto pro body
                 local ddFrame = Frame(body, {
@@ -1644,14 +1645,14 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     end
                 end
 
-                buildOptions(options)
+                buildOptions(currentOptions)
 
                 ddBtn.MouseButton1Click:Connect(function()
                     open = not open
                     if open then
                         local relY = ddFrame.AbsolutePosition.Y - gbox.AbsolutePosition.Y + 25
                         panel.Position = UDim2.new(0,0,0,relY)
-                        buildOptions(options)
+                        buildOptions(currentOptions)
                         slideOpen(panel)
                     else
                         slideClose(panel)
@@ -1662,14 +1663,15 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 function o.Set(v) sel = v; btnLbl.Text = lbl .. ": " .. tostring(v); if cb then cb(v) end end
                 function o.Get() return sel end
                 function o.GetNewList(newOpts)
+                    currentOptions = newOpts  -- atualiza a referência mutável
                     panel.Visible = false; open = false
-                    buildOptions(newOpts)
+                    buildOptions(currentOptions)
                     local found = false
-                    for _, v in ipairs(newOpts or {}) do
+                    for _, v in ipairs(currentOptions or {}) do
                         if v == sel then found = true; break end
                     end
                     if not found then
-                        sel = (newOpts and newOpts[1]) or ""
+                        sel = (currentOptions and currentOptions[1]) or ""
                         btnLbl.Text = lbl .. ": " .. sel
                     end
                 end
@@ -1681,7 +1683,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                             if not v then return end
                             local s = tostring(v)
                             local found = false
-                            for _, opt in ipairs(options) do
+                            for _, opt in ipairs(currentOptions) do
                                 if tostring(opt) == s then found = true; break end
                             end
                             if not found then return end
@@ -2238,6 +2240,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                         window:TempNotify("Configs", 'Deletado "' .. name .. '"', "success", 4)
                         currentName = "default"
                         nameField.Set("default")
+                        task.wait(0.2)          -- aguarda filesystem confirmar o delfile
                         refreshDropdown()   -- atualiza dropdown sem o arquivo deletado
                     else
                         window:TempNotify("Configs", "Erro: " .. tostring(err), "error", 4)
