@@ -371,88 +371,12 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         BackgroundTransparency = 0,
         ZIndex               = 4,
     })
-    -- right border
-    Frame(sidebar, {
-        Position             = UDim2.new(1,-1,0,0),
-        Size                 = UDim2.new(0,1,1,0),
-        BackgroundColor3     = C.border,
-        BackgroundTransparency = 0,
-        ZIndex               = 3,
-    })
 
-    -- ── sidebar header: avatar + hub name + game subtitle ─────────────────
-    local sidebarHeader = Frame(sidebar, {
-        Position             = UDim2.new(0,0,0,0),
-        Size                 = UDim2.new(1,0,0,52),
-        BackgroundTransparency = 1,
-        ZIndex               = 4,
-    })
-
-    -- avatar circular com letra inicial
-    local avatarCircle = Frame(sidebarHeader, {
-        Position             = UDim2.new(0,10,0.5,-14),
-        Size                 = UDim2.new(0,28,0,28),
-        BackgroundColor3     = Color3.fromRGB(51,51,51),
-        BackgroundTransparency = 0,
-        ZIndex               = 5,
-    })
-    Corner(avatarCircle, 14)
-    if logoAsset and logoAsset ~= "" then
-        Image(avatarCircle, {
-            Size              = UDim2.new(1,0,1,0),
-            Image             = logoAsset,
-            ScaleType         = Enum.ScaleType.Fit,
-            ZIndex            = 6,
-        })
-    else
-        Label(avatarCircle, {
-            Size           = UDim2.new(1,0,1,0),
-            Text           = string.upper((title or "V"):sub(1,1)),
-            TextColor3     = C.mid,
-            TextSize       = 12,
-            Font           = Enum.Font.GothamBold,
-            ZIndex         = 6,
-        })
-    end
-
-    -- hub name
-    Label(sidebarHeader, {
-        Position       = UDim2.new(0,46,0,10),
-        Size           = UDim2.new(1,-56,0,16),
-        Text           = title or "VantaHub",
-        TextColor3     = C.hi,
-        TextSize       = 12,
-        Font           = Enum.Font.GothamBold,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        ZIndex         = 5,
-    })
-
-    -- game subtitle
-    Label(sidebarHeader, {
-        Position       = UDim2.new(0,46,0,28),
-        Size           = UDim2.new(1,-56,0,12),
-        Text           = subtitle or "",
-        TextColor3     = C.low,
-        TextSize       = 9,
-        Font           = Enum.Font.Gotham,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        ZIndex         = 5,
-    })
-
-    -- linha separadora abaixo do header
-    Frame(sidebarHeader, {
-        Position             = UDim2.new(0,0,1,-1),
-        Size                 = UDim2.new(1,0,0,1),
-        BackgroundColor3     = C.border,
-        BackgroundTransparency = 0,
-        ZIndex               = 4,
-    })
-
-    -- sidebar scroll (começa após o header)
+    -- sidebar scroll (começa do topo, sem header)
     local sidebarScroll = Instance.new("ScrollingFrame")
     sidebarScroll.Name                = "sidebarScroll"
-    sidebarScroll.Position            = UDim2.new(0,0,0,52)
-    sidebarScroll.Size                = UDim2.new(1,0,1,-52)
+    sidebarScroll.Position            = UDim2.new(0,0,0,8)
+    sidebarScroll.Size                = UDim2.new(1,0,1,-8)
     sidebarScroll.BackgroundTransparency = 1
     sidebarScroll.BorderSizePixel     = 0
     sidebarScroll.ScrollBarThickness  = 0
@@ -472,7 +396,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     -- ── pill indicator (viaja entre os tabs) ──────────────────────────────
     local pill = Frame(sidebar, {
         Name                 = "pill",
-        Position             = UDim2.new(0, 0, 0, 52),
+        Position             = UDim2.new(0, 0, 0, 8),
         Size                 = UDim2.new(1, 0, 0, 32),
         BackgroundColor3     = C.accentBg,
         BackgroundTransparency = 0,
@@ -975,7 +899,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             end
 
             -- pill viaja até a posição do tab ativo
-            local targetY = 52 + tabBtn.AbsolutePosition.Y - sidebarScroll.AbsolutePosition.Y + sidebarScroll.CanvasPosition.Y
+            local targetY = 8 + tabBtn.AbsolutePosition.Y - sidebarScroll.AbsolutePosition.Y + sidebarScroll.CanvasPosition.Y
             tw(pill, {Position = UDim2.new(0, 0, 0, targetY)}, 0.28, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
 
             -- ativa o tab atual
