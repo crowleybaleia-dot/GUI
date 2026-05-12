@@ -2265,7 +2265,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         grp:SectionLabel("Ações")
 
         -- Salvar (igual ao Feral: salva e refresh imediato)
-        grp:Button("💾  Salvar", function()
+        grp:Button("Salvar", function()
             local name = currentName ~= "" and currentName or "default"
             local ok, err = window:SaveConfig(name)
             if ok then
@@ -2277,7 +2277,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         end)
 
         -- Carregar (igual ao Feral)
-        grp:Button("📂  Carregar", function()
+        grp:Button("Carregar", function()
             local name = currentName ~= "" and currentName or "default"
             local ok, err = window:LoadConfig(name)
             if ok then
@@ -2288,7 +2288,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         end)
 
         -- Deletar (igual ao Feral: sem modal, delete direto, refresh imediato)
-        grp:Button("🗑  Deletar", function()
+        grp:Button("Deletar", function()
             local name = currentName
             if not name or name == "" then
                 window:TempNotify("Configs", "Nenhuma config selecionada.", "warn", 5)
@@ -2306,7 +2306,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         end)
 
         -- Atualizar Lista (igual ao Feral: Refresh Config List)
-        grp:Button("🔄  Atualizar Lista", function()
+        grp:Button("Atualizar Lista", function()
             refreshDropdown()
             window:TempNotify("Configs", "Lista atualizada.", "info", 3)
         end)
