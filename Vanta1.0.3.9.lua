@@ -613,40 +613,48 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         local modal = Frame(overlay, {
             AnchorPoint          = Vector2.new(0.5,0.5),
             Position             = UDim2.new(0.5,0,0.5,0),
-            Size                 = UDim2.new(0,280,0,206),
+            Size                 = UDim2.new(0,280,0,0),
+            AutomaticSize        = Enum.AutomaticSize.Y,
             BackgroundColor3     = C.surface,
             BackgroundTransparency = 0.05,
             ZIndex               = 11,
         })
         Corner(modal, 12)
         Stroke(modal, C.white, 1, 0.9)
+        ListLayout(modal, {Padding = UDim.new(0,0)})
+        Padding(modal, 16, 16, 16, 16)
 
-        local yOff = 20
-        if iconAsset then
-            Image(modal, {
-                Position   = UDim2.new(0.5,-24,0,16),
-                Size       = UDim2.new(0,48,0,48),
-                Image      = iconAsset,
-                ImageColor3 = C.mid,
-                ScaleType  = Enum.ScaleType.Fit,
-                ZIndex     = 12,
+        if iconAsset and iconAsset ~= "" then
+            local iconWrap = Frame(modal, {
+                Size               = UDim2.new(1,0,0,56),
+                BackgroundTransparency = 1,
+                ZIndex             = 12,
+                LayoutOrder        = 0,
             })
-            yOff = 74
+            Image(iconWrap, {
+                AnchorPoint  = Vector2.new(0.5,0.5),
+                Position     = UDim2.new(0.5,0,0.5,0),
+                Size         = UDim2.new(0,48,0,48),
+                Image        = iconAsset,
+                ImageColor3  = C.mid,
+                ScaleType    = Enum.ScaleType.Fit,
+                ZIndex       = 12,
+            })
         end
 
         Label(modal, {
-            Position       = UDim2.new(0,16,0,yOff),
-            Size           = UDim2.new(1,-32,0,22),
+            Size           = UDim2.new(1,0,0,22),
             Text           = t1 or "",
             TextColor3     = C.hi,
             TextSize       = 13,
             Font           = Enum.Font.GothamMedium,
             TextXAlignment = Enum.TextXAlignment.Center,
             ZIndex         = 12,
+            LayoutOrder    = 1,
         })
         Label(modal, {
-            Position       = UDim2.new(0,16,0,yOff+26),
-            Size           = UDim2.new(1,-32,0,56),
+            Size           = UDim2.new(1,0,0,0),
+            AutomaticSize  = Enum.AutomaticSize.Y,
             Text           = t2 or "",
             TextColor3     = C.hi,
             TextSize       = 10,
@@ -654,11 +662,16 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             TextWrapped    = true,
             TextXAlignment = Enum.TextXAlignment.Center,
             ZIndex         = 12,
+            LayoutOrder    = 2,
         })
-
+        Frame(modal, {
+            Size               = UDim2.new(1,0,0,8),
+            BackgroundTransparency = 1,
+            ZIndex             = 12,
+            LayoutOrder        = 3,
+        })
         local ok = Button(modal, {
-            Position             = UDim2.new(0,16,1,-50),
-            Size                 = UDim2.new(1,-32,0,34),
+            Size                 = UDim2.new(1,0,0,34),
             BackgroundColor3     = C.white,
             BackgroundTransparency = 0.1,
             Text                 = btnTxt or "OK",
@@ -666,6 +679,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             TextSize             = 12,
             Font                 = Enum.Font.GothamMedium,
             ZIndex               = 12,
+            LayoutOrder          = 4,
         })
         Corner(ok, 7)
         ok.MouseButton1Click:Connect(function()
@@ -687,40 +701,48 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         local modal = Frame(overlay, {
             AnchorPoint          = Vector2.new(0.5,0.5),
             Position             = UDim2.new(0.5,0,0.5,0),
-            Size                 = UDim2.new(0,280,0,226),
+            Size                 = UDim2.new(0,280,0,0),
+            AutomaticSize        = Enum.AutomaticSize.Y,
             BackgroundColor3     = C.surface,
             BackgroundTransparency = 0.05,
             ZIndex               = 11,
         })
         Corner(modal, 12)
         Stroke(modal, C.white, 1, 0.9)
+        ListLayout(modal, {Padding = UDim.new(0,0)})
+        Padding(modal, 16, 16, 16, 16)
 
-        local yOff = 20
-        if iconAsset then
-            Image(modal, {
-                Position   = UDim2.new(0.5,-24,0,14),
-                Size       = UDim2.new(0,48,0,48),
-                Image      = iconAsset,
-                ImageColor3 = C.mid,
-                ScaleType  = Enum.ScaleType.Fit,
-                ZIndex     = 12,
+        if iconAsset and iconAsset ~= "" then
+            local iconWrap = Frame(modal, {
+                Size               = UDim2.new(1,0,0,56),
+                BackgroundTransparency = 1,
+                ZIndex             = 12,
+                LayoutOrder        = 0,
             })
-            yOff = 70
+            Image(iconWrap, {
+                AnchorPoint  = Vector2.new(0.5,0.5),
+                Position     = UDim2.new(0.5,0,0.5,0),
+                Size         = UDim2.new(0,48,0,48),
+                Image        = iconAsset,
+                ImageColor3  = C.mid,
+                ScaleType    = Enum.ScaleType.Fit,
+                ZIndex       = 12,
+            })
         end
 
         Label(modal, {
-            Position       = UDim2.new(0,16,0,yOff),
-            Size           = UDim2.new(1,-32,0,22),
+            Size           = UDim2.new(1,0,0,22),
             Text           = t1 or "",
             TextColor3     = C.hi,
             TextSize       = 13,
             Font           = Enum.Font.GothamMedium,
             TextXAlignment = Enum.TextXAlignment.Center,
             ZIndex         = 12,
+            LayoutOrder    = 1,
         })
         Label(modal, {
-            Position       = UDim2.new(0,16,0,yOff+26),
-            Size           = UDim2.new(1,-32,0,56),
+            Size           = UDim2.new(1,0,0,0),
+            AutomaticSize  = Enum.AutomaticSize.Y,
             Text           = t2 or "",
             TextColor3     = C.hi,
             TextSize       = 10,
@@ -728,11 +750,16 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             TextWrapped    = true,
             TextXAlignment = Enum.TextXAlignment.Center,
             ZIndex         = 12,
+            LayoutOrder    = 2,
         })
-
+        Frame(modal, {
+            Size               = UDim2.new(1,0,0,8),
+            BackgroundTransparency = 1,
+            ZIndex             = 12,
+            LayoutOrder        = 3,
+        })
         local btn1 = Button(modal, {
-            Position             = UDim2.new(0,16,1,-98),
-            Size                 = UDim2.new(1,-32,0,34),
+            Size                 = UDim2.new(1,0,0,34),
             BackgroundColor3     = C.white,
             BackgroundTransparency = 0.1,
             Text                 = b1txt or "Confirm",
@@ -740,19 +767,25 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             TextSize             = 12,
             Font                 = Enum.Font.GothamMedium,
             ZIndex               = 12,
+            LayoutOrder          = 4,
         })
         Corner(btn1, 7)
-
+        Frame(modal, {
+            Size               = UDim2.new(1,0,0,6),
+            BackgroundTransparency = 1,
+            ZIndex             = 12,
+            LayoutOrder        = 5,
+        })
         local btn2 = Button(modal, {
-            Position             = UDim2.new(0,16,1,-54),
-            Size                 = UDim2.new(1,-32,0,34),
+            Size                 = UDim2.new(1,0,0,34),
             BackgroundColor3     = C.white,
             BackgroundTransparency = 0.97,
             Text                 = b2txt or "Cancel",
-            TextColor3     = C.hi,
+            TextColor3           = C.hi,
             TextSize             = 12,
             Font                 = Enum.Font.Gotham,
             ZIndex               = 12,
+            LayoutOrder          = 6,
         })
         Corner(btn2, 7)
         Stroke(btn2, C.white, 1, 0.88)
