@@ -230,15 +230,6 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         BackgroundTransparency = 0,
         ZIndex               = 4,
     })
-    -- bottom border
-    Frame(titlebar, {
-        Position             = UDim2.new(0,0,1,-1),
-        Size                 = UDim2.new(1,0,0,1),
-        BackgroundColor3     = C.border,
-        BackgroundTransparency = 0,
-        ZIndex               = 4,
-    })
-
     -- ── TitleHolder (logo + título lado a lado via UIListLayout) ─────────────
     local iconSize = logoSize or UDim2.new(0, 92, 0, 92)
 
@@ -404,36 +395,6 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     })
     Corner(pill, 12)
 
-    -- ── status bar  (24px) ────────────────────────────────────────────────
-    local statusbar = Frame(main, {
-        Position             = UDim2.new(0,0,1,-24),
-        Size                 = UDim2.new(1,0,0,24),
-        BackgroundColor3     = C.bg,
-        BackgroundTransparency = 0.7,
-        ZIndex               = 4,
-    })
-    Corner(statusbar, 14)
-    -- hiders dos cantos superiores do statusbar
-    Frame(statusbar, {
-        Position             = UDim2.new(0,0,0,0),
-        Size                 = UDim2.new(0,14,0,14),
-        BackgroundColor3     = C.bg,
-        BackgroundTransparency = 0,
-        ZIndex               = 5,
-    })
-    Frame(statusbar, {
-        Position             = UDim2.new(1,-14,0,0),
-        Size                 = UDim2.new(0,14,0,14),
-        BackgroundColor3     = C.bg,
-        BackgroundTransparency = 0,
-        ZIndex               = 5,
-    })
-    Frame(statusbar, {
-        Size                 = UDim2.new(1,0,0,1),
-        BackgroundColor3     = C.border,
-        BackgroundTransparency = 0,
-        ZIndex               = 4,
-    })
     -- ── state ─────────────────────────────────────────────────────────────
     local sections     = {}
     local workareas    = {}
