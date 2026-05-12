@@ -350,7 +350,6 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         Size                 = UDim2.new(0,168,1,-84),
         BackgroundColor3     = C.sidebar,
         BackgroundTransparency = 0,
-        ClipsDescendants     = true,
         ZIndex               = 3,
     })
     Corner(sidebar, 14)
