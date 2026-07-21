@@ -2698,6 +2698,8 @@ function Luna:CreateWindow(WindowSettings)
 		end
 
 		TabPage.LayoutOrder = #Elements:GetChildren() - 3
+		TabPage.AutomaticSize = Enum.AutomaticSize.Y
+		TabPage.Size = UDim2.new(1, 0, 0, 0)
 
 		for _, TemplateElement in ipairs(TabPage:GetChildren()) do
 			if TemplateElement.ClassName == "Frame" or TemplateElement.ClassName == "TextLabel" and TemplateElement.Name ~= "Title" then
@@ -2716,7 +2718,8 @@ function Luna:CreateWindow(WindowSettings)
 			local col = Instance.new("Frame")
 			col.Name = name
 			col.BackgroundTransparency = 1
-			col.Size = UDim2.new(0.5, -3, 1, 0)
+			col.Size = UDim2.new(0.5, -3, 0, 0)
+			col.AutomaticSize = Enum.AutomaticSize.Y
 			col.Position = UDim2.new(xScale, xOffset, 0, 0)
 			col.Parent = TabPage
 
@@ -2795,11 +2798,26 @@ function Luna:CreateWindow(WindowSettings)
 			if existingList then existingList:Destroy() end
 
 			if TabPage then
-				local grid = Instance.new("UIGridLayout")
-				grid.CellSize = UDim2.new(0.5, -4, 0, 38)
-				grid.CellPadding = UDim2.new(0, 6, 0, 6)
-				grid.SortOrder = Enum.SortOrder.LayoutOrder
-				grid.Parent = TabPage
+				TabPage.AutomaticSize = Enum.AutomaticSize.Y
+				TabPage.Size = UDim2.new(1, 0, 0, 0)
+
+				local function makeSectionColumn(name, xScale, xOffset)
+					local col = Instance.new("Frame")
+					col.Name = name
+					col.BackgroundTransparency = 1
+					col.Size = UDim2.new(0.5, -3, 0, 0)
+					col.AutomaticSize = Enum.AutomaticSize.Y
+					col.Position = UDim2.new(xScale, xOffset, 0, 0)
+					col.Parent = TabPage
+					local list = Instance.new("UIListLayout")
+					list.SortOrder = Enum.SortOrder.LayoutOrder
+					list.Padding = UDim.new(0, 6)
+					list.Parent = col
+					return col
+				end
+
+				Section.ColumnLeft = makeSectionColumn("ColumnLeft", 0, 0)
+				Section.ColumnRight = makeSectionColumn("ColumnRight", 0.5, 6)
 			end
 
 			Sectiont.TextTransparency = 1
@@ -2817,7 +2835,7 @@ function Luna:CreateWindow(WindowSettings)
 			function Section:CreateDivider()
 				TabPage.Position = UDim2.new(0,0,0,28)
 				local b = Elements.Template.Divider:Clone()
-				b.Parent = Tab.ColumnLeft
+				b.Parent = Section.ColumnLeft
 				b.Size = UDim2.new(1,0,0,18)
 				b.Line.BackgroundTransparency = 1
 				tween(b.Line, {BackgroundTransparency = 0})
@@ -2854,7 +2872,7 @@ function Luna:CreateWindow(WindowSettings)
 					Button.Desc.Text = ButtonSettings.Description
 				end
 				Button.Visible = true
-				Button.Parent = (ButtonSettings.Column == 2) and Tab.ColumnRight or Tab.ColumnLeft
+				Button.Parent = (ButtonSettings.Column == 2) and Section.ColumnRight or Section.ColumnLeft
 
 				Button.UIStroke.Transparency = 1
 				Button.Title.TextTransparency = 1
@@ -2954,7 +2972,7 @@ function Luna:CreateWindow(WindowSettings)
 
 				Label.Text.Text = LabelSettings.Text
 				Label.Visible = true
-				Label.Parent = (LabelSettings.Column == 2) and Tab.ColumnRight or Tab.ColumnLeft
+				Label.Parent = (LabelSettings.Column == 2) and Section.ColumnRight or Section.ColumnLeft
 
 				Label.BackgroundTransparency = 1
 				Label.UIStroke.Transparency = 1
@@ -3000,7 +3018,7 @@ function Luna:CreateWindow(WindowSettings)
 				Paragraph.Title.Text = ParagraphSettings.Title
 				Paragraph.Text.Text = ParagraphSettings.Text
 				Paragraph.Visible = true
-				Paragraph.Parent = (ParagraphSettings.Column == 2) and Tab.ColumnRight or Tab.ColumnLeft
+				Paragraph.Parent = (ParagraphSettings.Column == 2) and Section.ColumnRight or Section.ColumnLeft
 
 				Paragraph.BackgroundTransparency = 1
 				Paragraph.UIStroke.Transparency = 1
@@ -3065,7 +3083,7 @@ function Luna:CreateWindow(WindowSettings)
 				Slider.Name = SliderSettings.Name .. " - Slider"
 				Slider.Title.Text = SliderSettings.Name
 				Slider.Visible = true
-				Slider.Parent = (SliderSettings.Column == 2) and Tab.ColumnRight or Tab.ColumnLeft
+				Slider.Parent = (SliderSettings.Column == 2) and Section.ColumnRight or Section.ColumnLeft
 
 				Slider.BackgroundTransparency = 1
 				Slider.UIStroke.Transparency = 1
@@ -3267,7 +3285,7 @@ function Luna:CreateWindow(WindowSettings)
 				end
 
 				Toggle.Visible = true
-				Toggle.Parent = (ToggleSettings.Column == 2) and Tab.ColumnRight or Tab.ColumnLeft
+				Toggle.Parent = (ToggleSettings.Column == 2) and Section.ColumnRight or Section.ColumnLeft
 
 				Toggle.Name = ToggleSettings.Name .. " - Toggle"
 				Toggle.Title.Text = ToggleSettings.Name
@@ -3453,7 +3471,7 @@ function Luna:CreateWindow(WindowSettings)
 				end
 
 				Bind.Visible = true
-				Bind.Parent = (BindSettings.Column == 2) and Tab.ColumnRight or Tab.ColumnLeft
+				Bind.Parent = (BindSettings.Column == 2) and Section.ColumnRight or Section.ColumnLeft
 
 				Bind.Name = BindSettings.Name
 				Bind.Title.Text = BindSettings.Name
@@ -3680,7 +3698,7 @@ function Luna:CreateWindow(WindowSettings)
 				Input.Title.Text = InputSettings.Name
 				if descriptionbool then Input.Desc.Text = InputSettings.Description end
 				Input.Visible = true
-				Input.Parent = (InputSettings.Column == 2) and Tab.ColumnRight or Tab.ColumnLeft
+				Input.Parent = (InputSettings.Column == 2) and Section.ColumnRight or Section.ColumnLeft
 
 				Input.BackgroundTransparency = 1
 				Input.UIStroke.Transparency = 1
@@ -3853,7 +3871,7 @@ function Luna:CreateWindow(WindowSettings)
 				Dropdown.Title.Text = DropdownSettings.Name
 				if descriptionbool then Dropdown.Desc.Text = DropdownSettings.Description end
 
-				Dropdown.Parent = (DropdownSettings.Column == 2) and Tab.ColumnRight or Tab.ColumnLeft
+				Dropdown.Parent = (DropdownSettings.Column == 2) and Section.ColumnRight or Section.ColumnLeft
 				Dropdown.Visible = true
 
 				local function Toggle()
@@ -4197,7 +4215,7 @@ function Luna:CreateWindow(WindowSettings)
 				ColorPicker.Name = ColorPickerSettings.Name
 				ColorPicker.Title.Text = ColorPickerSettings.Name
 				ColorPicker.Visible = true
-				ColorPicker.Parent = (ColorPickerSettings.Column == 2) and Tab.ColumnRight or Tab.ColumnLeft
+				ColorPicker.Parent = (ColorPickerSettings.Column == 2) and Section.ColumnRight or Section.ColumnLeft
 				ColorPicker.Size = UDim2.new(1.042, -25,0, 38)
 				Background.Size = closedsize
 				Display.BackgroundTransparency = 0
