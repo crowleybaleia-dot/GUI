@@ -2800,6 +2800,14 @@ function Luna:CreateWindow(WindowSettings)
 			local function syncHeight()
 				local h = math.max(colLeft.AbsoluteSize.Y, colRight.AbsoluteSize.Y)
 				container.Size = UDim2.new(1, 0, 0, h)
+				-- Força recálculo do canvas do ScrollingFrame
+				local sf = Elements.Parent
+				if sf:IsA("ScrollingFrame") and Elements.UIPageLayout.CurrentPage == TabPage then
+					local tabList = TabPage:FindFirstChildWhichIsA("UIListLayout")
+					if tabList then
+						sf.CanvasSize = UDim2.new(0, 0, 0, tabList.AbsoluteContentSize.Y + 24)
+					end
+				end
 			end
 
 			colLeft:GetPropertyChangedSignal("AbsoluteSize"):Connect(syncHeight)
