@@ -4165,7 +4165,7 @@ function NeverLose:CreateWindow(Config)
 	LeftMenuFrame.BackgroundTransparency = 1.000
 	LeftMenuFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	LeftMenuFrame.BorderSizePixel = 0
-	LeftMenuFrame.Size = UDim2.new(0, 70, 1, -50)
+	LeftMenuFrame.Size = UDim2.new(0, 80, 1, -50)
 	LeftMenuFrame.Position = UDim2.new(0, 0, 0, 50)
 
 	HeadFrame.Name = NeverLose.RandomString();
@@ -4260,7 +4260,7 @@ function NeverLose:CreateWindow(Config)
 	UIListLayout.Parent = LeftScrollingFrame
 	UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 	UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-	UIListLayout.Padding = UDim.new(0, 5)
+	UIListLayout.Padding = UDim.new(0, 8)
 
 	NeverLose:AddSignal(UIListLayout:GetPropertyChangedSignal('AbsoluteContentSize'):Connect(LPH_NO_VIRTUALIZE(function()
 		LeftScrollingFrame.CanvasSize = UDim2.fromOffset(0,UIListLayout.AbsoluteContentSize.Y + 1)
@@ -4284,8 +4284,8 @@ function NeverLose:CreateWindow(Config)
 	AccountProfile.BackgroundTransparency = 1.000
 	AccountProfile.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	AccountProfile.BorderSizePixel = 0
-	AccountProfile.Position = UDim2.new(0, 10, 0.5, 0)
-	AccountProfile.Size = UDim2.new(0, 35, 0, 35)
+	AccountProfile.Position = UDim2.new(0.5, 0, 0.5, -2)
+	AccountProfile.Size = UDim2.new(0, 36, 0, 36)
 	AccountProfile.ZIndex = 7
 	AccountProfile.Image = NeverLose.UserProfile or ""
 
@@ -4300,6 +4300,7 @@ function NeverLose:CreateWindow(Config)
 	AccountName.BorderSizePixel = 0
 	AccountName.Position = UDim2.new(0, 55, 0, 5)
 	AccountName.Size = UDim2.new(1, -65, 0, 20)
+	AccountName.Visible = false
 	AccountName.ZIndex = 7
 	AccountName.Font = Enum.Font.GothamBold
 	AccountName.Text = ""
@@ -4316,6 +4317,7 @@ function NeverLose:CreateWindow(Config)
 	ExpireLabel.BorderSizePixel = 0
 	ExpireLabel.Position = UDim2.new(0, 55, 0, 26)
 	ExpireLabel.Size = UDim2.new(1, -65, 0, 14)
+	ExpireLabel.Visible = false
 	ExpireLabel.ZIndex = 7
 	ExpireLabel.Font = Enum.Font.GothamBold
 	ExpireLabel.Text = "never"
@@ -4342,25 +4344,28 @@ function NeverLose:CreateWindow(Config)
 	UserSettingButton.BackgroundTransparency = 1.000
 	UserSettingButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	UserSettingButton.BorderSizePixel = 0
-	UserSettingButton.Position = UDim2.new(1, -7, 0.5, 0)
-	UserSettingButton.Size = UDim2.new(0, 25, 0, 25)
+	UserSettingButton.AnchorPoint = Vector2.new(0.5, 0.5)
+	UserSettingButton.Position = UDim2.new(0.5, 0, 0.5, 0)
+	UserSettingButton.Size = UDim2.new(0, 32, 0, 32)
 	UserSettingButton.ZIndex = 7
 	UserSettingButton.FontFace = NeverLose.BuiltInBold
-	UserSettingButton.Text = "chevron-large-right"
-	UserSettingButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-	UserSettingButton.TextSize = 13.000
-	UserSettingButton.TextTransparency = 0.5
+	UserSettingButton.Text = "gear"
+	UserSettingButton.TextColor3 = Color3.fromRGB(180, 180, 190)
+	UserSettingButton.TextSize = 20.000
+	UserSettingButton.TextTransparency = 0.3
 
 	NeverLose:AddSignal(BottomFrame.MouseEnter:Connect(LPH_NO_VIRTUALIZE(function()
 		NeverLose.PlayAnimate(UserSettingButton,SlowyTween , {
-			TextTransparency = 0.25
-		})		
+			TextTransparency = 0.05,
+			TextColor3 = NeverLose.AccentColor
+		})
 	end)))
 
 	NeverLose:AddSignal(BottomFrame.MouseLeave:Connect(LPH_NO_VIRTUALIZE(function()
 		NeverLose.PlayAnimate(UserSettingButton,SlowyTween , {
-			TextTransparency = 0.5
-		})		
+			TextTransparency = 0.3,
+			TextColor3 = Color3.fromRGB(180, 180, 190)
+		})
 	end)))
 
 	RightMenuFrame.Name = NeverLose.RandomString();
@@ -4370,13 +4375,26 @@ function NeverLose:CreateWindow(Config)
 	RightMenuFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	RightMenuFrame.BorderSizePixel = 0
 	RightMenuFrame.ClipsDescendants = true
-	RightMenuFrame.Position = UDim2.new(0, 71, 0, 50)
-	RightMenuFrame.Size = UDim2.new(1, -71, 1, -50)
+	RightMenuFrame.Position = UDim2.new(0, 81, 0, 50)
+	RightMenuFrame.Size = UDim2.new(1, -81, 1, -50)
 	RightMenuFrame.ZIndex = 8
 
 	UIStroke.Transparency = 0.650
 	UIStroke.Color = Color3.fromRGB(40, 40, 45)
 	UIStroke.Parent = RightMenuFrame
+
+	-- Linha vertical separando sidebar do conteudo
+	do
+		local SidebarLine = Instance.new("Frame")
+		SidebarLine.Parent = WindowFrame
+		SidebarLine.AnchorPoint = Vector2.new(0, 0.5)
+		SidebarLine.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
+		SidebarLine.BackgroundTransparency = 0.500
+		SidebarLine.BorderSizePixel = 0
+		SidebarLine.Position = UDim2.new(0, 80, 0.5, 0)
+		SidebarLine.Size = UDim2.new(0, 1, 1, -20)
+		SidebarLine.ZIndex = 6
+	end
 
 	UICorner_4.CornerRadius = UDim.new(0, 13)
 	UICorner_4.Parent = RightMenuFrame
@@ -4752,14 +4770,14 @@ function NeverLose:CreateWindow(Config)
 
 		TabButton.Name = NeverLose.RandomString();
 		TabButton.Parent = LeftScrollingFrame
-		TabButton.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
-		TabButton.BackgroundTransparency = 0.500
+		TabButton.BackgroundColor3 = NeverLose.AccentColor
+		TabButton.BackgroundTransparency = 1
 		TabButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		TabButton.BorderSizePixel = 0
-		TabButton.Size = UDim2.new(1, -8, 0, 38)
+		TabButton.Size = UDim2.new(0, 46, 0, 46)
 		TabButton.ZIndex = 8
 
-		UICorner.CornerRadius = UDim.new(0, 6)
+		UICorner.CornerRadius = UDim.new(0, 12)
 		UICorner.Parent = TabButton
 
 		TabIcon.Name = NeverLose.RandomString();
@@ -4770,12 +4788,12 @@ function NeverLose:CreateWindow(Config)
 		TabIcon.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		TabIcon.BorderSizePixel = 0
 		TabIcon.Position = UDim2.new(0.5, 0, 0.5, 0)
-		TabIcon.Size = UDim2.new(0, 28, 0, 28)
+		TabIcon.Size = UDim2.new(0, 32, 0, 32)
 		TabIcon.ZIndex = 9
 		TabIcon.FontFace = NeverLose.BuiltInBold
 		TabIcon.Text = Config.Icon;
-		TabIcon.TextColor3 = NeverLose.AccentColor
-		TabIcon.TextSize = 16.000
+		TabIcon.TextColor3 = Color3.fromRGB(180, 180, 190)
+		TabIcon.TextSize = 20.000
 		TabIcon.TextWrapped = true
 
 		TabContentLabel.Name = NeverLose.RandomString();
@@ -4884,7 +4902,8 @@ function NeverLose:CreateWindow(Config)
 
 			if value then
 				NeverLose.PlayAnimate(TabButton , SlowyTween , {
-					BackgroundTransparency = 0.500
+					BackgroundTransparency = 0.150,
+					BackgroundColor3 = NeverLose.AccentColor
 				})
 
 				NeverLose.PlayAnimate(TabIcon , SlowyTween , {
@@ -4901,8 +4920,8 @@ function NeverLose:CreateWindow(Config)
 				})
 
 				NeverLose.PlayAnimate(TabIcon , SlowyTween , {
-					TextTransparency = 0.5,
-					TextColor3 = Color3.fromRGB(252, 252, 252)
+					TextTransparency = 0.25,
+					TextColor3 = Color3.fromRGB(180, 180, 190)
 				})
 
 				NeverLose.PlayAnimate(TabContentLabel , SlowyTween , {
@@ -4933,11 +4952,11 @@ function NeverLose:CreateWindow(Config)
 		NeverLose:AddSignal(over.MouseEnter:Connect(LPH_NO_VIRTUALIZE(function()
 			if Window.Tabs[Window.CurrentTab] == Tab then
 				NeverLose.PlayAnimate(TabButton , SlowyTween , {
-					BackgroundTransparency = 0.500
+					BackgroundTransparency = 0.100
 				})
 			else
 				NeverLose.PlayAnimate(TabButton , SlowyTween , {
-					BackgroundTransparency = 0.8
+					BackgroundTransparency = 0.85
 				})
 			end;
 		end)))
@@ -4970,6 +4989,7 @@ function NeverLose:CreateWindow(Config)
 
 				NeverLose.PlayAnimate(TabIcon , SlowyTween , {
 					TextTransparency = 1,
+					TextColor3 = Color3.fromRGB(180, 180, 190)
 				})
 
 				NeverLose.PlayAnimate(TabContentLabel , SlowyTween , {
