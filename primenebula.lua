@@ -2522,6 +2522,11 @@ function Luna:CreateWindow(WindowSettings)
 
 			Elements.UIPageLayout:JumpTo(HomeTabPage)
 
+			-- Reseta scroll para o topo ao trocar de tab
+			if Elements.Parent:IsA("ScrollingFrame") then
+				Elements.Parent.CanvasPosition = Vector2.new(0, 0)
+			end
+
 			task.wait(0.05)
 
 			for _, OtherTabButton in ipairs(Navigation.Tabs:GetChildren()) do
@@ -2719,13 +2724,13 @@ function Luna:CreateWindow(WindowSettings)
 		TabPageList.Padding = UDim.new(0, 8)
 		TabPageList.Parent = TabPage
 
-		-- Função para criar um container de 2 colunas
+		-- Função para criar um container de 2 colunas com sincronização de altura
 		local function makeColumnsContainer(parent)
 			local container = Instance.new("Frame")
 			container.Name = "ColumnsContainer"
 			container.BackgroundTransparency = 1
 			container.Size = UDim2.new(1, 0, 0, 0)
-			container.AutomaticSize = Enum.AutomaticSize.Y
+			container.AutomaticSize = Enum.AutomaticSize.None
 			container.Parent = parent
 
 			local function makeColumn(name, xScale, xOffset)
@@ -2743,7 +2748,19 @@ function Luna:CreateWindow(WindowSettings)
 				return col
 			end
 
-			return container, makeColumn("ColumnLeft", 0, 0), makeColumn("ColumnRight", 0.5, 6)
+			local colLeft = makeColumn("ColumnLeft", 0, 0)
+			local colRight = makeColumn("ColumnRight", 0.5, 6)
+
+			-- Sincroniza a altura do container com a coluna mais alta
+			local function syncHeight()
+				local h = math.max(colLeft.AbsoluteSize.Y, colRight.AbsoluteSize.Y)
+				container.Size = UDim2.new(1, 0, 0, h)
+			end
+
+			colLeft:GetPropertyChangedSignal("AbsoluteSize"):Connect(syncHeight)
+			colRight:GetPropertyChangedSignal("AbsoluteSize"):Connect(syncHeight)
+
+			return container, colLeft, colRight
 		end
 
 		-- Container padrão do Tab (elementos fora de sections)
@@ -2754,6 +2771,7 @@ function Luna:CreateWindow(WindowSettings)
 		Tab.ColumnRight = ColumnRight
 		Tab._makeColumnsContainer = makeColumnsContainer
 		Tab._tabPage = TabPage
+		Tab._layoutCounter = 1  -- Contador de LayoutOrder para sections e dividers no TabPage
 
 		TabPage.Parent = Elements
 
@@ -2763,6 +2781,11 @@ function Luna:CreateWindow(WindowSettings)
 			tween(TabButton.UIStroke, {Transparency = 0.41})
 
 			Elements.UIPageLayout:JumpTo(TabPage)
+
+			-- Reseta scroll para o topo ao trocar de tab
+			if Elements.Parent:IsA("ScrollingFrame") then
+				Elements.Parent.CanvasPosition = Vector2.new(0, 0)
+			end
 
 			task.wait(0.05)
 
@@ -2805,7 +2828,8 @@ function Luna:CreateWindow(WindowSettings)
 			SectionWrapper.BackgroundTransparency = 1
 			SectionWrapper.Size = UDim2.new(1, 0, 0, 0)
 			SectionWrapper.AutomaticSize = Enum.AutomaticSize.Y
-			SectionWrapper.LayoutOrder = #Tab._tabPage:GetChildren()
+			Tab._layoutCounter = Tab._layoutCounter + 1
+			SectionWrapper.LayoutOrder = Tab._layoutCounter
 			SectionWrapper.Parent = Tab._tabPage
 
 			local WrapperList = Instance.new("UIListLayout")
@@ -2828,6 +2852,7 @@ function Luna:CreateWindow(WindowSettings)
 
 			Section.ColumnLeft = ColLeft
 			Section.ColumnRight = ColRight
+			Section._layoutCounter = 0  -- Contador para elementos dentro das colunas da section
 
 			Sectiont.TextTransparency = 1
 			tween(Sectiont, {TextTransparency = 0})
@@ -2844,7 +2869,8 @@ function Luna:CreateWindow(WindowSettings)
 			function Section:CreateDivider()
 				local b = Elements.Template.Divider:Clone()
 				b.Size = UDim2.new(1, 0, 0, 18)
-				b.LayoutOrder = #Section.ColumnLeft:GetChildren() + #Section.ColumnRight:GetChildren()
+				Section._layoutCounter = Section._layoutCounter + 1
+				b.LayoutOrder = Section._layoutCounter
 				b.Parent = Section.ColumnLeft
 				b.Line.BackgroundTransparency = 1
 				tween(b.Line, {BackgroundTransparency = 0})
@@ -2869,7 +2895,7 @@ function Luna:CreateWindow(WindowSettings)
 
 
 				local Button
-				if ButtonSettings.Description == nil and ButtonSettings.Description ~= "" then
+				if ButtonSettings.Description == nil or ButtonSettings.Description == "" then
 					Button = Elements.Template.Button:Clone()
 				else
 					Button = Elements.Template.ButtonDesc:Clone()
@@ -4439,7 +4465,8 @@ function Luna:CreateWindow(WindowSettings)
 		function Tab:CreateDivider()
 			local b = Elements.Template.Divider:Clone()
 			b.Size = UDim2.new(1, 0, 0, 18)
-			b.LayoutOrder = #Tab._tabPage:GetChildren()
+			Tab._layoutCounter = Tab._layoutCounter + 1
+			b.LayoutOrder = Tab._layoutCounter
 			b.Parent = Tab._tabPage
 			b.Line.BackgroundTransparency = 1
 			tween(b.Line, {BackgroundTransparency = 0})
@@ -4464,7 +4491,7 @@ function Luna:CreateWindow(WindowSettings)
 
 
 			local Button
-			if ButtonSettings.Description == nil and ButtonSettings.Description ~= "" then
+			if ButtonSettings.Description == nil or ButtonSettings.Description == "" then
 				Button = Elements.Template.Button:Clone()
 			else
 				Button = Elements.Template.ButtonDesc:Clone()
@@ -6702,6 +6729,14 @@ function Luna:CreateWindow(WindowSettings)
 
 	Elements.Parent.Visible = true
 	tween(Elements.Parent, {BackgroundTransparency = 0.1})
+
+	-- Habilita scroll automático no ScrollingFrame
+	if Elements.Parent:IsA("ScrollingFrame") then
+		Elements.Parent.AutomaticCanvasSize = Enum.AutomaticSize.Y
+		Elements.Parent.CanvasSize = UDim2.new(0, 0, 0, 0)
+		Elements.Parent.ScrollBarThickness = 4
+		Elements.Parent.ScrollingEnabled = true
+	end
 	Navigation.Visible = true
 	tween(Navigation.Line, {BackgroundTransparency = 0})
 
