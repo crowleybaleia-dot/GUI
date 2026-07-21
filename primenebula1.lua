@@ -1924,6 +1924,44 @@ local Elements = Main.Elements.Interactions
 local LoadingFrame = Main.LoadingFrame
 local Navigation = Main.Navigation
 local Tabs = Navigation.Tabs
+-- Fix: habilita scroll vertical nas abas da Navigation
+do
+	local tabsParent = Navigation.Tabs.Parent
+	local originalTabs = Navigation.Tabs
+
+	if not originalTabs:IsA("ScrollingFrame") then
+		local sf = Instance.new("ScrollingFrame")
+		sf.Name = originalTabs.Name
+		sf.Size = originalTabs.Size
+		sf.Position = originalTabs.Position
+		sf.AnchorPoint = originalTabs.AnchorPoint
+		sf.BackgroundTransparency = originalTabs.BackgroundTransparency
+		sf.BackgroundColor3 = originalTabs.BackgroundColor3
+		sf.BorderSizePixel = 0
+		sf.ScrollBarThickness = 0
+		sf.ScrollingDirection = Enum.ScrollingDirection.Y
+		sf.AutomaticCanvasSize = Enum.AutomaticSize.Y
+		sf.CanvasSize = UDim2.new(0, 0, 0, 0)
+		sf.ScrollBarImageTransparency = 1
+		sf.ElasticBehavior = Enum.ElasticBehavior.Never
+		sf.Parent = tabsParent
+
+		for _, child in ipairs(originalTabs:GetChildren()) do
+			child.Parent = sf
+		end
+
+		originalTabs:Destroy()
+		Navigation.Tabs = sf
+		Tabs = sf
+	else
+		originalTabs.ScrollBarThickness = 0
+		originalTabs.ScrollingDirection = Enum.ScrollingDirection.Y
+		originalTabs.AutomaticCanvasSize = Enum.AutomaticSize.Y
+		originalTabs.CanvasSize = UDim2.new(0, 0, 0, 0)
+		originalTabs.ScrollBarImageTransparency = 1
+		originalTabs.ElasticBehavior = Enum.ElasticBehavior.Never
+	end
+end
 local Notifications = LunaUI.Notifications
 local KeySystem : Frame = Main.KeySystem
 
