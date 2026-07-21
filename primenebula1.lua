@@ -2707,35 +2707,53 @@ function Luna:CreateWindow(WindowSettings)
 			end
 		end
 
-		-- 2 colunas
+		-- Layout vertical do TabPage
 		for _, v in ipairs(TabPage:GetChildren()) do
 			if v:IsA("UIListLayout") or v:IsA("UIGridLayout") then
 				v:Destroy()
 			end
 		end
 
-		local function makeColumn(name, xScale, xOffset)
-			local col = Instance.new("Frame")
-			col.Name = name
-			col.BackgroundTransparency = 1
-			col.Size = UDim2.new(0.5, -3, 0, 0)
-			col.AutomaticSize = Enum.AutomaticSize.Y
-			col.Position = UDim2.new(xScale, xOffset, 0, 0)
-			col.Parent = TabPage
+		local TabPageList = Instance.new("UIListLayout")
+		TabPageList.SortOrder = Enum.SortOrder.LayoutOrder
+		TabPageList.Padding = UDim.new(0, 8)
+		TabPageList.Parent = TabPage
 
-			local list = Instance.new("UIListLayout")
-			list.SortOrder = Enum.SortOrder.LayoutOrder
-			list.Padding = UDim.new(0, 6)
-			list.Parent = col
+		-- Função para criar um container de 2 colunas
+		local function makeColumnsContainer(parent)
+			local container = Instance.new("Frame")
+			container.Name = "ColumnsContainer"
+			container.BackgroundTransparency = 1
+			container.Size = UDim2.new(1, 0, 0, 0)
+			container.AutomaticSize = Enum.AutomaticSize.Y
+			container.Parent = parent
 
-			return col
+			local function makeColumn(name, xScale, xOffset)
+				local col = Instance.new("Frame")
+				col.Name = name
+				col.BackgroundTransparency = 1
+				col.Size = UDim2.new(0.5, -3, 0, 0)
+				col.AutomaticSize = Enum.AutomaticSize.Y
+				col.Position = UDim2.new(xScale, xOffset, 0, 0)
+				col.Parent = container
+				local list = Instance.new("UIListLayout")
+				list.SortOrder = Enum.SortOrder.LayoutOrder
+				list.Padding = UDim.new(0, 6)
+				list.Parent = col
+				return col
+			end
+
+			return container, makeColumn("ColumnLeft", 0, 0), makeColumn("ColumnRight", 0.5, 6)
 		end
 
-		local ColumnLeft = makeColumn("ColumnLeft", 0, 0)
-		local ColumnRight = makeColumn("ColumnRight", 0.5, 6)
+		-- Container padrão do Tab (elementos fora de sections)
+		local DefaultContainer, ColumnLeft, ColumnRight = makeColumnsContainer(TabPage)
+		DefaultContainer.LayoutOrder = 0
 
 		Tab.ColumnLeft = ColumnLeft
 		Tab.ColumnRight = ColumnRight
+		Tab._makeColumnsContainer = makeColumnsContainer
+		Tab._tabPage = TabPage
 
 		TabPage.Parent = Elements
 
@@ -2773,7 +2791,7 @@ function Luna:CreateWindow(WindowSettings)
 		FirstTab = false
 
 		-- Section
-		function Tab:CreateSection(name : string)
+		function Tab:CreateSection(name)
 
 			local Section = {}
 
@@ -2781,44 +2799,35 @@ function Luna:CreateWindow(WindowSettings)
 
 			Section.Name = name
 
+			-- Container wrapper da section (vai no TabPage com UIListLayout)
+			local SectionWrapper = Instance.new("Frame")
+			SectionWrapper.Name = "Section_" .. name
+			SectionWrapper.BackgroundTransparency = 1
+			SectionWrapper.Size = UDim2.new(1, 0, 0, 0)
+			SectionWrapper.AutomaticSize = Enum.AutomaticSize.Y
+			SectionWrapper.LayoutOrder = #Tab._tabPage:GetChildren()
+			SectionWrapper.Parent = Tab._tabPage
+
+			local WrapperList = Instance.new("UIListLayout")
+			WrapperList.SortOrder = Enum.SortOrder.LayoutOrder
+			WrapperList.Padding = UDim.new(0, 6)
+			WrapperList.Parent = SectionWrapper
+
+			-- Título da section
 			local Sectiont = Elements.Template.Section:Clone()
 			Sectiont.Text = name
 			Sectiont.Visible = true
-			Sectiont.Parent = TabPage
+			Sectiont.Size = UDim2.new(1, 0, 0, 24)
+			Sectiont.LayoutOrder = 0
+			Sectiont.Parent = SectionWrapper
 
-			print("Sectiont children:")
-			for _, v in ipairs(Sectiont:GetChildren()) do
-				print(" -", v.Name, v.ClassName)
-			end
+			-- Container das 2 colunas
+			local _, ColLeft, ColRight = Tab._makeColumnsContainer(SectionWrapper)
+			local ColContainer = SectionWrapper:FindFirstChild("ColumnsContainer")
+			if ColContainer then ColContainer.LayoutOrder = 1 end
 
-			local TabPage = Sectiont.Frame
-
-			-- 2 colunas
-			local existingList = TabPage and TabPage:FindFirstChildOfClass("UIListLayout")
-			if existingList then existingList:Destroy() end
-
-			if TabPage then
-				TabPage.AutomaticSize = Enum.AutomaticSize.Y
-				TabPage.Size = UDim2.new(1, 0, 0, 0)
-
-				local function makeSectionColumn(name, xScale, xOffset)
-					local col = Instance.new("Frame")
-					col.Name = name
-					col.BackgroundTransparency = 1
-					col.Size = UDim2.new(0.5, -3, 0, 0)
-					col.AutomaticSize = Enum.AutomaticSize.Y
-					col.Position = UDim2.new(xScale, xOffset, 0, 0)
-					col.Parent = TabPage
-					local list = Instance.new("UIListLayout")
-					list.SortOrder = Enum.SortOrder.LayoutOrder
-					list.Padding = UDim.new(0, 6)
-					list.Parent = col
-					return col
-				end
-
-				Section.ColumnLeft = makeSectionColumn("ColumnLeft", 0, 0)
-				Section.ColumnRight = makeSectionColumn("ColumnRight", 0.5, 6)
-			end
+			Section.ColumnLeft = ColLeft
+			Section.ColumnRight = ColRight
 
 			Sectiont.TextTransparency = 1
 			tween(Sectiont, {TextTransparency = 0})
@@ -2828,22 +2837,21 @@ function Luna:CreateWindow(WindowSettings)
 			end
 
 			function Section:Destroy()
-				Sectiont:Destroy()
+				SectionWrapper:Destroy()
 			end
 
 			-- Divider
 			function Section:CreateDivider()
-				TabPage.Position = UDim2.new(0,0,0,28)
 				local b = Elements.Template.Divider:Clone()
+				b.Size = UDim2.new(1, 0, 0, 18)
+				b.LayoutOrder = #Section.ColumnLeft:GetChildren() + #Section.ColumnRight:GetChildren()
 				b.Parent = Section.ColumnLeft
-				b.Size = UDim2.new(1,0,0,18)
 				b.Line.BackgroundTransparency = 1
 				tween(b.Line, {BackgroundTransparency = 0})
 			end
 
 			-- Button
 			function Section:CreateButton(ButtonSettings)
-				TabPage.Position = UDim2.new(0,0,0,28)
 
 				ButtonSettings = Kwargify({
 					Name = "Button",
@@ -2949,7 +2957,6 @@ function Luna:CreateWindow(WindowSettings)
 
 			-- Label
 			function Section:CreateLabel(LabelSettings)
-				TabPage.Position = UDim2.new(0,0,0,28)
 
 				local LabelV = {}
 
@@ -3002,7 +3009,6 @@ function Luna:CreateWindow(WindowSettings)
 
 			-- Paragraph
 			function Section:CreateParagraph(ParagraphSettings)
-				TabPage.Position = UDim2.new(0,0,0,28)
 
 				ParagraphSettings = Kwargify({
 					Title = "Paragraph",
@@ -3064,7 +3070,6 @@ function Luna:CreateWindow(WindowSettings)
 
 			-- Slider
 			function Section:CreateSlider(SliderSettings, Flag)
-				TabPage.Position = UDim2.new(0,0,0,28)
 				local SliderV = { IgnoreConfig = false, Class = "Slider", Settings = SliderSettings }
 
 				SliderSettings = Kwargify({
@@ -3263,7 +3268,6 @@ function Luna:CreateWindow(WindowSettings)
 
 			-- Toggle
 			function Section:CreateToggle(ToggleSettings, Flag)    
-				TabPage.Position = UDim2.new(0,0,0,28)
 				local ToggleV = { IgnoreConfig = false, Class = "Toggle" }
 
 				ToggleSettings = Kwargify({
@@ -3441,7 +3445,6 @@ function Luna:CreateWindow(WindowSettings)
 
 			-- Bind
 			function Section:CreateBind(BindSettings, Flag)
-				TabPage.Position = UDim2.new(0,0,0,28)
 				local BindV = { Class = "Keybind", IgnoreConfig = false, Settings = BindSettings, Active = false }
 
 				BindSettings = Kwargify({
@@ -3662,7 +3665,6 @@ function Luna:CreateWindow(WindowSettings)
 
 			-- Dynamic Input
 			function Section:CreateInput(InputSettings, Flag)
-				TabPage.Position = UDim2.new(0,0,0,28)
 				local InputV = { IgnoreConfig = false, Class = "Input", Settings = InputSettings }
 
 				InputSettings = Kwargify({
@@ -3830,7 +3832,6 @@ function Luna:CreateWindow(WindowSettings)
 
 			-- Dropdown
 			function Section:CreateDropdown(DropdownSettings, Flag)
-				TabPage.Position = UDim2.new(0,0,0,28)
 				local DropdownV = { IgnoreConfig = false, Class = "Dropdown", Settings = DropdownSettings}
 
 				DropdownSettings = Kwargify({
@@ -4184,7 +4185,6 @@ function Luna:CreateWindow(WindowSettings)
 
 			-- Color Picker
 			function Section:CreateColorPicker(ColorPickerSettings, Flag) -- by Rayfield/Throit
-				TabPage.Position = UDim2.new(0,0,0,28)
 				local ColorPickerV = {IgnoreClass = false, Class = "Colorpicker", Settings = ColorPickerSettings}
 
 				ColorPickerSettings = Kwargify({
@@ -4438,7 +4438,9 @@ function Luna:CreateWindow(WindowSettings)
 		-- Divider
 		function Tab:CreateDivider()
 			local b = Elements.Template.Divider:Clone()
-			b.Parent = Tab.ColumnLeft
+			b.Size = UDim2.new(1, 0, 0, 18)
+			b.LayoutOrder = #Tab._tabPage:GetChildren()
+			b.Parent = Tab._tabPage
 			b.Line.BackgroundTransparency = 1
 			tween(b.Line, {BackgroundTransparency = 0})
 		end
