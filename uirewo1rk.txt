@@ -199,7 +199,7 @@ NeverLose.IconColor = Color3.fromRGB(255, 255, 255);
 NeverLose.ScreenGui = GlobalWindow;
 NeverLose.Flags = {};
 NeverLose.AccentColor = Color3.fromRGB(138, 92, 246);
-NeverLose.MainColor = Color3.fromRGB(18, 18, 20);
+NeverLose.MainColor = Color3.fromRGB(10, 9, 18);
 NeverLose.RegisiteryColor = {};
 NeverLose.NameRegisitry = {};
 NeverLose.IsMosueOverOtherFrame = false;
@@ -3907,8 +3907,8 @@ function NeverLose:CreateWindow(Config)
 	WindowFrame.Name = NeverLose.RandomString();
 	WindowFrame.Parent = NeverLose.ScreenGui;
 	WindowFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-	WindowFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 20)
-	WindowFrame.BackgroundTransparency = 0.055
+	WindowFrame.BackgroundColor3 = Color3.fromRGB(10, 9, 18)
+	WindowFrame.BackgroundTransparency = 0.04
 	WindowFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	WindowFrame.BorderSizePixel = 0
 	WindowFrame.ClipsDescendants = true
@@ -3917,7 +3917,7 @@ function NeverLose:CreateWindow(Config)
 	WindowFrame.Active = true;
 
 	if not NeverLose.EnabledBlur then
-		WindowFrame.BackgroundTransparency = 0.0255
+		WindowFrame.BackgroundTransparency = 0.02
 	end;
 
 	local renderParentWindow = LPH_NO_VIRTUALIZE(function()
@@ -3952,7 +3952,7 @@ function NeverLose:CreateWindow(Config)
 	Window.SetRender = LPH_NO_VIRTUALIZE(function(self , value)
 		if value then
 			NeverLose.PlayAnimate(WindowFrame , SlowyTween , {
-				BackgroundTransparency = (NeverLose.EnabledBlur and 0.055) or 0.0255,
+				BackgroundTransparency = (NeverLose.EnabledBlur and 0.04) or 0.02,
 				Size = Window.Size
 			})
 
@@ -3993,7 +3993,7 @@ function NeverLose:CreateWindow(Config)
 			})
 
 			NeverLose.PlayAnimate(RightMenuFrame , SlowyTween , {
-				BackgroundTransparency = 0.600
+				BackgroundTransparency = 0.45
 			})
 
 			NeverLose.PlayAnimate(UIStroke , SlowyTween , {
@@ -4157,6 +4157,7 @@ function NeverLose:CreateWindow(Config)
 		NeverLose.Drag(Frame , WindowFrame , 0.15)
 	end
 
+	UICorner.CornerRadius = UDim.new(0, 14)
 	UICorner.Parent = WindowFrame
 
 	LeftMenuFrame.Name = NeverLose.RandomString();
@@ -4226,8 +4227,8 @@ function NeverLose:CreateWindow(Config)
 	LineFrame.Name = NeverLose.RandomString();
 	LineFrame.Parent = HeadFrame
 	LineFrame.AnchorPoint = Vector2.new(0.5, 1)
-	LineFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
-	LineFrame.BackgroundTransparency = 0.650
+	LineFrame.BackgroundColor3 = Color3.fromRGB(90, 50, 180)
+	LineFrame.BackgroundTransparency = 0.70
 	LineFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	LineFrame.BorderSizePixel = 0
 	LineFrame.Position = UDim2.new(0.5, 0, 1, 0)
@@ -4317,8 +4318,8 @@ function NeverLose:CreateWindow(Config)
 	LineFrame_2.Name = NeverLose.RandomString();
 	LineFrame_2.Parent = BottomFrame
 	LineFrame_2.AnchorPoint = Vector2.new(0.5, 0)
-	LineFrame_2.BackgroundColor3 = Color3.fromRGB(45, 48, 58)
-	LineFrame_2.BackgroundTransparency = 0.650
+	LineFrame_2.BackgroundColor3 = Color3.fromRGB(90, 50, 180)
+	LineFrame_2.BackgroundTransparency = 0.70
 	LineFrame_2.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	LineFrame_2.BorderSizePixel = 0
 	LineFrame_2.Position = UDim2.new(0.5, 0, 0, 0)
@@ -4355,8 +4356,8 @@ function NeverLose:CreateWindow(Config)
 
 	RightMenuFrame.Name = NeverLose.RandomString();
 	RightMenuFrame.Parent = WindowFrame
-	RightMenuFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 20)
-	RightMenuFrame.BackgroundTransparency = 0.600
+	RightMenuFrame.BackgroundColor3 = Color3.fromRGB(14, 12, 24)
+	RightMenuFrame.BackgroundTransparency = 0.45
 	RightMenuFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	RightMenuFrame.BorderSizePixel = 0
 	RightMenuFrame.ClipsDescendants = true
@@ -4364,11 +4365,11 @@ function NeverLose:CreateWindow(Config)
 	RightMenuFrame.Size = UDim2.new(1, -71, 1, 0)
 	RightMenuFrame.ZIndex = 8
 
-	UIStroke.Transparency = 0.650
-	UIStroke.Color = Color3.fromRGB(40, 40, 45)
+	UIStroke.Transparency = 0.70
+	UIStroke.Color = Color3.fromRGB(100, 60, 200)
 	UIStroke.Parent = RightMenuFrame
 
-	UICorner_4.CornerRadius = UDim.new(0, 13)
+	UICorner_4.CornerRadius = UDim.new(0, 12)
 	UICorner_4.Parent = RightMenuFrame
 
 	RightHeader.Name = NeverLose.RandomString();
@@ -4383,8 +4384,8 @@ function NeverLose:CreateWindow(Config)
 	LineFrame_3.Name = NeverLose.RandomString();
 	LineFrame_3.Parent = RightHeader
 	LineFrame_3.AnchorPoint = Vector2.new(0.5, 1)
-	LineFrame_3.BackgroundColor3 = Color3.fromRGB(45, 48, 58)
-	LineFrame_3.BackgroundTransparency = 0.650
+	LineFrame_3.BackgroundColor3 = Color3.fromRGB(90, 50, 180)
+	LineFrame_3.BackgroundTransparency = 0.72
 	LineFrame_3.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	LineFrame_3.BorderSizePixel = 0
 	LineFrame_3.Position = UDim2.new(0.5, 0, 1, 0)
@@ -4394,16 +4395,16 @@ function NeverLose:CreateWindow(Config)
 	ConfigFrame.Name = NeverLose.RandomString();
 	ConfigFrame.Parent = RightHeader
 	ConfigFrame.AnchorPoint = Vector2.new(0, 0.5)
-	ConfigFrame.BackgroundColor3 = Color3.fromRGB(13, 17, 22)
-	ConfigFrame.BackgroundTransparency = 0.750
+	ConfigFrame.BackgroundColor3 = Color3.fromRGB(20, 14, 38)
+	ConfigFrame.BackgroundTransparency = 0.60
 	ConfigFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	ConfigFrame.BorderSizePixel = 0
 	ConfigFrame.Position = UDim2.new(0, 10, 0.5, 0)
 	ConfigFrame.Size = UDim2.new(0, 115, 0, 30)
 	ConfigFrame.ZIndex = 9
 
-	UIStroke_2.Transparency = 0.650
-	UIStroke_2.Color = Color3.fromRGB(45, 48, 58)
+	UIStroke_2.Transparency = 0.60
+	UIStroke_2.Color = Color3.fromRGB(100, 60, 200)
 	UIStroke_2.Parent = ConfigFrame
 
 	UICorner_5.CornerRadius = UDim.new(0, 4)
@@ -4742,14 +4743,14 @@ function NeverLose:CreateWindow(Config)
 
 		TabButton.Name = NeverLose.RandomString();
 		TabButton.Parent = LeftScrollingFrame
-		TabButton.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
-		TabButton.BackgroundTransparency = 0.500
+		TabButton.BackgroundColor3 = Color3.fromRGB(30, 20, 55)
+		TabButton.BackgroundTransparency = 0.55
 		TabButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		TabButton.BorderSizePixel = 0
 		TabButton.Size = UDim2.new(1, -8, 0, 38)
 		TabButton.ZIndex = 8
 
-		UICorner.CornerRadius = UDim.new(0, 6)
+		UICorner.CornerRadius = UDim.new(0, 10)
 		UICorner.Parent = TabButton
 
 		TabIcon.Name = NeverLose.RandomString();
@@ -4874,7 +4875,7 @@ function NeverLose:CreateWindow(Config)
 
 			if value then
 				NeverLose.PlayAnimate(TabButton , SlowyTween , {
-					BackgroundTransparency = 0.500
+					BackgroundTransparency = 0.30
 				})
 
 				NeverLose.PlayAnimate(TabIcon , SlowyTween , {
@@ -4887,12 +4888,12 @@ function NeverLose:CreateWindow(Config)
 				})
 			else
 				NeverLose.PlayAnimate(TabButton , SlowyTween , {
-					BackgroundTransparency = 1
+					BackgroundTransparency = 0.85
 				})
 
 				NeverLose.PlayAnimate(TabIcon , SlowyTween , {
-					TextTransparency = 0.5,
-					TextColor3 = Color3.fromRGB(252, 252, 252)
+					TextTransparency = 0.55,
+					TextColor3 = Color3.fromRGB(200, 190, 220)
 				})
 
 				NeverLose.PlayAnimate(TabContentLabel , SlowyTween , {
@@ -4923,11 +4924,11 @@ function NeverLose:CreateWindow(Config)
 		NeverLose:AddSignal(over.MouseEnter:Connect(LPH_NO_VIRTUALIZE(function()
 			if Window.Tabs[Window.CurrentTab] == Tab then
 				NeverLose.PlayAnimate(TabButton , SlowyTween , {
-					BackgroundTransparency = 0.500
+					BackgroundTransparency = 0.30
 				})
 			else
 				NeverLose.PlayAnimate(TabButton , SlowyTween , {
-					BackgroundTransparency = 0.8
+					BackgroundTransparency = 0.65
 				})
 			end;
 		end)))
@@ -4935,11 +4936,11 @@ function NeverLose:CreateWindow(Config)
 		NeverLose:AddSignal(over.MouseLeave:Connect(LPH_NO_VIRTUALIZE(function()
 			if Window.Tabs[Window.CurrentTab] == Tab then
 				NeverLose.PlayAnimate(TabButton , SlowyTween , {
-					BackgroundTransparency = 0.500
+					BackgroundTransparency = 0.30
 				})
 			else
 				NeverLose.PlayAnimate(TabButton , SlowyTween , {
-					BackgroundTransparency = 1
+					BackgroundTransparency = 0.85
 				})
 			end;
 		end)))
@@ -5011,8 +5012,8 @@ function NeverLose:CreateWindow(Config)
 			SectionHandler.Name = NeverLose.RandomString();
 			SectionHandler.Parent = SectionFrame
 			SectionHandler.AnchorPoint = Vector2.new(0.5, 0)
-			SectionHandler.BackgroundColor3 = Color3.fromRGB(25, 25, 28)
-			SectionHandler.BackgroundTransparency = 0.300
+			SectionHandler.BackgroundColor3 = Color3.fromRGB(22, 16, 40)
+			SectionHandler.BackgroundTransparency = 0.25
 			SectionHandler.BorderColor3 = Color3.fromRGB(0, 0, 0)
 			SectionHandler.BorderSizePixel = 0
 			SectionHandler.ClipsDescendants = true
@@ -5020,11 +5021,11 @@ function NeverLose:CreateWindow(Config)
 			SectionHandler.Size = UDim2.new(1, -10, 1, -21)
 			SectionHandler.ZIndex = 9
 
-			UIStroke.Transparency = 0.750
-			UIStroke.Color = Color3.fromRGB(40, 40, 45)
+			UIStroke.Transparency = 0.68
+			UIStroke.Color = Color3.fromRGB(100, 60, 200)
 			UIStroke.Parent = SectionHandler
 
-			UICorner.CornerRadius = UDim.new(0, 8)
+			UICorner.CornerRadius = UDim.new(0, 12)
 			UICorner.Parent = SectionHandler
 
 			UIListLayout.Parent = SectionHandler
