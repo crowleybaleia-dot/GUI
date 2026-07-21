@@ -4174,7 +4174,7 @@ function NeverLose:CreateWindow(Config)
 	HeadFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	HeadFrame.BorderSizePixel = 0
 	HeadFrame.Size = UDim2.new(1, 0, 0, 50)
-	HeadFrame.ZIndex = 7
+	HeadFrame.ZIndex = 9
 
 	LogoImage.Name = NeverLose.RandomString();
 	LogoImage.Parent = HeadFrame
@@ -4185,13 +4185,21 @@ function NeverLose:CreateWindow(Config)
 	LogoImage.BorderSizePixel = 0
 	LogoImage.Position = UDim2.new(0, 10, 0.5, 0)
 	LogoImage.Size = UDim2.new(0, 35, 0, 35)
-	LogoImage.ZIndex = 7
-	LogoImage.Image = Window.Logo
+	LogoImage.ZIndex = 9
+	LogoImage.Image = NeverLose.GlobalLogo
 	LogoImage.ImageColor3 = NeverLose.IconColor
 	LogoImage.ScaleType = Enum.ScaleType.Fit
 
 	UICorner_2.CornerRadius = UDim.new(0, 7)
 	UICorner_2.Parent = LogoImage
+
+	-- Atualiza o logo quando o asset terminar de baixar
+	task.spawn(function()
+		task.wait(3)
+		if NeverLose.GlobalLogo ~= LogoImage.Image then
+			LogoImage.Image = NeverLose.GlobalLogo
+		end
+	end)
 
 	WindowName.Name = NeverLose.RandomString();
 	WindowName.Parent = HeadFrame
