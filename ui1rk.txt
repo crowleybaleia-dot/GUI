@@ -4165,10 +4165,11 @@ function NeverLose:CreateWindow(Config)
 	LeftMenuFrame.BackgroundTransparency = 1.000
 	LeftMenuFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	LeftMenuFrame.BorderSizePixel = 0
-	LeftMenuFrame.Size = UDim2.new(0, 70, 1, 0)
+	LeftMenuFrame.Size = UDim2.new(0, 70, 1, -50)
+	LeftMenuFrame.Position = UDim2.new(0, 0, 0, 50)
 
 	HeadFrame.Name = NeverLose.RandomString();
-	HeadFrame.Parent = LeftMenuFrame
+	HeadFrame.Parent = WindowFrame
 	HeadFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 	HeadFrame.BackgroundTransparency = 1.000
 	HeadFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
@@ -4208,7 +4209,7 @@ function NeverLose:CreateWindow(Config)
 	WindowName.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	WindowName.BorderSizePixel = 0
 	WindowName.Position = UDim2.new(0, 55, 0, 4)
-	WindowName.Size = UDim2.new(0, 200, 0, 25)
+	WindowName.Size = UDim2.new(0.4, 0, 0, 25)
 	WindowName.ZIndex = 7
 	WindowName.Font = Enum.Font.GothamBold
 	WindowName.Text = Window.Name
@@ -4223,7 +4224,7 @@ function NeverLose:CreateWindow(Config)
 	WindowContent.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	WindowContent.BorderSizePixel = 0
 	WindowContent.Position = UDim2.new(0, 55, 0, 25)
-	WindowContent.Size = UDim2.new(0, 200, 0, 15)
+	WindowContent.Size = UDim2.new(0.4, 0, 0, 15)
 	WindowContent.ZIndex = 7
 	WindowContent.Font = Enum.Font.GothamBold
 	WindowContent.Text = Window.Content
@@ -4251,8 +4252,8 @@ function NeverLose:CreateWindow(Config)
 	LeftScrollingFrame.BackgroundTransparency = 1.000
 	LeftScrollingFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	LeftScrollingFrame.BorderSizePixel = 0
-	LeftScrollingFrame.Position = UDim2.new(0.5, 0, 0, 60)
-	LeftScrollingFrame.Size = UDim2.new(1, -10, 1, -115)
+	LeftScrollingFrame.Position = UDim2.new(0.5, 0, 0, 10)
+	LeftScrollingFrame.Size = UDim2.new(1, -10, 1, -65)
 	LeftScrollingFrame.ZIndex = 7
 	LeftScrollingFrame.ScrollBarThickness = 0
 
@@ -4369,8 +4370,8 @@ function NeverLose:CreateWindow(Config)
 	RightMenuFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	RightMenuFrame.BorderSizePixel = 0
 	RightMenuFrame.ClipsDescendants = true
-	RightMenuFrame.Position = UDim2.new(0, 71, 0, 0)
-	RightMenuFrame.Size = UDim2.new(1, -71, 1, 0)
+	RightMenuFrame.Position = UDim2.new(0, 71, 0, 50)
+	RightMenuFrame.Size = UDim2.new(1, -71, 1, -50)
 	RightMenuFrame.ZIndex = 8
 
 	UIStroke.Transparency = 0.650
