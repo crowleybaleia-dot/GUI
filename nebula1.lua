@@ -2704,6 +2704,19 @@ function Luna:CreateWindow(WindowSettings)
 				TemplateElement:Destroy()
 			end
 		end
+
+		-- 2 colunas
+		for _, v in ipairs(TabPage:GetChildren()) do
+			if v:IsA("UIListLayout") or v:IsA("UIGridLayout") then
+				v:Destroy()
+			end
+		end
+		local grid = Instance.new("UIGridLayout")
+		grid.CellSize = UDim2.new(0.5, -4, 0, 38)
+		grid.CellPadding = UDim2.new(0, 6, 0, 6)
+		grid.SortOrder = Enum.SortOrder.LayoutOrder
+		grid.Parent = TabPage
+
 		TabPage.Parent = Elements
 
 		function Tab:Activate()
@@ -2752,17 +2765,25 @@ function Luna:CreateWindow(WindowSettings)
 			Sectiont.Text = name
 			Sectiont.Visible = true
 			Sectiont.Parent = TabPage
+
+			print("Sectiont children:")
+			for _, v in ipairs(Sectiont:GetChildren()) do
+				print(" -", v.Name, v.ClassName)
+			end
+
 			local TabPage = Sectiont.Frame
 
 			-- 2 colunas
-			local existingList = TabPage:FindFirstChildOfClass("UIListLayout")
+			local existingList = TabPage and TabPage:FindFirstChildOfClass("UIListLayout")
 			if existingList then existingList:Destroy() end
 
-			local grid = Instance.new("UIGridLayout")
-			grid.CellSize = UDim2.new(0.5, -4, 0, 38)
-			grid.CellPadding = UDim2.new(0, 6, 0, 6)
-			grid.SortOrder = Enum.SortOrder.LayoutOrder
-			grid.Parent = TabPage
+			if TabPage then
+				local grid = Instance.new("UIGridLayout")
+				grid.CellSize = UDim2.new(0.5, -4, 0, 38)
+				grid.CellPadding = UDim2.new(0, 6, 0, 6)
+				grid.SortOrder = Enum.SortOrder.LayoutOrder
+				grid.Parent = TabPage
+			end
 
 			Sectiont.TextTransparency = 1
 			tween(Sectiont, {TextTransparency = 0})
