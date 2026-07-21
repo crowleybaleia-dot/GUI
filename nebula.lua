@@ -2711,11 +2711,28 @@ function Luna:CreateWindow(WindowSettings)
 				v:Destroy()
 			end
 		end
-		local grid = Instance.new("UIGridLayout")
-		grid.CellSize = UDim2.new(0.5, -4, 0, 38)
-		grid.CellPadding = UDim2.new(0, 6, 0, 6)
-		grid.SortOrder = Enum.SortOrder.LayoutOrder
-		grid.Parent = TabPage
+
+		local function makeColumn(name, xScale, xOffset)
+			local col = Instance.new("Frame")
+			col.Name = name
+			col.BackgroundTransparency = 1
+			col.Size = UDim2.new(0.5, -3, 1, 0)
+			col.Position = UDim2.new(xScale, xOffset, 0, 0)
+			col.Parent = TabPage
+
+			local list = Instance.new("UIListLayout")
+			list.SortOrder = Enum.SortOrder.LayoutOrder
+			list.Padding = UDim.new(0, 6)
+			list.Parent = col
+
+			return col
+		end
+
+		local ColumnLeft = makeColumn("ColumnLeft", 0, 0)
+		local ColumnRight = makeColumn("ColumnRight", 0.5, 6)
+
+		Tab.ColumnLeft = ColumnLeft
+		Tab.ColumnRight = ColumnRight
 
 		TabPage.Parent = Elements
 
@@ -2800,7 +2817,7 @@ function Luna:CreateWindow(WindowSettings)
 			function Section:CreateDivider()
 				TabPage.Position = UDim2.new(0,0,0,28)
 				local b = Elements.Template.Divider:Clone()
-				b.Parent = TabPage
+				b.Parent = Tab.ColumnLeft
 				b.Size = UDim2.new(1,0,0,18)
 				b.Line.BackgroundTransparency = 1
 				tween(b.Line, {BackgroundTransparency = 0})
@@ -2813,6 +2830,7 @@ function Luna:CreateWindow(WindowSettings)
 				ButtonSettings = Kwargify({
 					Name = "Button",
 					Description = nil,
+					Column = 1,
 					Callback = function()
 
 					end,
@@ -2836,7 +2854,7 @@ function Luna:CreateWindow(WindowSettings)
 					Button.Desc.Text = ButtonSettings.Description
 				end
 				Button.Visible = true
-				Button.Parent = TabPage
+				Button.Parent = (ButtonSettings.Column == 2) and Tab.ColumnRight or Tab.ColumnLeft
 
 				Button.UIStroke.Transparency = 1
 				Button.Title.TextTransparency = 1
@@ -2919,7 +2937,8 @@ function Luna:CreateWindow(WindowSettings)
 
 				LabelSettings = Kwargify({
 					Text = "Label",
-					Style = 1
+					Style = 1,
+					Column = 1
 				}, LabelSettings or {}) 
 
 				LabelV.Settings = LabelSettings
@@ -2935,7 +2954,7 @@ function Luna:CreateWindow(WindowSettings)
 
 				Label.Text.Text = LabelSettings.Text
 				Label.Visible = true
-				Label.Parent = TabPage
+				Label.Parent = (LabelSettings.Column == 2) and Tab.ColumnRight or Tab.ColumnLeft
 
 				Label.BackgroundTransparency = 1
 				Label.UIStroke.Transparency = 1
@@ -2970,6 +2989,7 @@ function Luna:CreateWindow(WindowSettings)
 				ParagraphSettings = Kwargify({
 					Title = "Paragraph",
 					Text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus venenatis lacus sed tempus eleifend. Mauris interdum bibendum felis, in tempor augue egestas vel. Praesent tristique consectetur ex, eu pretium sem placerat non. Vestibulum a nisi sit amet augue facilisis consectetur sit amet et nunc. Integer fermentum ornare cursus. Pellentesque sed ultricies metus, ut egestas metus. Vivamus auctor erat ac sapien vulputate, nec ultricies sem tempor. Quisque leo lorem, faucibus nec pulvinar nec, congue eu velit. Duis sodales massa efficitur imperdiet ultrices. Donec eros ipsum, ornare pharetra purus aliquam, tincidunt elementum nisi. Ut mi tortor, feugiat eget nunc vitae, facilisis interdum dui. Vivamus ullamcorper nunc dui, a dapibus nisi pretium ac. Integer eleifend placerat nibh, maximus malesuada tellus. Cras in justo in ligula scelerisque suscipit vel vitae quam."
+					Column = 1,
 				}, ParagraphSettings or {})
 
 				local ParagraphV = {
@@ -2980,7 +3000,7 @@ function Luna:CreateWindow(WindowSettings)
 				Paragraph.Title.Text = ParagraphSettings.Title
 				Paragraph.Text.Text = ParagraphSettings.Text
 				Paragraph.Visible = true
-				Paragraph.Parent = TabPage
+				Paragraph.Parent = (ParagraphSettings.Column == 2) and Tab.ColumnRight or Tab.ColumnLeft
 
 				Paragraph.BackgroundTransparency = 1
 				Paragraph.UIStroke.Transparency = 1
@@ -3034,6 +3054,7 @@ function Luna:CreateWindow(WindowSettings)
 					Range = {0, 200},
 					Increment = 1,
 					CurrentValue = 100,
+					Column = 1,
 					Callback = function(Value)
 
 					end,
@@ -3044,7 +3065,7 @@ function Luna:CreateWindow(WindowSettings)
 				Slider.Name = SliderSettings.Name .. " - Slider"
 				Slider.Title.Text = SliderSettings.Name
 				Slider.Visible = true
-				Slider.Parent = TabPage
+				Slider.Parent = (SliderSettings.Column == 2) and Tab.ColumnRight or Tab.ColumnLeft
 
 				Slider.BackgroundTransparency = 1
 				Slider.UIStroke.Transparency = 1
@@ -3231,6 +3252,7 @@ function Luna:CreateWindow(WindowSettings)
 					Name = "Toggle",
 					Description = nil,
 					CurrentValue = false,
+					Column = 1,
 					Callback = function(Value)
 					end,
 				}, ToggleSettings or {})
@@ -3245,7 +3267,7 @@ function Luna:CreateWindow(WindowSettings)
 				end
 
 				Toggle.Visible = true
-				Toggle.Parent = TabPage
+				Toggle.Parent = (ToggleSettings.Column == 2) and Tab.ColumnRight or Tab.ColumnLeft
 
 				Toggle.Name = ToggleSettings.Name .. " - Toggle"
 				Toggle.Title.Text = ToggleSettings.Name
@@ -3408,6 +3430,7 @@ function Luna:CreateWindow(WindowSettings)
 					Name = "Bind",
 					Description = nil,
 					CurrentBind = "Q",
+					Column = 1,
 					HoldToInteract = false, -- setting this makes the Bind in toggle mode
 					Callback = function(Bind)
 						-- The function that takes place when the Bind is pressed
@@ -3430,7 +3453,7 @@ function Luna:CreateWindow(WindowSettings)
 				end
 
 				Bind.Visible = true
-				Bind.Parent = TabPage
+				Bind.Parent = (BindSettings.Column == 2) and Tab.ColumnRight or Tab.ColumnLeft
 
 				Bind.Name = BindSettings.Name
 				Bind.Title.Text = BindSettings.Name
@@ -3632,6 +3655,7 @@ function Luna:CreateWindow(WindowSettings)
 					RemoveTextAfterFocusLost = false,
 					Numeric = false,
 					Enter = false,
+					Column = 1,
 					MaxCharacters = nil,
 					Callback = function(Text)
 
@@ -3656,7 +3680,7 @@ function Luna:CreateWindow(WindowSettings)
 				Input.Title.Text = InputSettings.Name
 				if descriptionbool then Input.Desc.Text = InputSettings.Description end
 				Input.Visible = true
-				Input.Parent = TabPage
+				Input.Parent = (InputSettings.Column == 2) and Tab.ColumnRight or Tab.ColumnLeft
 
 				Input.BackgroundTransparency = 1
 				Input.UIStroke.Transparency = 1
@@ -3797,6 +3821,7 @@ function Luna:CreateWindow(WindowSettings)
 					Options = {"Option 1", "Option 2"},
 					CurrentOption = {"Option 1"},
 					MultipleOptions = false,
+					Column = 1,
 					SpecialType = nil, -- currently onl player, might add more soon
 					Callback = function(Options)
 						-- The function that takes place when the selected option is changed
@@ -3828,7 +3853,7 @@ function Luna:CreateWindow(WindowSettings)
 				Dropdown.Title.Text = DropdownSettings.Name
 				if descriptionbool then Dropdown.Desc.Text = DropdownSettings.Description end
 
-				Dropdown.Parent = TabPage
+				Dropdown.Parent = (DropdownSettings.Column == 2) and Tab.ColumnRight or Tab.ColumnLeft
 				Dropdown.Visible = true
 
 				local function Toggle()
@@ -4147,6 +4172,7 @@ function Luna:CreateWindow(WindowSettings)
 				ColorPickerSettings = Kwargify({
 					Name = "Color Picker",
 					Color = Color3.fromRGB(255,255,255),
+					Column = 1,
 					Callback = function(Value)
 						-- The function that takes place every time the color picker is moved/changed
 						-- The variable (Value) is a Color3fromRGB value based on which color is selected
@@ -4171,7 +4197,7 @@ function Luna:CreateWindow(WindowSettings)
 				ColorPicker.Name = ColorPickerSettings.Name
 				ColorPicker.Title.Text = ColorPickerSettings.Name
 				ColorPicker.Visible = true
-				ColorPicker.Parent = TabPage
+				ColorPicker.Parent = (ColorPickerSettings.Column == 2) and Tab.ColumnRight or Tab.ColumnLeft
 				ColorPicker.Size = UDim2.new(1.042, -25,0, 38)
 				Background.Size = closedsize
 				Display.BackgroundTransparency = 0
