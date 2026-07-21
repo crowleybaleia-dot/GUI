@@ -198,7 +198,7 @@ NeverLose.Scales = {
 NeverLose.IconColor = Color3.fromRGB(255, 255, 255);
 NeverLose.ScreenGui = GlobalWindow;
 NeverLose.Flags = {};
-NeverLose.AccentColor = Color3.fromRGB(160, 130, 220);
+NeverLose.AccentColor = Color3.fromRGB(138, 92, 246);
 NeverLose.MainColor = Color3.fromRGB(18, 18, 20);
 NeverLose.RegisiteryColor = {};
 NeverLose.NameRegisitry = {};
@@ -3626,7 +3626,7 @@ function NeverLose:RegisiterItem(Frame: Frame , Signel)
 		Icon.ZIndex = LayerIndex + 9
 		Icon.FontFace = NeverLose.BuiltInBold
 		Icon.Text = Config.Icon
-		Icon.TextColor3 = Color3.fromRGB(160, 130, 220)
+		Icon.TextColor3 = Color3.fromRGB(138, 92, 246)
 		Icon.TextSize = 16.000
 		Icon.TextTransparency = 0.150
 		Icon.TextWrapped = true
