@@ -6774,6 +6774,8 @@ function Luna:CreateWindow(WindowSettings)
 		Elements.Parent.CanvasSize = UDim2.new(0, 0, 0, 0)
 		Elements.Parent.ScrollBarThickness = 4
 		Elements.Parent.ScrollingEnabled = true
+		Elements.Parent.ScrollingDirection = Enum.ScrollingDirection.Y
+		Elements.Parent.ElasticBehavior = Enum.ElasticBehavior.Never
 	end
 	Navigation.Visible = true
 	tween(Navigation.Line, {BackgroundTransparency = 0})
