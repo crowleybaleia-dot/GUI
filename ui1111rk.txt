@@ -4424,12 +4424,12 @@ function NeverLose:CreateWindow(Config)
 	LineFrame_3.Name = NeverLose.RandomString();
 	LineFrame_3.Parent = RightHeader
 	LineFrame_3.AnchorPoint = Vector2.new(0.5, 1)
-	LineFrame_3.BackgroundColor3 = Color3.fromRGB(45, 48, 58)
-	LineFrame_3.BackgroundTransparency = 0.650
+	LineFrame_3.BackgroundColor3 = Color3.fromRGB(35, 35, 42)
+	LineFrame_3.BackgroundTransparency = 0
 	LineFrame_3.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	LineFrame_3.BorderSizePixel = 0
 	LineFrame_3.Position = UDim2.new(0.5, 0, 1, 0)
-	LineFrame_3.Size = UDim2.new(1, -10, 0, 1)
+	LineFrame_3.Size = UDim2.new(1, 0, 0, 1)
 	LineFrame_3.ZIndex = 9
 
 	ConfigFrame.Name = NeverLose.RandomString();
@@ -4565,8 +4565,8 @@ function NeverLose:CreateWindow(Config)
 	TabContainer.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	TabContainer.BorderSizePixel = 0
 	TabContainer.ClipsDescendants = true
-	TabContainer.Position = UDim2.new(0, 0, 0, 50)
-	TabContainer.Size = UDim2.new(1, 0, 1, -50)
+	TabContainer.Position = UDim2.new(0, 0, 0, 30)
+	TabContainer.Size = UDim2.new(1, 0, 1, -30)
 	TabContainer.ZIndex = 5
 
 	do
@@ -4783,30 +4783,43 @@ function NeverLose:CreateWindow(Config)
 
 		TabButton.Name = NeverLose.RandomString();
 		TabButton.Parent = LeftScrollingFrame
-		TabButton.BackgroundColor3 = NeverLose.AccentColor
+		TabButton.BackgroundColor3 = Color3.fromRGB(30, 30, 38)
 		TabButton.BackgroundTransparency = 1
 		TabButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		TabButton.BorderSizePixel = 0
-		TabButton.Size = UDim2.new(0, 46, 0, 46)
+		TabButton.Size = UDim2.new(1, 0, 0, 28)
 		TabButton.ZIndex = 8
 
-		UICorner.CornerRadius = UDim.new(0, 12)
-		UICorner.Parent = TabButton
+		-- sem bordas arredondadas na aba
+		-- UICorner.CornerRadius = UDim.new(0, 12)
+		-- UICorner.Parent = TabButton
+
+		-- Indicador lateral esquerdo (acento colorido quando ativo)
+		local TabAccentLine = Instance.new("Frame")
+		TabAccentLine.Name = NeverLose.RandomString()
+		TabAccentLine.Parent = TabButton
+		TabAccentLine.AnchorPoint = Vector2.new(0, 0.5)
+		TabAccentLine.BackgroundColor3 = NeverLose.AccentColor
+		TabAccentLine.BackgroundTransparency = 1
+		TabAccentLine.BorderSizePixel = 0
+		TabAccentLine.Position = UDim2.new(0, 0, 0.5, 0)
+		TabAccentLine.Size = UDim2.new(0, 3, 0.7, 0)
+		TabAccentLine.ZIndex = 9
 
 		TabIcon.Name = NeverLose.RandomString();
 		TabIcon.Parent = TabButton
-		TabIcon.AnchorPoint = Vector2.new(0.5, 0.5)
+		TabIcon.AnchorPoint = Vector2.new(0, 0.5)
 		TabIcon.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 		TabIcon.BackgroundTransparency = 1.000
 		TabIcon.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		TabIcon.BorderSizePixel = 0
-		TabIcon.Position = UDim2.new(0.5, 0, 0.5, 0)
-		TabIcon.Size = UDim2.new(0, 32, 0, 32)
+		TabIcon.Position = UDim2.new(0, 10, 0.5, 0)
+		TabIcon.Size = UDim2.new(0, 13, 0, 13)
 		TabIcon.ZIndex = 9
 		TabIcon.FontFace = NeverLose.BuiltInBold
 		TabIcon.Text = Config.Icon;
-		TabIcon.TextColor3 = Color3.fromRGB(180, 180, 190)
-		TabIcon.TextSize = 20.000
+		TabIcon.TextColor3 = Color3.fromRGB(140, 140, 155)
+		TabIcon.TextSize = 13.000
 		TabIcon.TextWrapped = true
 
 		TabContentLabel.Name = NeverLose.RandomString();
@@ -4816,15 +4829,15 @@ function NeverLose:CreateWindow(Config)
 		TabContentLabel.BackgroundTransparency = 1.000
 		TabContentLabel.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		TabContentLabel.BorderSizePixel = 0
-		TabContentLabel.Position = UDim2.new(0, 30, 0.5, 0)
-		TabContentLabel.Size = UDim2.new(0, 0, 0, 0)
+		TabContentLabel.Position = UDim2.new(0, 28, 0.5, 0)
+		TabContentLabel.Size = UDim2.new(1, -30, 1, 0)
 		TabContentLabel.ZIndex = 9
 		TabContentLabel.Font = Enum.Font.GothamMedium
-		TabContentLabel.Text = ""
-		TabContentLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+		TabContentLabel.Text = Config.Name
+		TabContentLabel.TextColor3 = Color3.fromRGB(140, 140, 155)
 		TabContentLabel.TextSize = 12.000
 		TabContentLabel.TextXAlignment = Enum.TextXAlignment.Left
-		TabContentLabel.Visible = false
+		TabContentLabel.Visible = true
 
 		local TabFrame = Instance.new("Frame")
 		local LeftScroll = Instance.new("ScrollingFrame")
@@ -4915,8 +4928,12 @@ function NeverLose:CreateWindow(Config)
 
 			if value then
 				NeverLose.PlayAnimate(TabButton , SlowyTween , {
-					BackgroundTransparency = 0.150,
-					BackgroundColor3 = NeverLose.AccentColor
+					BackgroundTransparency = 0.85,
+					BackgroundColor3 = Color3.fromRGB(30, 30, 38)
+				})
+
+				NeverLose.PlayAnimate(TabAccentLine , SlowyTween , {
+					BackgroundTransparency = 0
 				})
 
 				NeverLose.PlayAnimate(TabIcon , SlowyTween , {
@@ -4925,20 +4942,26 @@ function NeverLose:CreateWindow(Config)
 				})
 
 				NeverLose.PlayAnimate(TabContentLabel , SlowyTween , {
-					TextTransparency = 0
+					TextTransparency = 0,
+					TextColor3 = Color3.fromRGB(220, 220, 230)
 				})
 			else
 				NeverLose.PlayAnimate(TabButton , SlowyTween , {
 					BackgroundTransparency = 1
 				})
 
+				NeverLose.PlayAnimate(TabAccentLine , SlowyTween , {
+					BackgroundTransparency = 1
+				})
+
 				NeverLose.PlayAnimate(TabIcon , SlowyTween , {
-					TextTransparency = 0.25,
-					TextColor3 = Color3.fromRGB(180, 180, 190)
+					TextTransparency = 0.35,
+					TextColor3 = Color3.fromRGB(140, 140, 155)
 				})
 
 				NeverLose.PlayAnimate(TabContentLabel , SlowyTween , {
-					TextTransparency = 0.5
+					TextTransparency = 0.35,
+					TextColor3 = Color3.fromRGB(140, 140, 155)
 				})
 			end;
 		end);
@@ -5000,9 +5023,13 @@ function NeverLose:CreateWindow(Config)
 					BackgroundTransparency = 1
 				})
 
+				NeverLose.PlayAnimate(TabAccentLine , SlowyTween , {
+					BackgroundTransparency = 1
+				})
+
 				NeverLose.PlayAnimate(TabIcon , SlowyTween , {
 					TextTransparency = 1,
-					TextColor3 = Color3.fromRGB(180, 180, 190)
+					TextColor3 = Color3.fromRGB(140, 140, 155)
 				})
 
 				NeverLose.PlayAnimate(TabContentLabel , SlowyTween , {
