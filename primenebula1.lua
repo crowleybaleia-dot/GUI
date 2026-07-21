@@ -2567,13 +2567,20 @@ function Luna:CreateWindow(WindowSettings)
 
 			task.wait(0.05)
 
+			-- Força recálculo do CanvasSize baseado na altura real da HomeTabPage
+			if Elements.Parent:IsA("ScrollingFrame") then
+				local layout = HomeTabPage:FindFirstChildWhichIsA("UIListLayout")
+				if layout then
+					Elements.Parent.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 24)
+				end
+			end
+
 			for _, OtherTabButton in ipairs(Navigation.Tabs:GetChildren()) do
 				if OtherTabButton.Name ~= "InActive Template" and OtherTabButton.ClassName == "Frame" and OtherTabButton ~= HomeTabButton then
 					tween(OtherTabButton.ImageLabel, {ImageColor3 = Color3.fromRGB(221,221,221)})
 					tween(OtherTabButton, {BackgroundTransparency = 1})
 					tween(OtherTabButton.UIStroke, {Transparency = 1})
 				end
-
 			end
 
 			Window.CurrentTab = "Home"
@@ -2827,16 +2834,35 @@ function Luna:CreateWindow(WindowSettings)
 
 			task.wait(0.05)
 
+			-- Força recálculo do CanvasSize baseado na altura real do TabPage
+			if Elements.Parent:IsA("ScrollingFrame") then
+				local layout = TabPage:FindFirstChildWhichIsA("UIListLayout")
+				if layout then
+					Elements.Parent.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 24)
+				end
+			end
+
 			for _, OtherTabButton in ipairs(Navigation.Tabs:GetChildren()) do
 				if OtherTabButton.Name ~= "InActive Template" and OtherTabButton.ClassName == "Frame" and OtherTabButton ~= TabButton then
 					tween(OtherTabButton.ImageLabel, {ImageColor3 = Color3.fromRGB(221,221,221)})
 					tween(OtherTabButton, {BackgroundTransparency = 1})
 					tween(OtherTabButton.UIStroke, {Transparency = 1})
 				end
-
 			end
 
 			Window.CurrentTab = TabSettings.Name
+
+			-- Mantém canvas atualizado se conteúdo mudar após ativar
+			if Elements.Parent:IsA("ScrollingFrame") then
+				local layout = TabPage:FindFirstChildWhichIsA("UIListLayout")
+				if layout then
+					layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+						if Elements.UIPageLayout.CurrentPage == TabPage then
+							Elements.Parent.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 24)
+						end
+					end)
+				end
+			end
 		end
 
 		if FirstTab then
