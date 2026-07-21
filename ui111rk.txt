@@ -3907,8 +3907,8 @@ function NeverLose:CreateWindow(Config)
 	WindowFrame.Name = NeverLose.RandomString();
 	WindowFrame.Parent = NeverLose.ScreenGui;
 	WindowFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-	WindowFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 20)
-	WindowFrame.BackgroundTransparency = 0.055
+	WindowFrame.BackgroundColor3 = Color3.fromRGB(12, 12, 14)
+	WindowFrame.BackgroundTransparency = 0
 	WindowFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	WindowFrame.BorderSizePixel = 0
 	WindowFrame.ClipsDescendants = true
@@ -3917,7 +3917,7 @@ function NeverLose:CreateWindow(Config)
 	WindowFrame.Active = true;
 
 	if not NeverLose.EnabledBlur then
-		WindowFrame.BackgroundTransparency = 0.0255
+		WindowFrame.BackgroundTransparency = 0
 	end;
 
 	local renderParentWindow = LPH_NO_VIRTUALIZE(function()
@@ -4157,24 +4157,34 @@ function NeverLose:CreateWindow(Config)
 		NeverLose.Drag(Frame , WindowFrame , 0.15)
 	end
 
-	UICorner.Parent = WindowFrame
+	-- sem bordas arredondadas (referencia tem cantos retos)
+	-- UICorner.Parent = WindowFrame
+
+	-- Stroke sutil na borda da janela
+	do
+		local WinStroke = Instance.new("UIStroke")
+		WinStroke.Thickness = 1
+		WinStroke.Color = Color3.fromRGB(40, 40, 50)
+		WinStroke.Transparency = 0.5
+		WinStroke.Parent = WindowFrame
+	end
 
 	LeftMenuFrame.Name = NeverLose.RandomString();
 	LeftMenuFrame.Parent = WindowFrame
-	LeftMenuFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-	LeftMenuFrame.BackgroundTransparency = 1.000
+	LeftMenuFrame.BackgroundColor3 = Color3.fromRGB(16, 16, 18)
+	LeftMenuFrame.BackgroundTransparency = 0
 	LeftMenuFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	LeftMenuFrame.BorderSizePixel = 0
-	LeftMenuFrame.Size = UDim2.new(0, 80, 1, -50)
-	LeftMenuFrame.Position = UDim2.new(0, 0, 0, 50)
+	LeftMenuFrame.Size = UDim2.new(0, 130, 1, -30)
+	LeftMenuFrame.Position = UDim2.new(0, 0, 0, 30)
 
 	HeadFrame.Name = NeverLose.RandomString();
 	HeadFrame.Parent = WindowFrame
-	HeadFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-	HeadFrame.BackgroundTransparency = 1.000
+	HeadFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 12)
+	HeadFrame.BackgroundTransparency = 0
 	HeadFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	HeadFrame.BorderSizePixel = 0
-	HeadFrame.Size = UDim2.new(1, 0, 0, 50)
+	HeadFrame.Size = UDim2.new(1, 0, 0, 30)
 	HeadFrame.ZIndex = 9
 
 	LogoImage.Name = NeverLose.RandomString();
@@ -4184,14 +4194,14 @@ function NeverLose:CreateWindow(Config)
 	LogoImage.BackgroundTransparency = 1.000
 	LogoImage.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	LogoImage.BorderSizePixel = 0
-	LogoImage.Position = UDim2.new(0, 10, 0.5, 0)
-	LogoImage.Size = UDim2.new(0, 35, 0, 35)
+	LogoImage.Position = UDim2.new(0, 7, 0.5, 0)
+	LogoImage.Size = UDim2.new(0, 18, 0, 18)
 	LogoImage.ZIndex = 9
 	LogoImage.Image = NeverLose.GlobalLogo
 	LogoImage.ImageColor3 = NeverLose.IconColor
 	LogoImage.ScaleType = Enum.ScaleType.Fit
 
-	UICorner_2.CornerRadius = UDim.new(0, 7)
+	UICorner_2.CornerRadius = UDim.new(0, 3)
 	UICorner_2.Parent = LogoImage
 
 	-- Atualiza o logo quando o asset terminar de baixar
@@ -4208,59 +4218,61 @@ function NeverLose:CreateWindow(Config)
 	WindowName.BackgroundTransparency = 1.000
 	WindowName.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	WindowName.BorderSizePixel = 0
-	WindowName.Position = UDim2.new(0, 55, 0, 4)
-	WindowName.Size = UDim2.new(0.4, 0, 0, 25)
+	WindowName.Position = UDim2.new(0, 30, 0, 0)
+	WindowName.Size = UDim2.new(0.4, 0, 1, 0)
 	WindowName.ZIndex = 7
 	WindowName.Font = Enum.Font.GothamBold
 	WindowName.Text = Window.Name
-	WindowName.TextColor3 = Color3.fromRGB(255, 255, 255)
-	WindowName.TextSize = 18.000
+	WindowName.TextColor3 = Color3.fromRGB(220, 220, 225)
+	WindowName.TextSize = 13.000
 	WindowName.TextXAlignment = Enum.TextXAlignment.Left
 
+	-- WindowContent oculto (referencia nao tem subtitulo no header)
 	WindowContent.Name = NeverLose.RandomString();
 	WindowContent.Parent = HeadFrame
 	WindowContent.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 	WindowContent.BackgroundTransparency = 1.000
 	WindowContent.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	WindowContent.BorderSizePixel = 0
-	WindowContent.Position = UDim2.new(0, 55, 0, 25)
-	WindowContent.Size = UDim2.new(0.4, 0, 0, 15)
+	WindowContent.Position = UDim2.new(0, 30, 0, 0)
+	WindowContent.Size = UDim2.new(0, 0, 0, 0)
+	WindowContent.Visible = false
 	WindowContent.ZIndex = 7
 	WindowContent.Font = Enum.Font.GothamBold
 	WindowContent.Text = Window.Content
 	WindowContent.TextColor3 = Color3.fromRGB(255, 255, 255)
 	WindowContent.TextSize = 9.000
-	WindowContent.TextTransparency = 0.650
+	WindowContent.TextTransparency = 1
 	WindowContent.TextXAlignment = Enum.TextXAlignment.Left
 
 	LineFrame.Name = NeverLose.RandomString();
 	LineFrame.Parent = HeadFrame
 	LineFrame.AnchorPoint = Vector2.new(0.5, 1)
-	LineFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
-	LineFrame.BackgroundTransparency = 0.650
+	LineFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 42)
+	LineFrame.BackgroundTransparency = 0
 	LineFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	LineFrame.BorderSizePixel = 0
 	LineFrame.Position = UDim2.new(0.5, 0, 1, 0)
-	LineFrame.Size = UDim2.new(1, -10, 0, 1)
+	LineFrame.Size = UDim2.new(1, 0, 0, 1)
 	LineFrame.ZIndex = 5
 
 	LeftScrollingFrame.Name = NeverLose.RandomString();
 	LeftScrollingFrame.Parent = LeftMenuFrame
 	LeftScrollingFrame.Active = true
-	LeftScrollingFrame.AnchorPoint = Vector2.new(0.5, 0)
+	LeftScrollingFrame.AnchorPoint = Vector2.new(0, 0)
 	LeftScrollingFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 	LeftScrollingFrame.BackgroundTransparency = 1.000
 	LeftScrollingFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	LeftScrollingFrame.BorderSizePixel = 0
-	LeftScrollingFrame.Position = UDim2.new(0.5, 0, 0, 10)
-	LeftScrollingFrame.Size = UDim2.new(1, -10, 1, -65)
+	LeftScrollingFrame.Position = UDim2.new(0, 0, 0, 5)
+	LeftScrollingFrame.Size = UDim2.new(1, 0, 1, -55)
 	LeftScrollingFrame.ZIndex = 7
 	LeftScrollingFrame.ScrollBarThickness = 0
 
 	UIListLayout.Parent = LeftScrollingFrame
-	UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+	UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
 	UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-	UIListLayout.Padding = UDim.new(0, 8)
+	UIListLayout.Padding = UDim.new(0, 2)
 
 	NeverLose:AddSignal(UIListLayout:GetPropertyChangedSignal('AbsoluteContentSize'):Connect(LPH_NO_VIRTUALIZE(function()
 		LeftScrollingFrame.CanvasSize = UDim2.fromOffset(0,UIListLayout.AbsoluteContentSize.Y + 1)
@@ -4269,8 +4281,8 @@ function NeverLose:CreateWindow(Config)
 	BottomFrame.Name = NeverLose.RandomString();
 	BottomFrame.Parent = LeftMenuFrame
 	BottomFrame.AnchorPoint = Vector2.new(0, 1)
-	BottomFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-	BottomFrame.BackgroundTransparency = 1.000
+	BottomFrame.BackgroundColor3 = Color3.fromRGB(14, 14, 16)
+	BottomFrame.BackgroundTransparency = 0
 	BottomFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	BottomFrame.BorderSizePixel = 0
 	BottomFrame.Position = UDim2.new(0, 0, 1, 0)
@@ -4370,16 +4382,16 @@ function NeverLose:CreateWindow(Config)
 
 	RightMenuFrame.Name = NeverLose.RandomString();
 	RightMenuFrame.Parent = WindowFrame
-	RightMenuFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 20)
-	RightMenuFrame.BackgroundTransparency = 0.600
+	RightMenuFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 17)
+	RightMenuFrame.BackgroundTransparency = 0
 	RightMenuFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	RightMenuFrame.BorderSizePixel = 0
 	RightMenuFrame.ClipsDescendants = true
-	RightMenuFrame.Position = UDim2.new(0, 81, 0, 50)
-	RightMenuFrame.Size = UDim2.new(1, -81, 1, -50)
+	RightMenuFrame.Position = UDim2.new(0, 130, 0, 30)
+	RightMenuFrame.Size = UDim2.new(1, -130, 1, -30)
 	RightMenuFrame.ZIndex = 8
 
-	UIStroke.Transparency = 0.650
+	UIStroke.Transparency = 1
 	UIStroke.Color = Color3.fromRGB(40, 40, 45)
 	UIStroke.Parent = RightMenuFrame
 
@@ -4387,25 +4399,26 @@ function NeverLose:CreateWindow(Config)
 	do
 		local SidebarLine = Instance.new("Frame")
 		SidebarLine.Parent = WindowFrame
-		SidebarLine.AnchorPoint = Vector2.new(0, 0.5)
-		SidebarLine.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
-		SidebarLine.BackgroundTransparency = 0.500
+		SidebarLine.AnchorPoint = Vector2.new(0, 0)
+		SidebarLine.BackgroundColor3 = Color3.fromRGB(35, 35, 42)
+		SidebarLine.BackgroundTransparency = 0
 		SidebarLine.BorderSizePixel = 0
-		SidebarLine.Position = UDim2.new(0, 80, 0.5, 0)
-		SidebarLine.Size = UDim2.new(0, 1, 1, -20)
-		SidebarLine.ZIndex = 6
+		SidebarLine.Position = UDim2.new(0, 130, 0, 30)
+		SidebarLine.Size = UDim2.new(0, 1, 1, -30)
+		SidebarLine.ZIndex = 10
 	end
 
-	UICorner_4.CornerRadius = UDim.new(0, 13)
-	UICorner_4.Parent = RightMenuFrame
+	-- sem cantos arredondados no painel direito
+	-- UICorner_4.CornerRadius = UDim.new(0, 13)
+	-- UICorner_4.Parent = RightMenuFrame
 
 	RightHeader.Name = NeverLose.RandomString();
 	RightHeader.Parent = RightMenuFrame
-	RightHeader.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-	RightHeader.BackgroundTransparency = 1.000
+	RightHeader.BackgroundColor3 = Color3.fromRGB(13, 13, 15)
+	RightHeader.BackgroundTransparency = 0
 	RightHeader.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	RightHeader.BorderSizePixel = 0
-	RightHeader.Size = UDim2.new(1, 0, 0, 50)
+	RightHeader.Size = UDim2.new(1, 0, 0, 30)
 	RightHeader.ZIndex = 9
 
 	LineFrame_3.Name = NeverLose.RandomString();
