@@ -2274,7 +2274,7 @@ function Luna:CreateWindow(WindowSettings)
 	_navOverlay.Name = "_DarkOverlay"
 	_navOverlay.Size = UDim2.new(1, 0, 1, 0)
 	_navOverlay.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-	_navOverlay.BackgroundTransparency = 0.15
+	_navOverlay.BackgroundTransparency = 0.70
 	_navOverlay.BorderSizePixel = 0
 	_navOverlay.ZIndex = 0
 	local _navCorner = Instance.new("UICorner")
@@ -2287,7 +2287,7 @@ function Luna:CreateWindow(WindowSettings)
 	_topOverlay.Name = "_DarkOverlay"
 	_topOverlay.Size = UDim2.new(1, 0, 1, 0)
 	_topOverlay.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-	_topOverlay.BackgroundTransparency = 0.15
+	_topOverlay.BackgroundTransparency = 0.70
 	_topOverlay.BorderSizePixel = 0
 	_topOverlay.ZIndex = 0
 	_topOverlay.Parent = Main.Title
@@ -2297,7 +2297,7 @@ function Luna:CreateWindow(WindowSettings)
 	_contentOverlay.Name = "_DarkOverlay"
 	_contentOverlay.Size = UDim2.new(1, 0, 1, 0)
 	_contentOverlay.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-	_contentOverlay.BackgroundTransparency = 0.25
+	_contentOverlay.BackgroundTransparency = 0.70
 	_contentOverlay.BorderSizePixel = 0
 	_contentOverlay.ZIndex = 0
 	_contentOverlay.Parent = Main.Elements
