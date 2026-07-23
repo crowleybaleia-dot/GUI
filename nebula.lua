@@ -2268,6 +2268,39 @@ function Luna:CreateWindow(WindowSettings)
 	Main.Size = MainSize
 	Main.Size = UDim2.fromOffset(Main.Size.X.Offset - 70, Main.Size.Y.Offset - 55)
 	Main.Parent.ShadowHolder.Size = Main.Size
+
+	-- Overlay escuro sobre a sidebar
+	local _navOverlay = Instance.new("Frame")
+	_navOverlay.Name = "_DarkOverlay"
+	_navOverlay.Size = UDim2.new(1, 0, 1, 0)
+	_navOverlay.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+	_navOverlay.BackgroundTransparency = 0.45
+	_navOverlay.BorderSizePixel = 0
+	_navOverlay.ZIndex = 0
+	local _navCorner = Instance.new("UICorner")
+	_navCorner.CornerRadius = UDim.new(0, 8)
+	_navCorner.Parent = _navOverlay
+	_navOverlay.Parent = Navigation
+
+	-- Overlay escuro sobre a topbar (Title + Controls)
+	local _topOverlay = Instance.new("Frame")
+	_topOverlay.Name = "_DarkOverlay"
+	_topOverlay.Size = UDim2.new(1, 0, 1, 0)
+	_topOverlay.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+	_topOverlay.BackgroundTransparency = 0.45
+	_topOverlay.BorderSizePixel = 0
+	_topOverlay.ZIndex = 0
+	_topOverlay.Parent = Main.Title
+
+	-- Overlay sobre o painel de conteúdo (Elements.Parent)
+	local _contentOverlay = Instance.new("Frame")
+	_contentOverlay.Name = "_DarkOverlay"
+	_contentOverlay.Size = UDim2.new(1, 0, 1, 0)
+	_contentOverlay.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+	_contentOverlay.BackgroundTransparency = 0.55
+	_contentOverlay.BorderSizePixel = 0
+	_contentOverlay.ZIndex = 0
+	_contentOverlay.Parent = Main.Elements
 	LoadingFrame.Frame.Frame.Title.TextTransparency = 1
 	LoadingFrame.Frame.Frame.Subtitle.TextTransparency = 1
 	LoadingFrame.Version.TextTransparency = 1
