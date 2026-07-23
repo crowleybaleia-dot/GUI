@@ -25,7 +25,7 @@ Deity/dp4pv/x64x70 | Certain Scripting and Testing ig
 
 local Release = "Prerelease Beta 6.1"
 
-local Luna = { Folder = "Luna", Options = {}, ThemeGradient = ColorSequence.new{ColorSequenceKeypoint.new(0.00, Color3.fromRGB(117, 164, 206)), ColorSequenceKeypoint.new(0.50, Color3.fromRGB(123, 201, 201)), ColorSequenceKeypoint.new(1.00, Color3.fromRGB(224, 138, 175))} }
+local Luna = { Folder = "Luna", Options = {}, ThemeGradient = ColorSequence.new{ColorSequenceKeypoint.new(0.00, Color3.fromRGB(196, 255, 53)), ColorSequenceKeypoint.new(0.50, Color3.fromRGB(180, 240, 40)), ColorSequenceKeypoint.new(1.00, Color3.fromRGB(155, 210, 20))} }
 
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
@@ -1543,7 +1543,7 @@ local PresetGradients = {
 	Starlight = {Color3.fromRGB(147, 255, 239), Color3.fromRGB(181, 206, 241), Color3.fromRGB(214, 158, 243)},
 	Solar = {Color3.fromRGB(242, 157, 76), Color3.fromRGB(240, 179, 81), Color3.fromRGB(238, 201, 86)},
 	Sparkle = {Color3.fromRGB(199, 130, 242), Color3.fromRGB(221, 130, 238), Color3.fromRGB(243, 129, 233)},
-	Lime = {Color3.fromRGB(170, 255, 127), Color3.fromRGB(163, 220, 138), Color3.fromRGB(155, 185, 149)},
+	Lime = {Color3.fromRGB(196, 255, 53), Color3.fromRGB(180, 240, 40), Color3.fromRGB(155, 210, 20)},
 	Vine = {Color3.fromRGB(0, 191, 143), Color3.fromRGB(0, 126, 94), Color3.fromRGB(0, 61, 46)},
 	Cherry = {Color3.fromRGB(148, 54, 54), Color3.fromRGB(168, 67, 70), Color3.fromRGB(188, 80, 86)},
 	Daylight = {Color3.fromRGB(51, 156, 255), Color3.fromRGB(89, 171, 237), Color3.fromRGB(127, 186, 218)},
@@ -1924,44 +1924,6 @@ local Elements = Main.Elements.Interactions
 local LoadingFrame = Main.LoadingFrame
 local Navigation = Main.Navigation
 local Tabs = Navigation.Tabs
--- Fix: habilita scroll vertical nas abas da Navigation
-do
-	local tabsParent = Navigation.Tabs.Parent
-	local originalTabs = Navigation.Tabs
-
-	if not originalTabs:IsA("ScrollingFrame") then
-		local sf = Instance.new("ScrollingFrame")
-		sf.Name = originalTabs.Name
-		sf.Size = originalTabs.Size
-		sf.Position = originalTabs.Position
-		sf.AnchorPoint = originalTabs.AnchorPoint
-		sf.BackgroundTransparency = originalTabs.BackgroundTransparency
-		sf.BackgroundColor3 = originalTabs.BackgroundColor3
-		sf.BorderSizePixel = 0
-		sf.ScrollBarThickness = 0
-		sf.ScrollingDirection = Enum.ScrollingDirection.Y
-		sf.AutomaticCanvasSize = Enum.AutomaticSize.Y
-		sf.CanvasSize = UDim2.new(0, 0, 0, 0)
-		sf.ScrollBarImageTransparency = 1
-		sf.ElasticBehavior = Enum.ElasticBehavior.Never
-		sf.Parent = tabsParent
-
-		for _, child in ipairs(originalTabs:GetChildren()) do
-			child.Parent = sf
-		end
-
-		originalTabs:Destroy()
-		Navigation.Tabs = sf
-		Tabs = sf
-	else
-		originalTabs.ScrollBarThickness = 0
-		originalTabs.ScrollingDirection = Enum.ScrollingDirection.Y
-		originalTabs.AutomaticCanvasSize = Enum.AutomaticSize.Y
-		originalTabs.CanvasSize = UDim2.new(0, 0, 0, 0)
-		originalTabs.ScrollBarImageTransparency = 1
-		originalTabs.ElasticBehavior = Enum.ElasticBehavior.Never
-	end
-end
 local Notifications = LunaUI.Notifications
 local KeySystem : Frame = Main.KeySystem
 
@@ -2203,8 +2165,8 @@ local function Unhide(Window, currentTab)
 	Window.Elements.Visible = true
 	Window.Visible = true
 	task.wait()
-	tween(Window, {BackgroundTransparency = 0.2})
-	tween(Window.Elements, {BackgroundTransparency = 0.08})
+	tween(Window, {BackgroundTransparency = 1})
+	tween(Window.Elements, {BackgroundTransparency = 1})
 	tween(Window.Line, {BackgroundTransparency = 0})
 	tween(Window.Title.Title, {TextTransparency = 0})
 	tween(Window.Title.subtitle, {TextTransparency = 0})
@@ -2512,7 +2474,7 @@ function Luna:CreateWindow(WindowSettings)
 		TweenService:Create(LoadingFrame, TweenInfo.new(0.5, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {BackgroundTransparency = 1}):Play()
 	end
 
-	TweenService:Create(Main, TweenInfo.new(0.5, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {BackgroundTransparency = 0.2, Size = MainSize}):Play()
+	TweenService:Create(Main, TweenInfo.new(0.5, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {BackgroundTransparency = 1, Size = MainSize}):Play()
 	TweenService:Create(Main.Parent.ShadowHolder, TweenInfo.new(0.5, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {Size = MainSize}):Play()
 	TweenService:Create(Main.Title.Title, TweenInfo.new(0.35, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {TextTransparency = 0}):Play()
 	TweenService:Create(Main.Title.subtitle, TweenInfo.new(0.35, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {TextTransparency = 0}):Play()
@@ -2560,20 +2522,7 @@ function Luna:CreateWindow(WindowSettings)
 
 			Elements.UIPageLayout:JumpTo(HomeTabPage)
 
-			-- Reseta scroll para o topo ao trocar de tab
-			if Elements.Parent:IsA("ScrollingFrame") then
-				Elements.Parent.CanvasPosition = Vector2.new(0, 0)
-			end
-
 			task.wait(0.05)
-
-			-- Força recálculo do CanvasSize baseado na altura real da HomeTabPage
-			if Elements.Parent:IsA("ScrollingFrame") then
-				local layout = HomeTabPage:FindFirstChildWhichIsA("UIListLayout")
-				if layout then
-					Elements.Parent.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 24)
-				end
-			end
 
 			for _, OtherTabButton in ipairs(Navigation.Tabs:GetChildren()) do
 				if OtherTabButton.Name ~= "InActive Template" and OtherTabButton.ClassName == "Frame" and OtherTabButton ~= HomeTabButton then
@@ -2581,6 +2530,7 @@ function Luna:CreateWindow(WindowSettings)
 					tween(OtherTabButton, {BackgroundTransparency = 1})
 					tween(OtherTabButton.UIStroke, {Transparency = 1})
 				end
+
 			end
 
 			Window.CurrentTab = "Home"
@@ -2734,6 +2684,7 @@ function Luna:CreateWindow(WindowSettings)
 		TabButton.ImageLabel.Image = GetIcon(TabSettings.Icon, TabSettings.ImageSource)
 
 		TabButton.Visible = true
+		TabButton.BackgroundColor3 = Color3.fromRGB(20, 22, 20)
 
 		local TabPage = Elements.Template:Clone()
 		TabPage.Name = TabSettings.Name
@@ -2748,84 +2699,12 @@ function Luna:CreateWindow(WindowSettings)
 		end
 
 		TabPage.LayoutOrder = #Elements:GetChildren() - 3
-		TabPage.AutomaticSize = Enum.AutomaticSize.Y
-		TabPage.Size = UDim2.new(1, 0, 0, 0)
 
 		for _, TemplateElement in ipairs(TabPage:GetChildren()) do
 			if TemplateElement.ClassName == "Frame" or TemplateElement.ClassName == "TextLabel" and TemplateElement.Name ~= "Title" then
 				TemplateElement:Destroy()
 			end
 		end
-
-		-- Layout vertical do TabPage
-		for _, v in ipairs(TabPage:GetChildren()) do
-			if v:IsA("UIListLayout") or v:IsA("UIGridLayout") then
-				v:Destroy()
-			end
-		end
-
-		local TabPageList = Instance.new("UIListLayout")
-		TabPageList.SortOrder = Enum.SortOrder.LayoutOrder
-		TabPageList.Padding = UDim.new(0, 8)
-		TabPageList.Parent = TabPage
-
-		-- Função para criar um container de 2 colunas com sincronização de altura
-		local function makeColumnsContainer(parent)
-			local container = Instance.new("Frame")
-			container.Name = "ColumnsContainer"
-			container.BackgroundTransparency = 1
-			container.Size = UDim2.new(1, 0, 0, 0)
-			container.AutomaticSize = Enum.AutomaticSize.None
-			container.Parent = parent
-
-			local function makeColumn(name, xScale, xOffset)
-				local col = Instance.new("Frame")
-				col.Name = name
-				col.BackgroundTransparency = 1
-				col.Size = UDim2.new(0.5, -3, 0, 0)
-				col.AutomaticSize = Enum.AutomaticSize.Y
-				col.Position = UDim2.new(xScale, xOffset, 0, 0)
-				col.Parent = container
-				local list = Instance.new("UIListLayout")
-				list.SortOrder = Enum.SortOrder.LayoutOrder
-				list.Padding = UDim.new(0, 6)
-				list.Parent = col
-				return col
-			end
-
-			local colLeft = makeColumn("ColumnLeft", 0, 0)
-			local colRight = makeColumn("ColumnRight", 0.5, 6)
-
-			-- Sincroniza a altura do container com a coluna mais alta
-			local function syncHeight()
-				local h = math.max(colLeft.AbsoluteSize.Y, colRight.AbsoluteSize.Y)
-				container.Size = UDim2.new(1, 0, 0, h)
-				-- Força recálculo do canvas do ScrollingFrame
-				local sf = Elements.Parent
-				if sf:IsA("ScrollingFrame") and Elements.UIPageLayout.CurrentPage == TabPage then
-					local tabList = TabPage:FindFirstChildWhichIsA("UIListLayout")
-					if tabList then
-						sf.CanvasSize = UDim2.new(0, 0, 0, tabList.AbsoluteContentSize.Y + 24)
-					end
-				end
-			end
-
-			colLeft:GetPropertyChangedSignal("AbsoluteSize"):Connect(syncHeight)
-			colRight:GetPropertyChangedSignal("AbsoluteSize"):Connect(syncHeight)
-
-			return container, colLeft, colRight
-		end
-
-		-- Container padrão do Tab (elementos fora de sections)
-		local DefaultContainer, ColumnLeft, ColumnRight = makeColumnsContainer(TabPage)
-		DefaultContainer.LayoutOrder = 0
-
-		Tab.ColumnLeft = ColumnLeft
-		Tab.ColumnRight = ColumnRight
-		Tab._makeColumnsContainer = makeColumnsContainer
-		Tab._tabPage = TabPage
-		Tab._layoutCounter = 1  -- Contador de LayoutOrder para sections e dividers no TabPage
-
 		TabPage.Parent = Elements
 
 		function Tab:Activate()
@@ -2835,20 +2714,7 @@ function Luna:CreateWindow(WindowSettings)
 
 			Elements.UIPageLayout:JumpTo(TabPage)
 
-			-- Reseta scroll para o topo ao trocar de tab
-			if Elements.Parent:IsA("ScrollingFrame") then
-				Elements.Parent.CanvasPosition = Vector2.new(0, 0)
-			end
-
 			task.wait(0.05)
-
-			-- Força recálculo do CanvasSize baseado na altura real do TabPage
-			if Elements.Parent:IsA("ScrollingFrame") then
-				local layout = TabPage:FindFirstChildWhichIsA("UIListLayout")
-				if layout then
-					Elements.Parent.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 24)
-				end
-			end
 
 			for _, OtherTabButton in ipairs(Navigation.Tabs:GetChildren()) do
 				if OtherTabButton.Name ~= "InActive Template" and OtherTabButton.ClassName == "Frame" and OtherTabButton ~= TabButton then
@@ -2856,21 +2722,10 @@ function Luna:CreateWindow(WindowSettings)
 					tween(OtherTabButton, {BackgroundTransparency = 1})
 					tween(OtherTabButton.UIStroke, {Transparency = 1})
 				end
+
 			end
 
 			Window.CurrentTab = TabSettings.Name
-
-			-- Mantém canvas atualizado se conteúdo mudar após ativar
-			if Elements.Parent:IsA("ScrollingFrame") then
-				local layout = TabPage:FindFirstChildWhichIsA("UIListLayout")
-				if layout then
-					layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-						if Elements.UIPageLayout.CurrentPage == TabPage then
-							Elements.Parent.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 24)
-						end
-					end)
-				end
-			end
 		end
 
 		if FirstTab then
@@ -2886,75 +2741,97 @@ function Luna:CreateWindow(WindowSettings)
 		FirstTab = false
 
 		-- Section
-		function Tab:CreateSection(name)
+		function Tab:CreateSection(name, settings)
 
 			local Section = {}
+			settings = settings or {}
+			local columns = settings.Columns or 1
 
 			if name == nil then name = "Section" end
 
 			Section.Name = name
 
-			-- Container wrapper da section (vai no TabPage com UIListLayout)
-			local SectionWrapper = Instance.new("Frame")
-			SectionWrapper.Name = "Section_" .. name
-			SectionWrapper.BackgroundTransparency = 1
-			SectionWrapper.Size = UDim2.new(1, 0, 0, 0)
-			SectionWrapper.AutomaticSize = Enum.AutomaticSize.Y
-			Tab._layoutCounter = Tab._layoutCounter + 1
-			SectionWrapper.LayoutOrder = Tab._layoutCounter
-			SectionWrapper.Parent = Tab._tabPage
-
-			local WrapperList = Instance.new("UIListLayout")
-			WrapperList.SortOrder = Enum.SortOrder.LayoutOrder
-			WrapperList.Padding = UDim.new(0, 6)
-			WrapperList.Parent = SectionWrapper
-
-			-- Título da section
 			local Sectiont = Elements.Template.Section:Clone()
-			Sectiont.Text = name
+			Sectiont.Text = string.upper(name)
+			Sectiont.TextSize = 10
+			Sectiont.TextColor3 = Color3.fromRGB(110, 115, 110)
+			Sectiont.Font = Enum.Font.GothamMedium
 			Sectiont.Visible = true
-			Sectiont.Size = UDim2.new(1, 0, 0, 24)
-			Sectiont.LayoutOrder = 0
-			Sectiont.Parent = SectionWrapper
+			Sectiont.Parent = TabPage
+			local SectionFrame = Sectiont.Frame
 
-			-- Container das 2 colunas
-			local _, ColLeft, ColRight = Tab._makeColumnsContainer(SectionWrapper)
-			local ColContainer = SectionWrapper:FindFirstChild("ColumnsContainer")
-			if ColContainer then ColContainer.LayoutOrder = 1 end
+			-- Two-column layout support
+			local ColLeft, ColRight
+			if columns == 2 then
+				local gridFrame = Instance.new("Frame")
+				gridFrame.Name = "TwoColGrid"
+				gridFrame.BackgroundTransparency = 1
+				gridFrame.Size = UDim2.new(1, 0, 0, 0)
+				gridFrame.AutomaticSize = Enum.AutomaticSize.Y
+				gridFrame.Parent = SectionFrame
 
-			Section.ColumnLeft = ColLeft
-			Section.ColumnRight = ColRight
-			Section._layoutCounter = 0  -- Contador para elementos dentro das colunas da section
+				ColLeft = Instance.new("Frame")
+				ColLeft.Name = "ColLeft"
+				ColLeft.BackgroundTransparency = 1
+				ColLeft.Size = UDim2.new(0.5, -3, 0, 0)
+				ColLeft.Position = UDim2.new(0, 0, 0, 0)
+				ColLeft.AutomaticSize = Enum.AutomaticSize.Y
+				Instance.new("UIListLayout", ColLeft).Padding = UDim.new(0, 4)
+				ColLeft.Parent = gridFrame
+
+				ColRight = Instance.new("Frame")
+				ColRight.Name = "ColRight"
+				ColRight.BackgroundTransparency = 1
+				ColRight.Size = UDim2.new(0.5, -3, 0, 0)
+				ColRight.Position = UDim2.new(0.5, 3, 0, 0)
+				ColRight.AutomaticSize = Enum.AutomaticSize.Y
+				Instance.new("UIListLayout", ColRight).Padding = UDim.new(0, 4)
+				ColRight.Parent = gridFrame
+			end
+
+			Section._cols = columns
+			Section._colLeft = ColLeft
+			Section._colRight = ColRight
+			Section._colIdx = 0
+
+			function Section:_target()
+				if self._cols ~= 2 then return SectionFrame end
+				self._colIdx = self._colIdx + 1
+				return (self._colIdx % 2 == 1) and self._colLeft or self._colRight
+			end
+
+			local TabPage = SectionFrame
 
 			Sectiont.TextTransparency = 1
 			tween(Sectiont, {TextTransparency = 0})
 
 			function Section:Set(NewSection)
-				Sectiont.Text = NewSection
+				Sectiont.Text = string.upper(NewSection)
 			end
 
 			function Section:Destroy()
-				SectionWrapper:Destroy()
+				Sectiont:Destroy()
 			end
 
 			-- Divider
 			function Section:CreateDivider()
+				TabPage.Position = UDim2.new(0,0,0,28)
+				local _sectionTarget = Section:_target()
 				local b = Elements.Template.Divider:Clone()
-				b.Size = UDim2.new(1, 0, 0, 18)
-				Section._layoutCounter = Section._layoutCounter + 1
-				b.LayoutOrder = Section._layoutCounter
-				b.Parent = Section.ColumnLeft
+				b.Parent = _sectionTarget
+				b.Size = UDim2.new(1,0,0,18)
 				b.Line.BackgroundTransparency = 1
 				tween(b.Line, {BackgroundTransparency = 0})
 			end
 
 			-- Button
 			function Section:CreateButton(ButtonSettings)
+				TabPage.Position = UDim2.new(0,0,0,28)
+				local _sectionTarget = Section:_target()
 
 				ButtonSettings = Kwargify({
 					Name = "Button",
 					Description = nil,
-					Column = 1,
 					Callback = function()
 
 					end,
@@ -2967,7 +2844,7 @@ function Luna:CreateWindow(WindowSettings)
 
 
 				local Button
-				if ButtonSettings.Description == nil or ButtonSettings.Description == "" then
+				if ButtonSettings.Description == nil and ButtonSettings.Description ~= "" then
 					Button = Elements.Template.Button:Clone()
 				else
 					Button = Elements.Template.ButtonDesc:Clone()
@@ -2978,7 +2855,7 @@ function Luna:CreateWindow(WindowSettings)
 					Button.Desc.Text = ButtonSettings.Description
 				end
 				Button.Visible = true
-				Button.Parent = (ButtonSettings.Column == 2) and Section.ColumnRight or Section.ColumnLeft
+				Button.Parent = _sectionTarget
 
 				Button.UIStroke.Transparency = 1
 				Button.Title.TextTransparency = 1
@@ -3005,27 +2882,27 @@ function Luna:CreateWindow(WindowSettings)
 						wait(0.5)
 						Button.Title.Text = ButtonSettings.Name
 						TweenService:Create(Button, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-						TweenService:Create(Button, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(32, 30, 38)}):Play()
+						TweenService:Create(Button, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(22, 24, 22)}):Play()
 						TweenService:Create(Button.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
 					else
 						tween(Button.UIStroke, {Color = Color3.fromRGB(136, 131, 163)})
 						wait(0.2)
 						if ButtonV.Hover then
-							tween(Button.UIStroke, {Color = Color3.fromRGB(87, 84, 104)})
+							tween(Button.UIStroke, {Color = Color3.fromRGB(70, 72, 70)})
 						else
-							tween(Button.UIStroke, {Color = Color3.fromRGB(64,61,76)})
+							tween(Button.UIStroke, {Color = Color3.fromRGB(45, 47, 45)})
 						end
 					end
 				end)
 
 				Button["MouseEnter"]:Connect(function()
 					ButtonV.Hover = true
-					tween(Button.UIStroke, {Color = Color3.fromRGB(87, 84, 104)})
+					tween(Button.UIStroke, {Color = Color3.fromRGB(70, 72, 70)})
 				end)
 
 				Button["MouseLeave"]:Connect(function()
 					ButtonV.Hover = false
-					tween(Button.UIStroke, {Color = Color3.fromRGB(64,61,76)})
+					tween(Button.UIStroke, {Color = Color3.fromRGB(45, 47, 45)})
 				end)
 
 				function ButtonV:Set(ButtonSettings2)
@@ -3055,13 +2932,14 @@ function Luna:CreateWindow(WindowSettings)
 
 			-- Label
 			function Section:CreateLabel(LabelSettings)
+				TabPage.Position = UDim2.new(0,0,0,28)
+				local _sectionTarget = Section:_target()
 
 				local LabelV = {}
 
 				LabelSettings = Kwargify({
 					Text = "Label",
-					Style = 1,
-					Column = 1
+					Style = 1
 				}, LabelSettings or {}) 
 
 				LabelV.Settings = LabelSettings
@@ -3077,7 +2955,7 @@ function Luna:CreateWindow(WindowSettings)
 
 				Label.Text.Text = LabelSettings.Text
 				Label.Visible = true
-				Label.Parent = (LabelSettings.Column == 2) and Section.ColumnRight or Section.ColumnLeft
+				Label.Parent = _sectionTarget
 
 				Label.BackgroundTransparency = 1
 				Label.UIStroke.Transparency = 1
@@ -3107,11 +2985,12 @@ function Luna:CreateWindow(WindowSettings)
 
 			-- Paragraph
 			function Section:CreateParagraph(ParagraphSettings)
+				TabPage.Position = UDim2.new(0,0,0,28)
+				local _sectionTarget = Section:_target()
 
 				ParagraphSettings = Kwargify({
 					Title = "Paragraph",
-					Text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus venenatis lacus sed tempus eleifend. Mauris interdum bibendum felis, in tempor augue egestas vel. Praesent tristique consectetur ex, eu pretium sem placerat non. Vestibulum a nisi sit amet augue facilisis consectetur sit amet et nunc. Integer fermentum ornare cursus. Pellentesque sed ultricies metus, ut egestas metus. Vivamus auctor erat ac sapien vulputate, nec ultricies sem tempor. Quisque leo lorem, faucibus nec pulvinar nec, congue eu velit. Duis sodales massa efficitur imperdiet ultrices. Donec eros ipsum, ornare pharetra purus aliquam, tincidunt elementum nisi. Ut mi tortor, feugiat eget nunc vitae, facilisis interdum dui. Vivamus ullamcorper nunc dui, a dapibus nisi pretium ac. Integer eleifend placerat nibh, maximus malesuada tellus. Cras in justo in ligula scelerisque suscipit vel vitae quam.",
-					Column = 1,
+					Text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus venenatis lacus sed tempus eleifend. Mauris interdum bibendum felis, in tempor augue egestas vel. Praesent tristique consectetur ex, eu pretium sem placerat non. Vestibulum a nisi sit amet augue facilisis consectetur sit amet et nunc. Integer fermentum ornare cursus. Pellentesque sed ultricies metus, ut egestas metus. Vivamus auctor erat ac sapien vulputate, nec ultricies sem tempor. Quisque leo lorem, faucibus nec pulvinar nec, congue eu velit. Duis sodales massa efficitur imperdiet ultrices. Donec eros ipsum, ornare pharetra purus aliquam, tincidunt elementum nisi. Ut mi tortor, feugiat eget nunc vitae, facilisis interdum dui. Vivamus ullamcorper nunc dui, a dapibus nisi pretium ac. Integer eleifend placerat nibh, maximus malesuada tellus. Cras in justo in ligula scelerisque suscipit vel vitae quam."
 				}, ParagraphSettings or {})
 
 				local ParagraphV = {
@@ -3122,7 +3001,7 @@ function Luna:CreateWindow(WindowSettings)
 				Paragraph.Title.Text = ParagraphSettings.Title
 				Paragraph.Text.Text = ParagraphSettings.Text
 				Paragraph.Visible = true
-				Paragraph.Parent = (ParagraphSettings.Column == 2) and Section.ColumnRight or Section.ColumnLeft
+				Paragraph.Parent = _sectionTarget
 
 				Paragraph.BackgroundTransparency = 1
 				Paragraph.UIStroke.Transparency = 1
@@ -3168,6 +3047,8 @@ function Luna:CreateWindow(WindowSettings)
 
 			-- Slider
 			function Section:CreateSlider(SliderSettings, Flag)
+				TabPage.Position = UDim2.new(0,0,0,28)
+				local _sectionTarget = Section:_target()
 				local SliderV = { IgnoreConfig = false, Class = "Slider", Settings = SliderSettings }
 
 				SliderSettings = Kwargify({
@@ -3175,7 +3056,6 @@ function Luna:CreateWindow(WindowSettings)
 					Range = {0, 200},
 					Increment = 1,
 					CurrentValue = 100,
-					Column = 1,
 					Callback = function(Value)
 
 					end,
@@ -3186,7 +3066,7 @@ function Luna:CreateWindow(WindowSettings)
 				Slider.Name = SliderSettings.Name .. " - Slider"
 				Slider.Title.Text = SliderSettings.Name
 				Slider.Visible = true
-				Slider.Parent = (SliderSettings.Column == 2) and Section.ColumnRight or Section.ColumnLeft
+				Slider.Parent = _sectionTarget
 
 				Slider.BackgroundTransparency = 1
 				Slider.UIStroke.Transparency = 1
@@ -3204,11 +3084,11 @@ function Luna:CreateWindow(WindowSettings)
 				SliderSettings.Callback(SliderSettings.CurrentValue)
 
 				Slider["MouseEnter"]:Connect(function()
-					tween(Slider.UIStroke, {Color = Color3.fromRGB(87, 84, 104)})
+					tween(Slider.UIStroke, {Color = Color3.fromRGB(70, 72, 70)})
 				end)
 
 				Slider["MouseLeave"]:Connect(function()
-					tween(Slider.UIStroke, {Color = Color3.fromRGB(64,61,76)})
+					tween(Slider.UIStroke, {Color = Color3.fromRGB(45, 47, 45)})
 				end)
 
 				Slider.Interact.InputBegan:Connect(function(Input)
@@ -3269,7 +3149,7 @@ function Luna:CreateWindow(WindowSettings)
 									wait(0.5)
 									Slider.Title.Text = SliderSettings.Name
 									TweenService:Create(Slider, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-									TweenService:Create(Slider, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(32, 30, 38)}):Play()
+									TweenService:Create(Slider, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(22, 24, 22)}):Play()
 									TweenService:Create(Slider.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
 								end
 
@@ -3302,7 +3182,7 @@ function Luna:CreateWindow(WindowSettings)
 						wait(0.5)
 						Slider.Title.Text = SliderSettings.Name
 						TweenService:Create(Slider, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-						TweenService:Create(Slider, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(30, 33, 40)}):Play()
+						TweenService:Create(Slider, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(22, 24, 22)}):Play()
 						TweenService:Create(Slider.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
 					end
 
@@ -3366,13 +3246,14 @@ function Luna:CreateWindow(WindowSettings)
 
 			-- Toggle
 			function Section:CreateToggle(ToggleSettings, Flag)    
+				TabPage.Position = UDim2.new(0,0,0,28)
+				local _sectionTarget = Section:_target()
 				local ToggleV = { IgnoreConfig = false, Class = "Toggle" }
 
 				ToggleSettings = Kwargify({
 					Name = "Toggle",
 					Description = nil,
 					CurrentValue = false,
-					Column = 1,
 					Callback = function(Value)
 					end,
 				}, ToggleSettings or {})
@@ -3387,7 +3268,7 @@ function Luna:CreateWindow(WindowSettings)
 				end
 
 				Toggle.Visible = true
-				Toggle.Parent = (ToggleSettings.Column == 2) and Section.ColumnRight or Section.ColumnLeft
+				Toggle.Parent = _sectionTarget
 
 				Toggle.Name = ToggleSettings.Name .. " - Toggle"
 				Toggle.Title.Text = ToggleSettings.Name
@@ -3447,17 +3328,17 @@ function Luna:CreateWindow(WindowSettings)
 						wait(0.5)
 						Toggle.Title.Text = ToggleSettings.Name
 						TweenService:Create(Toggle, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-						TweenService:Create(Toggle, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(32, 30, 38)}):Play()
+						TweenService:Create(Toggle, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(22, 24, 22)}):Play()
 						TweenService:Create(Toggle.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
 					end
 				end)
 
 				Toggle["MouseEnter"]:Connect(function()
-					tween(Toggle.UIStroke, {Color = Color3.fromRGB(87, 84, 104)})
+					tween(Toggle.UIStroke, {Color = Color3.fromRGB(70, 72, 70)})
 				end)
 
 				Toggle["MouseLeave"]:Connect(function()
-					tween(Toggle.UIStroke, {Color = Color3.fromRGB(64,61,76)})
+					tween(Toggle.UIStroke, {Color = Color3.fromRGB(45, 47, 45)})
 				end)
 
 				if ToggleSettings.CurrentValue then
@@ -3474,7 +3355,7 @@ function Luna:CreateWindow(WindowSettings)
 						wait(0.5)
 						Toggle.Title.Text = ToggleSettings.Name
 						TweenService:Create(Toggle, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-						TweenService:Create(Toggle, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(32, 30, 38)}):Play()
+						TweenService:Create(Toggle, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(22, 24, 22)}):Play()
 						TweenService:Create(Toggle.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
 					end
 				end
@@ -3518,7 +3399,7 @@ function Luna:CreateWindow(WindowSettings)
 						wait(0.5)
 						Toggle.Title.Text = ToggleSettings.Name
 						TweenService:Create(Toggle, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-						TweenService:Create(Toggle, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(32, 30, 38)}):Play()
+						TweenService:Create(Toggle, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(22, 24, 22)}):Play()
 						TweenService:Create(Toggle.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
 					end
 				end
@@ -3543,13 +3424,14 @@ function Luna:CreateWindow(WindowSettings)
 
 			-- Bind
 			function Section:CreateBind(BindSettings, Flag)
+				TabPage.Position = UDim2.new(0,0,0,28)
+				local _sectionTarget = Section:_target()
 				local BindV = { Class = "Keybind", IgnoreConfig = false, Settings = BindSettings, Active = false }
 
 				BindSettings = Kwargify({
 					Name = "Bind",
 					Description = nil,
 					CurrentBind = "Q",
-					Column = 1,
 					HoldToInteract = false, -- setting this makes the Bind in toggle mode
 					Callback = function(Bind)
 						-- The function that takes place when the Bind is pressed
@@ -3572,7 +3454,7 @@ function Luna:CreateWindow(WindowSettings)
 				end
 
 				Bind.Visible = true
-				Bind.Parent = (BindSettings.Column == 2) and Section.ColumnRight or Section.ColumnLeft
+				Bind.Parent = _sectionTarget
 
 				Bind.Name = BindSettings.Name
 				Bind.Title.Text = BindSettings.Name
@@ -3614,11 +3496,11 @@ function Luna:CreateWindow(WindowSettings)
 				end)
 
 				Bind["MouseEnter"]:Connect(function()
-					tween(Bind.UIStroke, {Color = Color3.fromRGB(87, 84, 104)})
+					tween(Bind.UIStroke, {Color = Color3.fromRGB(70, 72, 70)})
 				end)
 
 				Bind["MouseLeave"]:Connect(function()
-					tween(Bind.UIStroke, {Color = Color3.fromRGB(64,61,76)})
+					tween(Bind.UIStroke, {Color = Color3.fromRGB(45, 47, 45)})
 				end)
 				UserInputService.InputBegan:Connect(function(input, processed)
 
@@ -3640,7 +3522,7 @@ function Luna:CreateWindow(WindowSettings)
 								wait(0.5)
 								Bind.Title.Text = BindSettings.Name
 								TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-								TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(32, 30, 38)}):Play()
+								TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(22, 24, 22)}):Play()
 								TweenService:Create(Bind.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
 							end
 							Bind.BindFrame.BindBox:ReleaseFocus()
@@ -3669,7 +3551,7 @@ function Luna:CreateWindow(WindowSettings)
 								wait(0.5)
 								Bind.Title.Text = BindSettings.Name
 								TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-								TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(32, 30, 38)}):Play()
+								TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(22, 24, 22)}):Play()
 								TweenService:Create(Bind.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
 							end
 						else
@@ -3689,7 +3571,7 @@ function Luna:CreateWindow(WindowSettings)
 											wait(0.5)
 											Bind.Title.Text = BindSettings.Name
 											TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-											TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(32, 30, 38)}):Play()
+											TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(22, 24, 22)}):Play()
 											TweenService:Create(Bind.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
 										end 
 										Loop:Disconnect()
@@ -3706,7 +3588,7 @@ function Luna:CreateWindow(WindowSettings)
 											wait(0.5)
 											Bind.Title.Text = BindSettings.Name
 											TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-											TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(32, 30, 38)}):Play()
+											TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(22, 24, 22)}):Play()
 											TweenService:Create(Bind.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
 										end
 									end
@@ -3763,6 +3645,8 @@ function Luna:CreateWindow(WindowSettings)
 
 			-- Dynamic Input
 			function Section:CreateInput(InputSettings, Flag)
+				TabPage.Position = UDim2.new(0,0,0,28)
+				local _sectionTarget = Section:_target()
 				local InputV = { IgnoreConfig = false, Class = "Input", Settings = InputSettings }
 
 				InputSettings = Kwargify({
@@ -3773,7 +3657,6 @@ function Luna:CreateWindow(WindowSettings)
 					RemoveTextAfterFocusLost = false,
 					Numeric = false,
 					Enter = false,
-					Column = 1,
 					MaxCharacters = nil,
 					Callback = function(Text)
 
@@ -3798,7 +3681,7 @@ function Luna:CreateWindow(WindowSettings)
 				Input.Title.Text = InputSettings.Name
 				if descriptionbool then Input.Desc.Text = InputSettings.Description end
 				Input.Visible = true
-				Input.Parent = (InputSettings.Column == 2) and Section.ColumnRight or Section.ColumnLeft
+				Input.Parent = _sectionTarget
 
 				Input.BackgroundTransparency = 1
 				Input.UIStroke.Transparency = 1
@@ -3836,7 +3719,7 @@ function Luna:CreateWindow(WindowSettings)
 								wait(0.5)
 								Input.Title.Text = InputSettings.Name
 								TweenService:Create(Input, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-								TweenService:Create(Input, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(32, 30, 38)}):Play()
+								TweenService:Create(Input, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(22, 24, 22)}):Play()
 								TweenService:Create(Input.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
 							end
 						end
@@ -3877,7 +3760,7 @@ function Luna:CreateWindow(WindowSettings)
 							wait(0.5)
 							Input.Title.Text = InputSettings.Name
 							TweenService:Create(Input, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-							TweenService:Create(Input, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(32, 30, 38)}):Play()
+							TweenService:Create(Input, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(22, 24, 22)}):Play()
 							TweenService:Create(Input.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
 						end
 					end
@@ -3885,11 +3768,11 @@ function Luna:CreateWindow(WindowSettings)
 				end)
 
 				Input["MouseEnter"]:Connect(function()
-					tween(Input.UIStroke, {Color = Color3.fromRGB(87, 84, 104)})
+					tween(Input.UIStroke, {Color = Color3.fromRGB(70, 72, 70)})
 				end)
 
 				Input["MouseLeave"]:Connect(function()
-					tween(Input.UIStroke, {Color = Color3.fromRGB(64,61,76)})
+					tween(Input.UIStroke, {Color = Color3.fromRGB(45, 47, 45)})
 				end)
 
 
@@ -3930,6 +3813,8 @@ function Luna:CreateWindow(WindowSettings)
 
 			-- Dropdown
 			function Section:CreateDropdown(DropdownSettings, Flag)
+				TabPage.Position = UDim2.new(0,0,0,28)
+				local _sectionTarget = Section:_target()
 				local DropdownV = { IgnoreConfig = false, Class = "Dropdown", Settings = DropdownSettings}
 
 				DropdownSettings = Kwargify({
@@ -3938,7 +3823,6 @@ function Luna:CreateWindow(WindowSettings)
 					Options = {"Option 1", "Option 2"},
 					CurrentOption = {"Option 1"},
 					MultipleOptions = false,
-					Column = 1,
 					SpecialType = nil, -- currently onl player, might add more soon
 					Callback = function(Options)
 						-- The function that takes place when the selected option is changed
@@ -3970,7 +3854,7 @@ function Luna:CreateWindow(WindowSettings)
 				Dropdown.Title.Text = DropdownSettings.Name
 				if descriptionbool then Dropdown.Desc.Text = DropdownSettings.Description end
 
-				Dropdown.Parent = (DropdownSettings.Column == 2) and Section.ColumnRight or Section.ColumnLeft
+				Dropdown.Parent = _sectionTarget
 				Dropdown.Visible = true
 
 				local function Toggle()
@@ -3997,7 +3881,7 @@ function Luna:CreateWindow(WindowSettings)
 						wait(0.5)
 						Dropdown.Title.Text = DropdownSettings.Name
 						TweenService:Create(Dropdown, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-						TweenService:Create(Dropdown, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(32, 30, 38)}):Play()
+						TweenService:Create(Dropdown, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(22, 24, 22)}):Play()
 						TweenService:Create(Dropdown.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
 					end
 					if Success and c2 then
@@ -4123,11 +4007,11 @@ function Luna:CreateWindow(WindowSettings)
 				end)
 
 				Dropdown["MouseEnter"]:Connect(function()
-					tween(Dropdown.UIStroke, {Color = Color3.fromRGB(87, 84, 104)})
+					tween(Dropdown.UIStroke, {Color = Color3.fromRGB(70, 72, 70)})
 				end)
 
 				Dropdown["MouseLeave"]:Connect(function()
-					tween(Dropdown.UIStroke, {Color = Color3.fromRGB(64,61,76)})
+					tween(Dropdown.UIStroke, {Color = Color3.fromRGB(45, 47, 45)})
 				end)
 
 				if DropdownSettings.SpecialType == "Player" then
@@ -4283,12 +4167,13 @@ function Luna:CreateWindow(WindowSettings)
 
 			-- Color Picker
 			function Section:CreateColorPicker(ColorPickerSettings, Flag) -- by Rayfield/Throit
+				TabPage.Position = UDim2.new(0,0,0,28)
+				local _sectionTarget = Section:_target()
 				local ColorPickerV = {IgnoreClass = false, Class = "Colorpicker", Settings = ColorPickerSettings}
 
 				ColorPickerSettings = Kwargify({
 					Name = "Color Picker",
 					Color = Color3.fromRGB(255,255,255),
-					Column = 1,
 					Callback = function(Value)
 						-- The function that takes place every time the color picker is moved/changed
 						-- The variable (Value) is a Color3fromRGB value based on which color is selected
@@ -4313,16 +4198,16 @@ function Luna:CreateWindow(WindowSettings)
 				ColorPicker.Name = ColorPickerSettings.Name
 				ColorPicker.Title.Text = ColorPickerSettings.Name
 				ColorPicker.Visible = true
-				ColorPicker.Parent = (ColorPickerSettings.Column == 2) and Section.ColumnRight or Section.ColumnLeft
+				ColorPicker.Parent = _sectionTarget
 				ColorPicker.Size = UDim2.new(1.042, -25,0, 38)
 				Background.Size = closedsize
 				Display.BackgroundTransparency = 0
 
 				ColorPicker["MouseEnter"]:Connect(function()
-					tween(ColorPicker.UIStroke, {Color = Color3.fromRGB(87, 84, 104)})
+					tween(ColorPicker.UIStroke, {Color = Color3.fromRGB(70, 72, 70)})
 				end)
 				ColorPicker["MouseLeave"]:Connect(function()
-					tween(ColorPicker.UIStroke, {Color = Color3.fromRGB(64,61,76)})
+					tween(ColorPicker.UIStroke, {Color = Color3.fromRGB(45, 47, 45)})
 				end)
 
 				local function SafeCallback(param, c2)
@@ -4338,7 +4223,7 @@ function Luna:CreateWindow(WindowSettings)
 						wait(0.5)
 						ColorPicker.Title.Text = ColorPickerSettings.Name
 						TweenService:Create(ColorPicker, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-						TweenService:Create(ColorPicker, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(32, 30, 38)}):Play()
+						TweenService:Create(ColorPicker, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(22, 24, 22)}):Play()
 						TweenService:Create(ColorPicker.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
 					end
 					if Success and c2 then
@@ -4529,6 +4414,231 @@ function Luna:CreateWindow(WindowSettings)
 				return ColorPickerV
 			end
 
+			-- GroupBox
+			function Section:CreateGroupBox(GroupBoxSettings)
+				local _sectionTarget = Section:_target()
+
+				GroupBoxSettings = Kwargify({
+					Name = "Group",
+					Collapsible = true,
+					DefaultOpen = true,
+				}, GroupBoxSettings or {})
+
+				local GroupBoxV = { Settings = GroupBoxSettings }
+
+				-- Outer wrapper: título flutuante acima + box abaixo
+				local Wrapper = Instance.new("Frame")
+				Wrapper.Name = GroupBoxSettings.Name .. "_GroupBox"
+				Wrapper.BackgroundTransparency = 1
+				Wrapper.Size = UDim2.new(1, 0, 0, 0)
+				Wrapper.AutomaticSize = Enum.AutomaticSize.Y
+				Wrapper.ClipsDescendants = false
+				Wrapper.Parent = _sectionTarget
+
+				-- Título flutuante acima do box (igual à referência)
+				local TitleLabel = Instance.new("TextLabel")
+				TitleLabel.Name = "Title"
+				TitleLabel.BackgroundTransparency = 1
+				TitleLabel.Size = UDim2.new(1, 0, 0, 16)
+				TitleLabel.Position = UDim2.new(0, 0, 0, 0)
+				TitleLabel.Font = Enum.Font.GothamMedium
+				TitleLabel.TextSize = 10
+				TitleLabel.TextColor3 = Color3.fromRGB(110, 115, 110)
+				TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+				TitleLabel.Text = string.upper(GroupBoxSettings.Name)
+				TitleLabel.TextTransparency = 1
+				TitleLabel.Parent = Wrapper
+
+				-- Seta de collapse ao lado do título
+				local Arrow = Instance.new("ImageLabel")
+				Arrow.Name = "Arrow"
+				Arrow.BackgroundTransparency = 1
+				Arrow.Size = UDim2.new(0, 10, 0, 10)
+				Arrow.Position = UDim2.new(1, -14, 0, 3)
+				Arrow.Image = "rbxassetid://6031094687"
+				Arrow.ImageColor3 = Color3.fromRGB(110, 115, 110)
+				Arrow.ImageTransparency = 1
+				Arrow.Visible = GroupBoxSettings.Collapsible
+				Arrow.Parent = Wrapper
+
+				-- Box sem borda, fundo levemente distinto (igual referência)
+				local Box = Instance.new("Frame")
+				Box.Name = "Box"
+				Box.BackgroundColor3 = Color3.fromRGB(22, 24, 22)
+				Box.BackgroundTransparency = 0.45
+				Box.BorderSizePixel = 0
+				Box.Position = UDim2.new(0, 0, 0, 18)
+				Box.Size = UDim2.new(1, 0, 0, 0)
+				Box.AutomaticSize = Enum.AutomaticSize.Y
+				Box.ClipsDescendants = false
+				Box.Parent = Wrapper
+
+				local BoxCorner = Instance.new("UICorner")
+				BoxCorner.CornerRadius = UDim.new(0, 5)
+				BoxCorner.Parent = Box
+
+				-- Stroke bem sutil só pra dar contorno fino
+				local BoxStroke = Instance.new("UIStroke")
+				BoxStroke.Color = Color3.fromRGB(40, 43, 40)
+				BoxStroke.Thickness = 1
+				BoxStroke.Transparency = 1
+				BoxStroke.Parent = Box
+
+				-- Content area
+				local ContentFrame = Instance.new("Frame")
+				ContentFrame.Name = "Content"
+				ContentFrame.BackgroundTransparency = 1
+				ContentFrame.Size = UDim2.new(1, 0, 0, 0)
+				ContentFrame.AutomaticSize = Enum.AutomaticSize.Y
+				ContentFrame.ClipsDescendants = false
+				ContentFrame.Parent = Box
+
+				local ContentLayout = Instance.new("UIListLayout")
+				ContentLayout.SortOrder = Enum.SortOrder.LayoutOrder
+				ContentLayout.Padding = UDim.new(0, 2)
+				ContentLayout.Parent = ContentFrame
+
+				local ContentPad = Instance.new("UIPadding")
+				ContentPad.PaddingLeft = UDim.new(0, 6)
+				ContentPad.PaddingRight = UDim.new(0, 6)
+				ContentPad.PaddingTop = UDim.new(0, 5)
+				ContentPad.PaddingBottom = UDim.new(0, 6)
+				ContentPad.Parent = ContentFrame
+
+				-- Animate in
+				tween(TitleLabel, {TextTransparency = 0})
+				tween(BoxStroke, {Transparency = 0.82})
+				if GroupBoxSettings.Collapsible then
+					tween(Arrow, {ImageTransparency = 0})
+				end
+
+				-- Collapse state
+				local isOpen = GroupBoxSettings.DefaultOpen
+				if not isOpen then
+					if GroupBoxSettings.Collapsible then Arrow.Rotation = -90 end
+					ContentFrame.Visible = false
+				end
+
+				local function toggleCollapse()
+					if not GroupBoxSettings.Collapsible then return end
+					isOpen = not isOpen
+					if isOpen then
+						tween(Arrow, {Rotation = 0})
+						ContentFrame.Visible = true
+					else
+						tween(Arrow, {Rotation = -90})
+						task.delay(0.25, function()
+							if not isOpen then ContentFrame.Visible = false end
+						end)
+					end
+				end
+
+				if GroupBoxSettings.Collapsible then
+					local TitleBtn = Instance.new("TextButton")
+					TitleBtn.Name = "Interact"
+					TitleBtn.BackgroundTransparency = 1
+					TitleBtn.Size = UDim2.new(1, 0, 0, 16)
+					TitleBtn.Text = ""
+					TitleBtn.ZIndex = 5
+					TitleBtn.Parent = Wrapper
+					TitleBtn.MouseButton1Click:Connect(toggleCollapse)
+
+					TitleBtn.MouseEnter:Connect(function()
+						tween(TitleLabel, {TextColor3 = Color3.fromRGB(150, 155, 150)})
+					end)
+					TitleBtn.MouseLeave:Connect(function()
+						tween(TitleLabel, {TextColor3 = Color3.fromRGB(110, 115, 110)})
+					end)
+				end
+
+				-- Inner "section-like" object that routes Create* calls into ContentFrame
+				local methodNames = {
+					"CreateDivider","CreateButton","CreateLabel","CreateParagraph",
+					"CreateSlider","CreateToggle","CreateBind","CreateKeybind",
+					"CreateInput","CreateDropdown","CreateColorPicker"
+				}
+
+				-- Monitora novos elementos no ContentFrame e os aplana após os tweens de entrada
+				-- task.defer roda no próximo frame, depois dos TweenService:Create():Play() iniciais.
+				-- Usamos uma conexão persistente pra capturar qualquer Create* futuro também.
+				local function flattenElement(elem)
+					if not (elem:IsA("Frame") and elem.Parent == ContentFrame) then return end
+
+					-- Imediatamente seta as cores de texto antes dos tweens de entrada
+					local title = elem:FindFirstChild("Title")
+					if title and title:IsA("TextLabel") then
+						title.TextColor3 = Color3.fromRGB(222, 225, 222)
+						title.Font = Enum.Font.GothamBold
+					end
+					local desc = elem:FindFirstChild("Desc")
+					if desc and desc:IsA("TextLabel") then
+						desc.TextColor3 = Color3.fromRGB(138, 142, 138)
+					end
+
+					-- Separador fino no fundo do elemento
+					local sep = Instance.new("Frame")
+					sep.Name = "Separator"
+					sep.BackgroundColor3 = Color3.fromRGB(50, 53, 50)
+					sep.BackgroundTransparency = 0.5
+					sep.BorderSizePixel = 0
+					sep.Size = UDim2.new(1, 8, 0, 1)
+					sep.Position = UDim2.new(0, -4, 1, 0)
+					local sepGrad = Instance.new("UIGradient")
+					sepGrad.Transparency = NumberSequence.new{
+						NumberSequenceKeypoint.new(0, 1),
+						NumberSequenceKeypoint.new(0.08, 0),
+						NumberSequenceKeypoint.new(0.92, 0),
+						NumberSequenceKeypoint.new(1, 1)
+					}
+					sepGrad.Parent = sep
+					sep.Parent = elem
+
+					-- Loop por 0.85s (maior que o tween de entrada de 0.7s)
+					-- pra garantir que background e stroke fiquem flat
+					local stroke = elem:FindFirstChildOfClass("UIStroke")
+					local elapsed = 0
+					local conn; conn = RunService.RenderStepped:Connect(function(dt)
+						elapsed = elapsed + dt
+						if not elem or not elem.Parent then conn:Disconnect() return end
+						elem.BackgroundTransparency = 1
+						if stroke then stroke.Transparency = 1 end
+						if elapsed >= 0.85 then conn:Disconnect() end
+					end)
+				end
+
+				ContentFrame.ChildAdded:Connect(flattenElement)
+
+				for _, m in ipairs(methodNames) do
+					if Section[m] then
+						GroupBoxV[m] = function(self, ...)
+							local origTarget = Section._target
+							local origCols = Section._cols
+							Section._cols = 1
+							Section._target = function() return ContentFrame end
+							local result = Section[m](Section, ...)
+							Section._cols = origCols
+							Section._target = origTarget
+							return result
+						end
+					end
+				end
+
+				function GroupBoxV:SetTitle(newName)
+					GroupBoxSettings.Name = newName
+					TitleLabel.Text = string.upper(newName)
+				end
+
+				function GroupBoxV:Toggle()
+					toggleCollapse()
+				end
+
+				function GroupBoxV:Destroy()
+					Wrapper:Destroy()
+				end
+
+				return GroupBoxV
+			end
+
 			return Section
 
 		end
@@ -4536,10 +4646,7 @@ function Luna:CreateWindow(WindowSettings)
 		-- Divider
 		function Tab:CreateDivider()
 			local b = Elements.Template.Divider:Clone()
-			b.Size = UDim2.new(1, 0, 0, 18)
-			Tab._layoutCounter = Tab._layoutCounter + 1
-			b.LayoutOrder = Tab._layoutCounter
-			b.Parent = Tab._tabPage
+			b.Parent = TabPage
 			b.Line.BackgroundTransparency = 1
 			tween(b.Line, {BackgroundTransparency = 0})
 		end
@@ -4550,7 +4657,6 @@ function Luna:CreateWindow(WindowSettings)
 			ButtonSettings = Kwargify({
 				Name = "Button",
 				Description = nil,
-				Column = 1,
 				Callback = function()
 
 				end,
@@ -4563,7 +4669,7 @@ function Luna:CreateWindow(WindowSettings)
 
 
 			local Button
-			if ButtonSettings.Description == nil or ButtonSettings.Description == "" then
+			if ButtonSettings.Description == nil and ButtonSettings.Description ~= "" then
 				Button = Elements.Template.Button:Clone()
 			else
 				Button = Elements.Template.ButtonDesc:Clone()
@@ -4574,7 +4680,7 @@ function Luna:CreateWindow(WindowSettings)
 				Button.Desc.Text = ButtonSettings.Description
 			end
 			Button.Visible = true
-			Button.Parent = (ButtonSettings.Column == 2) and Tab.ColumnRight or Tab.ColumnLeft
+			Button.Parent = TabPage
 
 			Button.UIStroke.Transparency = 1
 			Button.Title.TextTransparency = 1
@@ -4601,27 +4707,27 @@ function Luna:CreateWindow(WindowSettings)
 					wait(0.5)
 					Button.Title.Text = ButtonSettings.Name
 					TweenService:Create(Button, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-					TweenService:Create(Button, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(32, 30, 38)}):Play()
+					TweenService:Create(Button, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(22, 24, 22)}):Play()
 					TweenService:Create(Button.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
 				else
 					tween(Button.UIStroke, {Color = Color3.fromRGB(136, 131, 163)})
 					wait(0.2)
 					if ButtonV.Hover then
-						tween(Button.UIStroke, {Color = Color3.fromRGB(87, 84, 104)})
+						tween(Button.UIStroke, {Color = Color3.fromRGB(70, 72, 70)})
 					else
-						tween(Button.UIStroke, {Color = Color3.fromRGB(64,61,76)})
+						tween(Button.UIStroke, {Color = Color3.fromRGB(45, 47, 45)})
 					end
 				end
 			end)
 
 			Button["MouseEnter"]:Connect(function()
 				ButtonV.Hover = true
-				tween(Button.UIStroke, {Color = Color3.fromRGB(87, 84, 104)})
+				tween(Button.UIStroke, {Color = Color3.fromRGB(70, 72, 70)})
 			end)
 
 			Button["MouseLeave"]:Connect(function()
 				ButtonV.Hover = false
-				tween(Button.UIStroke, {Color = Color3.fromRGB(64,61,76)})
+				tween(Button.UIStroke, {Color = Color3.fromRGB(45, 47, 45)})
 			end)
 
 			function ButtonV:Set(ButtonSettings2)
@@ -4672,7 +4778,7 @@ function Luna:CreateWindow(WindowSettings)
 
 			Label.Text.Text = LabelSettings.Text
 			Label.Visible = true
-			Label.Parent = (LabelSettings.Column == 2) and Tab.ColumnRight or Tab.ColumnLeft
+			Label.Parent = TabPage
 
 			Label.BackgroundTransparency = 1
 			Label.UIStroke.Transparency = 1
@@ -4704,9 +4810,8 @@ function Luna:CreateWindow(WindowSettings)
 		function Tab:CreateParagraph(ParagraphSettings)
 
 			ParagraphSettings = Kwargify({
-				Column = 1,
 				Title = "Paragraph",
-				Text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus venenatis lacus sed tempus eleifend. Mauris interdum bibendum felis, in tempor augue egestas vel. Praesent tristique consectetur ex, eu pretium sem placerat non. Vestibulum a nisi sit amet augue facilisis consectetur sit amet et nunc. Integer fermentum ornare cursus. Pellentesque sed ultricies metus, ut egestas metus. Vivamus auctor erat ac sapien vulputate, nec ultricies sem tempor. Quisque leo lorem, faucibus nec pulvinar nec, congue eu velit. Duis sodales massa efficitur imperdiet ultrices. Donec eros ipsum, ornare pharetra purus aliquam, tincidunt elementum nisi. Ut mi tortor, feugiat eget nunc vitae, facilisis interdum dui. Vivamus ullamcorper nunc dui, a dapibus nisi pretium ac. Integer eleifend placerat nibh, maximus malesuada tellus. Cras in justo in ligula scelerisque suscipit vel vitae quam.",
+				Text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus venenatis lacus sed tempus eleifend. Mauris interdum bibendum felis, in tempor augue egestas vel. Praesent tristique consectetur ex, eu pretium sem placerat non. Vestibulum a nisi sit amet augue facilisis consectetur sit amet et nunc. Integer fermentum ornare cursus. Pellentesque sed ultricies metus, ut egestas metus. Vivamus auctor erat ac sapien vulputate, nec ultricies sem tempor. Quisque leo lorem, faucibus nec pulvinar nec, congue eu velit. Duis sodales massa efficitur imperdiet ultrices. Donec eros ipsum, ornare pharetra purus aliquam, tincidunt elementum nisi. Ut mi tortor, feugiat eget nunc vitae, facilisis interdum dui. Vivamus ullamcorper nunc dui, a dapibus nisi pretium ac. Integer eleifend placerat nibh, maximus malesuada tellus. Cras in justo in ligula scelerisque suscipit vel vitae quam."
 			}, ParagraphSettings or {})
 
 			local ParagraphV = {
@@ -4717,7 +4822,7 @@ function Luna:CreateWindow(WindowSettings)
 			Paragraph.Title.Text = ParagraphSettings.Title
 			Paragraph.Text.Text = ParagraphSettings.Text
 			Paragraph.Visible = true
-			Paragraph.Parent = (ParagraphSettings.Column == 2) and Tab.ColumnRight or Tab.ColumnLeft
+			Paragraph.Parent = TabPage
 
 			Paragraph.BackgroundTransparency = 1
 			Paragraph.UIStroke.Transparency = 1
@@ -4780,7 +4885,7 @@ function Luna:CreateWindow(WindowSettings)
 			Slider.Name = SliderSettings.Name .. " - Slider"
 			Slider.Title.Text = SliderSettings.Name
 			Slider.Visible = true
-			Slider.Parent = (SliderSettings.Column == 2) and Tab.ColumnRight or Tab.ColumnLeft
+			Slider.Parent = TabPage
 
 			Slider.BackgroundTransparency = 1
 			Slider.UIStroke.Transparency = 1
@@ -4798,11 +4903,11 @@ function Luna:CreateWindow(WindowSettings)
 			SliderSettings.Callback(SliderSettings.CurrentValue)
 
 			Slider["MouseEnter"]:Connect(function()
-				tween(Slider.UIStroke, {Color = Color3.fromRGB(87, 84, 104)})
+				tween(Slider.UIStroke, {Color = Color3.fromRGB(70, 72, 70)})
 			end)
 
 			Slider["MouseLeave"]:Connect(function()
-				tween(Slider.UIStroke, {Color = Color3.fromRGB(64,61,76)})
+				tween(Slider.UIStroke, {Color = Color3.fromRGB(45, 47, 45)})
 			end)
 
 			Slider.Interact.InputBegan:Connect(function(Input)
@@ -4863,7 +4968,7 @@ function Luna:CreateWindow(WindowSettings)
 								wait(0.5)
 								Slider.Title.Text = SliderSettings.Name
 								TweenService:Create(Slider, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-								TweenService:Create(Slider, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(32, 30, 38)}):Play()
+								TweenService:Create(Slider, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(22, 24, 22)}):Play()
 								TweenService:Create(Slider.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
 							end
 
@@ -4896,7 +5001,7 @@ function Luna:CreateWindow(WindowSettings)
 					wait(0.5)
 					Slider.Title.Text = SliderSettings.Name
 					TweenService:Create(Slider, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-					TweenService:Create(Slider, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(30, 33, 40)}):Play()
+					TweenService:Create(Slider, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(22, 24, 22)}):Play()
 					TweenService:Create(Slider.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
 				end
 
@@ -4980,7 +5085,7 @@ function Luna:CreateWindow(WindowSettings)
 			end
 
 			Toggle.Visible = true
-			Toggle.Parent = (ToggleSettings.Column == 2) and Tab.ColumnRight or Tab.ColumnLeft
+			Toggle.Parent = TabPage
 
 			Toggle.Name = ToggleSettings.Name .. " - Toggle"
 			Toggle.Title.Text = ToggleSettings.Name
@@ -5040,17 +5145,17 @@ function Luna:CreateWindow(WindowSettings)
 					wait(0.5)
 					Toggle.Title.Text = ToggleSettings.Name
 					TweenService:Create(Toggle, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-					TweenService:Create(Toggle, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(32, 30, 38)}):Play()
+					TweenService:Create(Toggle, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(22, 24, 22)}):Play()
 					TweenService:Create(Toggle.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
 				end
 			end)
 
 			Toggle["MouseEnter"]:Connect(function()
-				tween(Toggle.UIStroke, {Color = Color3.fromRGB(87, 84, 104)})
+				tween(Toggle.UIStroke, {Color = Color3.fromRGB(70, 72, 70)})
 			end)
 
 			Toggle["MouseLeave"]:Connect(function()
-				tween(Toggle.UIStroke, {Color = Color3.fromRGB(64,61,76)})
+				tween(Toggle.UIStroke, {Color = Color3.fromRGB(45, 47, 45)})
 			end)
 
 			if ToggleSettings.CurrentValue then
@@ -5067,7 +5172,7 @@ function Luna:CreateWindow(WindowSettings)
 					wait(0.5)
 					Toggle.Title.Text = ToggleSettings.Name
 					TweenService:Create(Toggle, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-					TweenService:Create(Toggle, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(32, 30, 38)}):Play()
+					TweenService:Create(Toggle, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(22, 24, 22)}):Play()
 					TweenService:Create(Toggle.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
 				end
 			end
@@ -5111,7 +5216,7 @@ function Luna:CreateWindow(WindowSettings)
 					wait(0.5)
 					Toggle.Title.Text = ToggleSettings.Name
 					TweenService:Create(Toggle, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-					TweenService:Create(Toggle, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(32, 30, 38)}):Play()
+					TweenService:Create(Toggle, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(22, 24, 22)}):Play()
 					TweenService:Create(Toggle.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
 				end
 			end
@@ -5164,7 +5269,7 @@ function Luna:CreateWindow(WindowSettings)
 			end
 
 			Bind.Visible = true
-			Bind.Parent = (BindSettings.Column == 2) and Tab.ColumnRight or Tab.ColumnLeft
+			Bind.Parent = TabPage
 
 			Bind.Name = BindSettings.Name
 			Bind.Title.Text = BindSettings.Name
@@ -5206,11 +5311,11 @@ function Luna:CreateWindow(WindowSettings)
 			end)
 
 			Bind["MouseEnter"]:Connect(function()
-				tween(Bind.UIStroke, {Color = Color3.fromRGB(87, 84, 104)})
+				tween(Bind.UIStroke, {Color = Color3.fromRGB(70, 72, 70)})
 			end)
 
 			Bind["MouseLeave"]:Connect(function()
-				tween(Bind.UIStroke, {Color = Color3.fromRGB(64,61,76)})
+				tween(Bind.UIStroke, {Color = Color3.fromRGB(45, 47, 45)})
 			end)
 			UserInputService.InputBegan:Connect(function(input, processed)
 
@@ -5232,7 +5337,7 @@ function Luna:CreateWindow(WindowSettings)
 							wait(0.5)
 							Bind.Title.Text = BindSettings.Name
 							TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-							TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(32, 30, 38)}):Play()
+							TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(22, 24, 22)}):Play()
 							TweenService:Create(Bind.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
 						end
 						Bind.BindFrame.BindBox:ReleaseFocus()
@@ -5261,7 +5366,7 @@ function Luna:CreateWindow(WindowSettings)
 							wait(0.5)
 							Bind.Title.Text = BindSettings.Name
 							TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-							TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(32, 30, 38)}):Play()
+							TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(22, 24, 22)}):Play()
 							TweenService:Create(Bind.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
 						end
 					else
@@ -5281,7 +5386,7 @@ function Luna:CreateWindow(WindowSettings)
 										wait(0.5)
 										Bind.Title.Text = BindSettings.Name
 										TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-										TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(32, 30, 38)}):Play()
+										TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(22, 24, 22)}):Play()
 										TweenService:Create(Bind.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
 									end 
 									Loop:Disconnect()
@@ -5298,7 +5403,7 @@ function Luna:CreateWindow(WindowSettings)
 										wait(0.5)
 										Bind.Title.Text = BindSettings.Name
 										TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-										TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(32, 30, 38)}):Play()
+										TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(22, 24, 22)}):Play()
 										TweenService:Create(Bind.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
 									end
 								end
@@ -5377,7 +5482,7 @@ function Luna:CreateWindow(WindowSettings)
 			end
 
 			Bind.Visible = true
-			Bind.Parent = (BindSettings.Column == 2) and Tab.ColumnRight or Tab.ColumnLeft
+			Bind.Parent = TabPage
 
 			Bind.Name = BindSettings.Name
 			Bind.Title.Text = BindSettings.Name
@@ -5419,11 +5524,11 @@ function Luna:CreateWindow(WindowSettings)
 			end)
 
 			Bind["MouseEnter"]:Connect(function()
-				tween(Bind.UIStroke, {Color = Color3.fromRGB(87, 84, 104)})
+				tween(Bind.UIStroke, {Color = Color3.fromRGB(70, 72, 70)})
 			end)
 
 			Bind["MouseLeave"]:Connect(function()
-				tween(Bind.UIStroke, {Color = Color3.fromRGB(64,61,76)})
+				tween(Bind.UIStroke, {Color = Color3.fromRGB(45, 47, 45)})
 			end)
 			UserInputService.InputBegan:Connect(function(input, processed)
 
@@ -5459,7 +5564,7 @@ function Luna:CreateWindow(WindowSettings)
 							wait(0.5)
 							Bind.Title.Text = BindSettings.Name
 							TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-							TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(32, 30, 38)}):Play()
+							TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(22, 24, 22)}):Play()
 							TweenService:Create(Bind.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
 						end
 					else
@@ -5479,7 +5584,7 @@ function Luna:CreateWindow(WindowSettings)
 										wait(0.5)
 										Bind.Title.Text = BindSettings.Name
 										TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-										TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(32, 30, 38)}):Play()
+										TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(22, 24, 22)}):Play()
 										TweenService:Create(Bind.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
 									end 
 									Loop:Disconnect()
@@ -5496,7 +5601,7 @@ function Luna:CreateWindow(WindowSettings)
 										wait(0.5)
 										Bind.Title.Text = BindSettings.Name
 										TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-										TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(32, 30, 38)}):Play()
+										TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(22, 24, 22)}):Play()
 										TweenService:Create(Bind.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
 									end
 								end
@@ -5583,7 +5688,7 @@ function Luna:CreateWindow(WindowSettings)
 			Input.Title.Text = InputSettings.Name
 			if descriptionbool then Input.Desc.Text = InputSettings.Description end
 			Input.Visible = true
-			Input.Parent = (InputSettings.Column == 2) and Tab.ColumnRight or Tab.ColumnLeft
+			Input.Parent = TabPage
 
 			Input.BackgroundTransparency = 1
 			Input.UIStroke.Transparency = 1
@@ -5621,7 +5726,7 @@ function Luna:CreateWindow(WindowSettings)
 							wait(0.5)
 							Input.Title.Text = InputSettings.Name
 							TweenService:Create(Input, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-							TweenService:Create(Input, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(32, 30, 38)}):Play()
+							TweenService:Create(Input, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(22, 24, 22)}):Play()
 							TweenService:Create(Input.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
 						end
 					end
@@ -5662,7 +5767,7 @@ function Luna:CreateWindow(WindowSettings)
 						wait(0.5)
 						Input.Title.Text = InputSettings.Name
 						TweenService:Create(Input, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-						TweenService:Create(Input, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(32, 30, 38)}):Play()
+						TweenService:Create(Input, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(22, 24, 22)}):Play()
 						TweenService:Create(Input.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
 					end
 				end
@@ -5670,11 +5775,11 @@ function Luna:CreateWindow(WindowSettings)
 			end)
 
 			Input["MouseEnter"]:Connect(function()
-				tween(Input.UIStroke, {Color = Color3.fromRGB(87, 84, 104)})
+				tween(Input.UIStroke, {Color = Color3.fromRGB(70, 72, 70)})
 			end)
 
 			Input["MouseLeave"]:Connect(function()
-				tween(Input.UIStroke, {Color = Color3.fromRGB(64,61,76)})
+				tween(Input.UIStroke, {Color = Color3.fromRGB(45, 47, 45)})
 			end)
 
 
@@ -5754,7 +5859,7 @@ function Luna:CreateWindow(WindowSettings)
 			Dropdown.Title.Text = DropdownSettings.Name
 			if descriptionbool then Dropdown.Desc.Text = DropdownSettings.Description end
 
-			Dropdown.Parent = (DropdownSettings.Column == 2) and Tab.ColumnRight or Tab.ColumnLeft
+			Dropdown.Parent = TabPage
 			Dropdown.Visible = true
 
 			local function Toggle()
@@ -5781,7 +5886,7 @@ function Luna:CreateWindow(WindowSettings)
 					wait(0.5)
 					Dropdown.Title.Text = DropdownSettings.Name
 					TweenService:Create(Dropdown, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-					TweenService:Create(Dropdown, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(32, 30, 38)}):Play()
+					TweenService:Create(Dropdown, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(22, 24, 22)}):Play()
 					TweenService:Create(Dropdown.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
 				end
 				if Success and c2 then
@@ -5907,11 +6012,11 @@ function Luna:CreateWindow(WindowSettings)
 			end)
 
 			Dropdown["MouseEnter"]:Connect(function()
-				tween(Dropdown.UIStroke, {Color = Color3.fromRGB(87, 84, 104)})
+				tween(Dropdown.UIStroke, {Color = Color3.fromRGB(70, 72, 70)})
 			end)
 
 			Dropdown["MouseLeave"]:Connect(function()
-				tween(Dropdown.UIStroke, {Color = Color3.fromRGB(64,61,76)})
+				tween(Dropdown.UIStroke, {Color = Color3.fromRGB(45, 47, 45)})
 			end)
 
 			if DropdownSettings.SpecialType == "Player" then
@@ -6096,16 +6201,16 @@ function Luna:CreateWindow(WindowSettings)
 			ColorPicker.Name = ColorPickerSettings.Name
 			ColorPicker.Title.Text = ColorPickerSettings.Name
 			ColorPicker.Visible = true
-			ColorPicker.Parent = (ColorPickerSettings.Column == 2) and Tab.ColumnRight or Tab.ColumnLeft
+			ColorPicker.Parent = TabPage
 			ColorPicker.Size = UDim2.new(1.042, -25,0, 38)
 			Background.Size = closedsize
 			Display.BackgroundTransparency = 0
 
 			ColorPicker["MouseEnter"]:Connect(function()
-				tween(ColorPicker.UIStroke, {Color = Color3.fromRGB(87, 84, 104)})
+				tween(ColorPicker.UIStroke, {Color = Color3.fromRGB(70, 72, 70)})
 			end)
 			ColorPicker["MouseLeave"]:Connect(function()
-				tween(ColorPicker.UIStroke, {Color = Color3.fromRGB(64,61,76)})
+				tween(ColorPicker.UIStroke, {Color = Color3.fromRGB(45, 47, 45)})
 			end)
 
 			local function SafeCallback(param, c2)
@@ -6121,7 +6226,7 @@ function Luna:CreateWindow(WindowSettings)
 					wait(0.5)
 					ColorPicker.Title.Text = ColorPickerSettings.Name
 					TweenService:Create(ColorPicker, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-					TweenService:Create(ColorPicker, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(32, 30, 38)}):Play()
+					TweenService:Create(ColorPicker, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(22, 24, 22)}):Play()
 					TweenService:Create(ColorPicker.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
 				end
 				if Success and c2 then
@@ -6800,24 +6905,34 @@ function Luna:CreateWindow(WindowSettings)
 
 
 	Elements.Parent.Visible = true
-	tween(Elements.Parent, {BackgroundTransparency = 0.1})
-
-	-- Habilita scroll automático no ScrollingFrame
-	if Elements.Parent:IsA("ScrollingFrame") then
-		Elements.Parent.AutomaticCanvasSize = Enum.AutomaticSize.Y
-		Elements.Parent.CanvasSize = UDim2.new(0, 0, 0, 0)
-		Elements.Parent.ScrollBarThickness = 4
-		Elements.Parent.ScrollingEnabled = true
-		Elements.Parent.ScrollingDirection = Enum.ScrollingDirection.Y
-		Elements.Parent.ElasticBehavior = Enum.ElasticBehavior.Never
-	end
+	tween(Elements.Parent, {BackgroundTransparency = 1})
 	Navigation.Visible = true
 	tween(Navigation.Line, {BackgroundTransparency = 0})
+
+	-- Escurece a sidebar (Navigation)
+	local darkBg = Color3.fromRGB(10, 11, 10)
+	tween(Navigation, {BackgroundColor3 = darkBg})
+
+	-- Escurece a topbar/dragbar (Main e seus filhos diretos de frame)
+	tween(Main, {BackgroundColor3 = Color3.fromRGB(12, 13, 12)})
+	if dragBar then
+		tween(dragBar, {BackgroundColor3 = Color3.fromRGB(12, 13, 12)})
+		if dragBarCosmetic then
+			tween(dragBarCosmetic, {BackgroundColor3 = Color3.fromRGB(10, 11, 10)})
+		end
+	end
+
+	-- Escurece os frames filhos diretos do Main que formam a topbar
+	for _, child in ipairs(Main:GetChildren()) do
+		if child:IsA("Frame") and child.Name ~= "Navigation" and child.Name ~= "Elements" and child.Name ~= "LoadingFrame" and child.Name ~= "KeySystem" then
+			tween(child, {BackgroundColor3 = Color3.fromRGB(12, 13, 12)})
+		end
+	end
 
 	for _, TopbarButton in ipairs(Main.Controls:GetChildren()) do
 		if TopbarButton.ClassName == "Frame" and TopbarButton.Name ~= "Theme" then
 			TopbarButton.Visible = true
-			tween(TopbarButton, {BackgroundTransparency = 0.25})
+			tween(TopbarButton, {BackgroundColor3 = Color3.fromRGB(20, 22, 20), BackgroundTransparency = 0.25})
 			tween(TopbarButton.UIStroke, {Transparency = 0.5})
 			tween(TopbarButton.ImageLabel, {ImageTransparency = 0.25})
 		end
