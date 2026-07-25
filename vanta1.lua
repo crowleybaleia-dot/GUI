@@ -1800,147 +1800,63 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 local open = false
                 local currentOptions = options
 
-                -- container externo — 48px
-                local ddFrame = Frame(body, {
-                    Size                 = UDim2.new(1,0,0,48),
-                    BackgroundTransparency = 1,
-                    ZIndex               = 5,
-                    LayoutOrder          = #body:GetChildren(),
-                })
+                -- row idêntico ao toggler — transparente, sem caixa própria
+                local row = baseRow(lbl)
 
-                -- fundo do row
-                local ddBtn = Button(ddFrame, {
-                    Size                 = UDim2.new(1,0,1,0),
-                    BackgroundColor3     = C.sidebar,
-                    BackgroundTransparency = 0,
-                    Text                 = "",
-                    ZIndex               = 6,
-                })
-                Corner(ddBtn, 8)
-                Stroke(ddBtn, C.border, 1, 0)
-
-                -- label à esquerda
-                Label(ddBtn, {
-                    Position       = UDim2.new(0,14,0,0),
-                    Size           = UDim2.new(0.5,0,1,0),
-                    Text           = lbl,
-                    TextColor3     = C.hi,
-                    TextSize       = 12,
+                -- valor selecionado + chevron à direita (sem fundo, sem stroke)
+                local valLbl = Label(row, {
+                    AnchorPoint    = Vector2.new(1, 0.5),
+                    Position       = UDim2.new(1, -18, 0.5, 0),
+                    Size           = UDim2.new(0, 90, 0, 16),
+                    Text           = sel,
+                    TextColor3     = C.mid,
+                    TextSize       = 11,
                     Font           = Enum.Font.GothamMedium,
-                    TextXAlignment = Enum.TextXAlignment.Left,
+                    TextXAlignment = Enum.TextXAlignment.Right,
                     ZIndex         = 7,
                 })
 
-                -- trigger: caixinha discreta à direita (igual à imagem de referência)
-                local triggerBox = Frame(ddBtn, {
-                    AnchorPoint          = Vector2.new(1, 0.5),
-                    Position             = UDim2.new(1, -12, 0.5, 0),
-                    Size                 = UDim2.new(0, 110, 0, 26),
-                    BackgroundColor3     = Color3.fromRGB(28, 28, 28),
-                    BackgroundTransparency = 0,
-                    ZIndex               = 7,
-                })
-                Corner(triggerBox, 6)
-                Stroke(triggerBox, C.border, 1, 0)
-
-                local valLbl = Label(triggerBox, {
-                    Position       = UDim2.new(0, 8, 0, 0),
-                    Size           = UDim2.new(1, -22, 1, 0),
-                    Text           = sel ~= "" and sel or "Select...",
-                    TextColor3     = sel ~= "" and C.hi or C.dim,
-                    TextSize       = 11,
-                    Font           = Enum.Font.Gotham,
-                    TextXAlignment = Enum.TextXAlignment.Left,
-                    ZIndex         = 8,
-                })
-
-                local chevron = Label(triggerBox, {
+                local chevron = Label(row, {
                     AnchorPoint    = Vector2.new(1, 0.5),
-                    Position       = UDim2.new(1, -6, 0.5, 0),
+                    Position       = UDim2.new(1, -4, 0.5, 0),
                     Size           = UDim2.new(0, 12, 0, 12),
-                    Text           = "∨",
-                    TextColor3     = C.low,
-                    TextSize       = 10,
+                    Text           = "▾",
+                    TextColor3     = C.dim,
+                    TextSize       = 12,
                     Font           = Enum.Font.GothamBold,
                     TextXAlignment = Enum.TextXAlignment.Center,
-                    ZIndex         = 8,
+                    ZIndex         = 7,
                 })
 
-                local clickBtn = Button(ddBtn, {
+                -- botão invisível cobre o row inteiro
+                local clickBtn = Button(row, {
                     Size                 = UDim2.new(1,0,1,0),
                     BackgroundTransparency = 1,
                     Text                 = "",
                     ZIndex               = 9,
                 })
 
-                -- popup flutuante parentado no main (ZIndex alto, flutua sobre tudo)
+                -- popup flutuante parentado no main (raiz), ZIndex alto
                 local panel = Frame(main, {
-                    Size                 = UDim2.new(0, 110, 0, 0),
-                    BackgroundColor3     = Color3.fromRGB(22, 22, 22),
-                    BackgroundTransparency = 1,
-                    ZIndex               = 120,
+                    Size                 = UDim2.new(0,0,0,0),
+                    AutomaticSize        = Enum.AutomaticSize.None,
+                    BackgroundColor3     = Color3.fromRGB(20,20,20),
+                    BackgroundTransparency = 0,
+                    ZIndex               = 50,
                     Visible              = false,
                     ClipsDescendants     = true,
                 })
                 Corner(panel, 8)
-                Stroke(panel, Color3.fromRGB(52, 52, 52), 1, 0)
-                ListLayout(panel)
+                Stroke(panel, Color3.fromRGB(42,42,42), 1, 0)
+
+                local panelList = ListLayout(panel)
                 Padding(panel, 4, 4, 0, 0)
 
-                local function popClose()
+                local function closePopup()
                     open = false
-                    tw(chevron, {Rotation = 0, TextColor3 = C.low}, 0.1)
-                    panel.AutomaticSize = Enum.AutomaticSize.None
-                    local W = panel.Size.X.Offset
-                    local H = panel.Size.Y.Offset
-                    local W2 = W * 0.88
-                    local H2 = H * 0.75
-                    TweenService:Create(panel, TweenInfo.new(0.13, Enum.EasingStyle.Back, Enum.EasingDirection.In), {
-                        Size                 = UDim2.new(0, W2, 0, H2),
-                        Position             = UDim2.new(0, panel.Position.X.Offset + (W-W2)/2, 0, panel.Position.Y.Offset),
-                        BackgroundTransparency = 0.7,
-                    }):Play()
-                    task.delay(0.14, function()
-                        panel.Visible = false
-                        panel.BackgroundTransparency = 1
-                    end)
-                end
-
-                local function popOpen()
-                    open = true
-                    tw(chevron, {Rotation = 180, TextColor3 = C.accent}, 0.12)
-
-                    local absPos  = triggerBox.AbsolutePosition
-                    local mainPos = main.AbsolutePosition
-                    local relX = absPos.X - mainPos.X
-                    local relY = absPos.Y - mainPos.Y + triggerBox.AbsoluteSize.Y + 4
-                    local W = triggerBox.AbsoluteSize.X
-
-                    -- altura alvo
-                    local layout  = panel:FindFirstChildWhichIsA("UIListLayout")
-                    local padding = panel:FindFirstChildWhichIsA("UIPadding")
-                    local padY    = padding and (padding.PaddingTop.Offset + padding.PaddingBottom.Offset) or 0
-                    local H = (layout and layout.AbsoluteContentSize.Y or 0) + padY
-                    if H == 0 then task.wait(); H = (layout and layout.AbsoluteContentSize.Y or 0) + padY end
-
-                    -- estado inicial: menor e levemente acima → pop com Back Out
-                    local W0 = W * 0.85
-                    local H0 = H * 0.7
-                    panel.AutomaticSize          = Enum.AutomaticSize.None
-                    panel.Size                   = UDim2.new(0, W0, 0, H0)
-                    panel.Position               = UDim2.new(0, relX + (W-W0)/2, 0, relY - 8)
-                    panel.BackgroundTransparency = 0.7
-                    panel.Visible                = true
-
-                    -- pop! Back Out dá o overshoot característico
-                    TweenService:Create(panel, TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-                        Size                 = UDim2.new(0, W, 0, H),
-                        Position             = UDim2.new(0, relX, 0, relY),
-                        BackgroundTransparency = 0,
-                    }):Play()
-                    task.delay(0.26, function()
-                        if panel.Visible then panel.AutomaticSize = Enum.AutomaticSize.Y end
-                    end)
+                    tw(chevron, {Rotation = 0}, 0.15)
+                    tw(panel, {BackgroundTransparency = 1, Size = UDim2.new(panel.Size.X.Scale, panel.Size.X.Offset, 0, panel.Size.Y.Offset - 6)}, 0.12)
+                    task.delay(0.13, function() panel.Visible = false; panel.BackgroundTransparency = 0 end)
                 end
 
                 local function buildOptions(opts)
@@ -1952,9 +1868,9 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                         local ob = Button(panel, {
                             Size                 = UDim2.new(1,0,0,28),
                             BackgroundColor3     = Color3.fromRGB(38,38,38),
-                            BackgroundTransparency = isSel and 0.4 or 1,
+                            BackgroundTransparency = isSel and 0.5 or 1,
                             Text                 = "",
-                            ZIndex               = 121,
+                            ZIndex               = 51,
                         })
                         Corner(ob, 5)
                         Padding(ob, 0, 0, 10, 10)
@@ -1967,7 +1883,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                             TextSize       = 10,
                             Font           = Enum.Font.GothamBold,
                             TextXAlignment = Enum.TextXAlignment.Center,
-                            ZIndex         = 122,
+                            ZIndex         = 52,
                         })
 
                         local optLbl = Label(ob, {
@@ -1978,26 +1894,25 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                             TextSize       = 11,
                             Font           = isSel and Enum.Font.GothamMedium or Enum.Font.Gotham,
                             TextXAlignment = Enum.TextXAlignment.Left,
-                            ZIndex         = 122,
+                            ZIndex         = 52,
                         })
 
                         ob.MouseEnter:Connect(function()
                             if opt ~= sel then
-                                tw(ob,     {BackgroundTransparency = 0.6}, 0.08)
-                                tw(optLbl, {TextColor3 = C.hi},            0.08)
+                                tw(ob,     {BackgroundTransparency = 0.7}, 0.1)
+                                tw(optLbl, {TextColor3 = C.hi},            0.1)
                             end
                         end)
                         ob.MouseLeave:Connect(function()
                             if opt ~= sel then
-                                tw(ob,     {BackgroundTransparency = 1},   0.08)
-                                tw(optLbl, {TextColor3 = C.mid},           0.08)
+                                tw(ob,     {BackgroundTransparency = 1},   0.1)
+                                tw(optLbl, {TextColor3 = C.mid},           0.1)
                             end
                         end)
                         ob.MouseButton1Click:Connect(function()
                             sel = opt
-                            valLbl.Text       = opt
-                            valLbl.TextColor3 = C.hi
-                            popClose()
+                            valLbl.Text = opt
+                            closePopup()
                             if cb then cb(opt) end
                         end)
                     end
@@ -2005,38 +1920,59 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
 
                 buildOptions(currentOptions)
 
-                clickBtn.MouseButton1Click:Connect(function()
-                    if open then
-                        popClose()
-                    else
-                        buildOptions(currentOptions)
-                        popOpen()
-                    end
-                end)
-
-                -- fechar ao clicar fora
+                -- fecha ao clicar fora
                 UserInputService.InputBegan:Connect(function(i)
                     if not open then return end
-                    if i.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
+                    if i.UserInputType ~= Enum.UserInputType.MouseButton1 and i.UserInputType ~= Enum.UserInputType.Touch then return end
                     local mp = i.Position
                     local pp = panel.AbsolutePosition
                     local ps = panel.AbsoluteSize
-                    local tp = triggerBox.AbsolutePosition
-                    local ts = triggerBox.AbsoluteSize
-                    local inPanel   = mp.X>=pp.X and mp.X<=pp.X+ps.X and mp.Y>=pp.Y and mp.Y<=pp.Y+ps.Y
-                    local inTrigger = mp.X>=tp.X and mp.X<=tp.X+ts.X and mp.Y>=tp.Y and mp.Y<=tp.Y+ts.Y
-                    if not inPanel and not inTrigger then popClose() end
+                    local inside = mp.X >= pp.X and mp.X <= pp.X + ps.X and mp.Y >= pp.Y and mp.Y <= pp.Y + ps.Y
+                    local rp = row.AbsolutePosition
+                    local rs = row.AbsoluteSize
+                    local onRow = mp.X >= rp.X and mp.X <= rp.X + rs.X and mp.Y >= rp.Y and mp.Y <= rp.Y + rs.Y
+                    if not inside and not onRow then
+                        closePopup()
+                    end
+                end)
+
+                clickBtn.MouseButton1Click:Connect(function()
+                    open = not open
+                    if open then
+                        buildOptions(currentOptions)
+                        -- calcula posição relativa ao main
+                        local rowAbs  = row.AbsolutePosition
+                        local mainAbs = main.AbsolutePosition
+                        local relX = rowAbs.X - mainAbs.X
+                        local relY = rowAbs.Y - mainAbs.Y + row.AbsoluteSize.Y + 4
+
+                        -- mede altura do conteúdo
+                        task.wait()
+                        local contentH = panelList.AbsoluteContentSize.Y + 8
+                        local panelW   = gbox.AbsoluteSize.X
+
+                        -- posição inicial ligeiramente acima (animação de descida)
+                        panel.Size    = UDim2.new(0, panelW, 0, contentH)
+                        panel.Position = UDim2.new(0, relX, 0, relY - 6)
+                        panel.BackgroundTransparency = 1
+                        panel.Visible = true
+
+                        tw(chevron, {Rotation = 180}, 0.15)
+                        tw(panel, {
+                            BackgroundTransparency = 0,
+                            Position = UDim2.new(0, relX, 0, relY),
+                        }, 0.15)
+                    else
+                        closePopup()
+                    end
                 end)
 
                 local o = {}
-                function o.Set(v)
-                    sel = v; valLbl.Text = tostring(v); valLbl.TextColor3 = C.hi
-                    if cb then cb(v) end
-                end
+                function o.Set(v) sel = v; valLbl.Text = tostring(v); if cb then cb(v) end end
                 function o.Get() return sel end
                 function o.GetNewList(newOpts)
                     currentOptions = newOpts
-                    if open then popClose() end
+                    if open then closePopup() end
                     buildOptions(currentOptions)
                     local found = false
                     for _, v in ipairs(currentOptions or {}) do
@@ -2044,8 +1980,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     end
                     if not found then
                         sel = (currentOptions and currentOptions[1]) or ""
-                        valLbl.Text       = sel ~= "" and sel or "Select..."
-                        valLbl.TextColor3 = sel ~= "" and C.hi or C.dim
+                        valLbl.Text = sel
                     end
                 end
                 if id then
@@ -2059,7 +1994,8 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                                 if tostring(opt) == s then found = true; break end
                             end
                             if not found then return end
-                            sel = s; valLbl.Text = s; valLbl.TextColor3 = C.hi
+                            sel = s
+                            valLbl.Text = s
                             if cb then cb(s) end
                         end
                     }
