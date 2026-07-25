@@ -1849,6 +1849,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 -- popup flutuante parentado no main (raiz), ZIndex alto
                 local panel = Frame(main, {
                     Size                 = UDim2.new(0,0,0,0),
+                    AnchorPoint          = Vector2.new(0.5, 0.5),
                     AutomaticSize        = Enum.AutomaticSize.None,
                     BackgroundColor3     = Color3.fromRGB(20,20,20),
                     BackgroundTransparency = 0,
@@ -1865,15 +1866,21 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 local function closePopup()
                     open = false
                     tw(chevron, {Rotation = 0}, 0.15)
-                    -- fecha: escala de 1 -> 0 com Back.In
+                    -- fecha: escala de 1 -> 0 com Back.In, depois destroi
                     local scaleObj = panel:FindFirstChildWhichIsA("UIScale")
                     if scaleObj then
                         TweenService:Create(scaleObj,
                             TweenInfo.new(0.16, Enum.EasingStyle.Back, Enum.EasingDirection.In),
                             {Scale = 0}
                         ):Play()
+                        task.delay(0.17, function()
+                            panel.Visible = false
+                            local s = panel:FindFirstChildWhichIsA("UIScale")
+                            if s then s:Destroy() end
+                        end)
+                    else
+                        panel.Visible = false
                     end
-                    task.delay(0.17, function() panel.Visible = false end)
                 end
 
                 local function buildOptions(opts)
@@ -1975,14 +1982,16 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                         end
                         local panelW = math.max(maxTextW, triggerBox.AbsoluteSize.X)
 
-                        -- tamanho final definido, popup no lugar
+                        -- posiciona com AnchorPoint central (pop sai do meio)
                         panel.Size     = UDim2.new(0, panelW, 0, contentH)
-                        panel.Position = UDim2.new(0, relX, 0, relY)
+                        -- centro do triggerBox horizontalmente, abaixo dele
+                        panel.Position = UDim2.new(0, relX + panelW/2, 0, relY + contentH/2)
                         panel.Visible  = true
 
-                        -- UIScale para POP de escala (0 -> 1 com Back.Out)
-                        local scaleObj = panel:FindFirstChildWhichIsA("UIScale")
-                            or Instance.new("UIScale", panel)
+                        -- destroi UIScale antigo e cria um novo limpo
+                        local oldScale = panel:FindFirstChildWhichIsA("UIScale")
+                        if oldScale then oldScale:Destroy() end
+                        local scaleObj = Instance.new("UIScale", panel)
                         scaleObj.Scale = 0
 
                         tw(chevron, {Rotation = 180}, 0.15)
