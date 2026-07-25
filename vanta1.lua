@@ -562,10 +562,10 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     -- ── UIShadow no pill: glow roxo suave igual ao efeito da imagem ───────
     local pillShadow = Instance.new("UIShadow")
     pillShadow.Color        = C.accent
-    pillShadow.BlurRadius   = UDim.new(0, 18)
-    pillShadow.Spread       = UDim2.fromOffset(14, 10) -- mais spread no X pra compensar o offset
-    pillShadow.Offset       = UDim2.fromOffset(10, 0)  -- desloca pra direita, sem glow pra esquerda
-    pillShadow.Transparency = 0.1
+    pillShadow.BlurRadius   = UDim.new(0, 28)         -- mais espalhado
+    pillShadow.Spread       = UDim2.fromOffset(4, 6)  -- bem menos denso
+    pillShadow.Offset       = UDim2.fromOffset(8, 0)  -- sem vazar pra esquerda
+    pillShadow.Transparency = 0.45                    -- bem mais suave
     pillShadow.ZIndex       = -1
     pillShadow.Parent       = pill
 
