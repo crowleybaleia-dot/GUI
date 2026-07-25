@@ -1865,12 +1865,15 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 local function closePopup()
                     open = false
                     tw(chevron, {Rotation = 0}, 0.15)
-                    -- fecha: encolhe com Back.In (leve overshoot inverso antes de sumir)
-                    TweenService:Create(panel,
-                        TweenInfo.new(0.18, Enum.EasingStyle.Back, Enum.EasingDirection.In),
-                        {Size = UDim2.new(0, panel.Size.X.Offset, 0, 0), BackgroundTransparency = 0.4}
-                    ):Play()
-                    task.delay(0.19, function() panel.Visible = false end)
+                    -- fecha: escala de 1 -> 0 com Back.In
+                    local scaleObj = panel:FindFirstChildWhichIsA("UIScale")
+                    if scaleObj then
+                        TweenService:Create(scaleObj,
+                            TweenInfo.new(0.16, Enum.EasingStyle.Back, Enum.EasingDirection.In),
+                            {Scale = 0}
+                        ):Play()
+                    end
+                    task.delay(0.17, function() panel.Visible = false end)
                 end
 
                 local function buildOptions(opts)
@@ -1972,18 +1975,22 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                         end
                         local panelW = math.max(maxTextW, triggerBox.AbsoluteSize.X)
 
-                        -- começa do tamanho 0, no lugar certo, invisível
-                        panel.Size               = UDim2.new(0, panelW, 0, 0)
-                        panel.Position           = UDim2.new(0, relX, 0, relY)
-                        panel.BackgroundTransparency = 0
-                        panel.Visible            = true
+                        -- tamanho final definido, popup no lugar
+                        panel.Size     = UDim2.new(0, panelW, 0, contentH)
+                        panel.Position = UDim2.new(0, relX, 0, relY)
+                        panel.Visible  = true
+
+                        -- UIScale para POP de escala (0 -> 1 com Back.Out)
+                        local scaleObj = panel:FindFirstChildWhichIsA("UIScale")
+                            or Instance.new("UIScale", panel)
+                        scaleObj.Scale = 0
 
                         tw(chevron, {Rotation = 180}, 0.15)
 
-                        -- POP: Back.Out — cresce até o tamanho com overshoot real
-                        TweenService:Create(panel,
-                            TweenInfo.new(0.28, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
-                            {Size = UDim2.new(0, panelW, 0, contentH)}
+                        -- POP real: escala de 0 a 1 com overshoot Back.Out
+                        TweenService:Create(scaleObj,
+                            TweenInfo.new(0.22, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+                            {Scale = 1}
                         ):Play()
                     else
                         closePopup()
