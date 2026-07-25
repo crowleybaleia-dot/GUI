@@ -185,8 +185,8 @@ local C = {
     low      = Color3.fromRGB(102, 102, 102),  -- #666666 texto inativo
     dim      = Color3.fromRGB(68,  68,  68),   -- #444444 descrição/placeholder
     border   = Color3.fromRGB(42,  42,  42),   -- #2a2a2a bordas sutis
-    accent   = Color3.fromRGB(90,  0,   194),  -- #5a00c2 roxo accent
-    accentBg = Color3.fromRGB(60,  0,   130),  -- roxo escuro hover
+    accent   = Color3.fromRGB(4,   96,  255),  -- azul mar accent
+    accentBg = Color3.fromRGB(2,   60,  180),  -- azul mar escuro hover
     onBg     = Color3.fromRGB(90,  0,   194),  -- #5a00c2 toggle ON
     offBg    = Color3.fromRGB(38,  38,  38),   -- #262626 toggle OFF
     knob     = Color3.fromRGB(15,  15,  15),   -- #0f0f0f
@@ -553,7 +553,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         Name                 = "pill",
         Position             = UDim2.new(0,0,0,118),
         Size                 = UDim2.new(0,2,0,14),
-        BackgroundColor3     = Color3.fromRGB(180, 0, 255),  -- roxo neon vivo
+        BackgroundColor3     = Color3.fromRGB(4,  96, 255),   -- azul mar vivo
         BackgroundTransparency = 0,
         ZIndex               = 6,
     })
@@ -561,7 +561,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
 
     -- ── UIShadow no pill: glow roxo suave igual ao efeito da imagem ───────
     local pillShadow = Instance.new("UIShadow")
-    pillShadow.Color        = Color3.fromRGB(210, 140, 255)  -- roxo claro/lavado
+    pillShadow.Color        = Color3.fromRGB(100, 160, 255)  -- azul mar claro/lavado
     pillShadow.BlurRadius   = UDim.new(0, 24)
     pillShadow.Spread       = UDim2.fromOffset(6, 8)
     pillShadow.Offset       = UDim2.fromOffset(0, 0)
@@ -1125,7 +1125,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             tw(pill, {Position = UDim2.new(0, 0, 0, targetY), Size = UDim2.new(0, 2, 0, 14)}, 0.28, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
 
             -- fundo roxo sólido no tab ativo (sem stroke, com gradiente e scale up)
-            tw(tabBtn, {BackgroundColor3 = Color3.fromRGB(70, 40, 110), BackgroundTransparency = 0.15, Size = UDim2.new(0, 38, 0, 38)}, 0.18)
+            tw(tabBtn, {BackgroundColor3 = Color3.fromRGB(4, 60, 160), BackgroundTransparency = 0.15, Size = UDim2.new(0, 38, 0, 38)}, 0.18)
 
             -- corner mais suave no ativo
             local activeCorner = tabBtn:FindFirstChildWhichIsA("UICorner")
@@ -1136,8 +1136,8 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             if existingGrad then existingGrad:Destroy() end
             local activeGrad = Instance.new("UIGradient")
             activeGrad.Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0,   Color3.fromRGB(80, 50, 120)),
-                ColorSequenceKeypoint.new(1,   Color3.fromRGB(55, 30, 90)),
+                ColorSequenceKeypoint.new(0,   Color3.fromRGB(20, 80, 200)),
+                ColorSequenceKeypoint.new(1,   Color3.fromRGB(4,  50, 140)),
             })
             activeGrad.Rotation = 90
             activeGrad.Parent   = tabBtn
