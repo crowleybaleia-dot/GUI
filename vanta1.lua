@@ -552,7 +552,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     local pill = Frame(sidebar, {
         Name                 = "pill",
         Position             = UDim2.new(0,0,0,118),
-        Size                 = UDim2.new(0,2,0,20),
+        Size                 = UDim2.new(0,2,0,14),
         BackgroundColor3     = C.accent,
         BackgroundTransparency = 0,
         ZIndex               = 6,
@@ -1115,7 +1115,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
 
             -- pill viaja verticalmente até o centro do tab ativo
             local targetY = tabBtn.AbsolutePosition.Y - sidebarScroll.AbsolutePosition.Y + sidebarScroll.CanvasPosition.Y + (36 - 36) / 2 + 118
-            tw(pill, {Position = UDim2.new(0, 0, 0, targetY), Size = UDim2.new(0, 2, 0, 20)}, 0.28, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+            tw(pill, {Position = UDim2.new(0, 0, 0, targetY), Size = UDim2.new(0, 2, 0, 14)}, 0.28, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
 
             -- ativa o tab atual
             tw(tabLabel, {TextColor3 = C.accent}, 0.18)
