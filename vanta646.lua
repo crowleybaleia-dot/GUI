@@ -1149,7 +1149,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             end
 
             -- pill viaja verticalmente até o centro do tab ativo
-            local targetY = tabBtn.AbsolutePosition.Y - sidebar.AbsolutePosition.Y + (tabBtn.AbsoluteSize.Y - 14) / 2
+            local targetY = tabBtn.AbsolutePosition.Y - sidebarScroll.AbsolutePosition.Y + sidebarScroll.CanvasPosition.Y + (38 - 14) / 2 + 118
             tw(pill,     {Position = UDim2.new(0, 0, 0, targetY), Size = UDim2.new(0, 4, 0, 14)}, 0.28, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
             tw(pillGlow, {Position = UDim2.new(0, 0, 0, targetY), Size = UDim2.new(0, 4, 0, 14)}, 0.28, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
 
