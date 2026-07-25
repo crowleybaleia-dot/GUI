@@ -1106,10 +1106,14 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
 
         function sec:Select()
             for _, t in ipairs(sections) do
-                t.BackgroundTransparency = 1
+                tw(t, {BackgroundTransparency = 1, Size = UDim2.new(0, 36, 0, 36)}, 0.18)
                 t.BackgroundColor3 = C.sidebar
                 local stroke = t:FindFirstChildWhichIsA("UIStroke")
                 if stroke then stroke:Destroy() end
+                local grad = t:FindFirstChildWhichIsA("UIGradient")
+                if grad then grad:Destroy() end
+                local corner = t:FindFirstChildWhichIsA("UICorner")
+                if corner then corner.CornerRadius = UDim.new(0, 8) end
                 local l = t:FindFirstChildWhichIsA("TextLabel")
                 if l then tw(l, {TextColor3 = C.low}, 0.18); l.Font = Enum.Font.Gotham end
                 local ic = t:FindFirstChildWhichIsA("ImageLabel")
@@ -1120,14 +1124,23 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             local targetY = tabBtn.AbsolutePosition.Y - sidebarScroll.AbsolutePosition.Y + sidebarScroll.CanvasPosition.Y + (36 - 14) / 2 + 118
             tw(pill, {Position = UDim2.new(0, 0, 0, targetY), Size = UDim2.new(0, 2, 0, 14)}, 0.28, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
 
-            -- fundo roxo escuro + borda roxa no tab ativo
-            tw(tabBtn, {BackgroundColor3 = Color3.fromRGB(90, 0, 194), BackgroundTransparency = 0.15}, 0.18)
-            local activeStroke = Instance.new("UIStroke")
-            activeStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-            activeStroke.Color           = Color3.fromRGB(160, 0, 255)
-            activeStroke.Thickness       = 1
-            activeStroke.Transparency    = 0.5
-            activeStroke.Parent          = tabBtn
+            -- fundo roxo sólido no tab ativo (sem stroke, com gradiente e scale up)
+            tw(tabBtn, {BackgroundColor3 = Color3.fromRGB(90, 0, 194), BackgroundTransparency = 0.15, Size = UDim2.new(0, 38, 0, 38)}, 0.18)
+
+            -- corner mais suave no ativo
+            local activeCorner = tabBtn:FindFirstChildWhichIsA("UICorner")
+            if activeCorner then activeCorner.CornerRadius = UDim.new(0, 10) end
+
+            -- gradiente de cima pra baixo: roxo vivo → roxo escuro
+            local existingGrad = tabBtn:FindFirstChildWhichIsA("UIGradient")
+            if existingGrad then existingGrad:Destroy() end
+            local activeGrad = Instance.new("UIGradient")
+            activeGrad.Color = ColorSequence.new({
+                ColorSequenceKeypoint.new(0,   Color3.fromRGB(110, 20, 220)),
+                ColorSequenceKeypoint.new(1,   Color3.fromRGB(70,  0,  160)),
+            })
+            activeGrad.Rotation = 90
+            activeGrad.Parent   = tabBtn
 
             -- letra/ícone branco no tab ativo
             tw(tabLabel, {TextColor3 = C.white}, 0.18)
