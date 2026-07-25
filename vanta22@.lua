@@ -1107,6 +1107,9 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         function sec:Select()
             for _, t in ipairs(sections) do
                 t.BackgroundTransparency = 1
+                t.BackgroundColor3 = C.sidebar
+                local stroke = t:FindFirstChildWhichIsA("UIStroke")
+                if stroke then stroke:Destroy() end
                 local l = t:FindFirstChildWhichIsA("TextLabel")
                 if l then tw(l, {TextColor3 = C.low}, 0.18); l.Font = Enum.Font.Gotham end
                 local ic = t:FindFirstChildWhichIsA("ImageLabel")
@@ -1117,11 +1120,20 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             local targetY = tabBtn.AbsolutePosition.Y - sidebarScroll.AbsolutePosition.Y + sidebarScroll.CanvasPosition.Y + (36 - 14) / 2 + 118
             tw(pill, {Position = UDim2.new(0, 0, 0, targetY), Size = UDim2.new(0, 2, 0, 14)}, 0.28, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
 
-            -- ativa o tab atual
-            tw(tabLabel, {TextColor3 = C.accent}, 0.18)
+            -- fundo roxo escuro + borda roxa no tab ativo
+            tw(tabBtn, {BackgroundColor3 = Color3.fromRGB(60, 0, 100), BackgroundTransparency = 0.3}, 0.18)
+            local activeStroke = Instance.new("UIStroke")
+            activeStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+            activeStroke.Color           = Color3.fromRGB(160, 0, 255)
+            activeStroke.Thickness       = 1
+            activeStroke.Transparency    = 0.5
+            activeStroke.Parent          = tabBtn
+
+            -- letra/ícone branco no tab ativo
+            tw(tabLabel, {TextColor3 = C.white}, 0.18)
             tabLabel.Font = Enum.Font.GothamBold
             if iconAsset and iconAsset ~= "" then
-                tw(tabIcon, {ImageColor3 = C.accent, ImageTransparency = 0}, 0.18)
+                tw(tabIcon, {ImageColor3 = C.white, ImageTransparency = 0}, 0.18)
             end
 
             for _, w in ipairs(workareas) do w.Visible = false end
