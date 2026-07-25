@@ -474,11 +474,11 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         })
         Corner(logoGlowDot, 99)
         local logoGlowShadow = Instance.new("UIShadow")
-        logoGlowShadow.Color        = Color3.fromRGB(100, 160, 255)
+        logoGlowShadow.Color        = Color3.fromRGB(60, 140, 255)
         logoGlowShadow.BlurRadius   = UDim.new(0, 24)
         logoGlowShadow.Spread       = UDim2.fromOffset(6, 8)
         logoGlowShadow.Offset       = UDim2.fromOffset(0, 0)
-        logoGlowShadow.Transparency = 0.1
+        logoGlowShadow.Transparency = 0.05
         logoGlowShadow.ZIndex       = -1
         logoGlowShadow.Parent       = logoGlowDot
 
@@ -580,11 +580,11 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
 
     -- ── UIShadow no pill: glow roxo suave igual ao efeito da imagem ───────
     local pillShadow = Instance.new("UIShadow")
-    pillShadow.Color        = Color3.fromRGB(100, 160, 255)  -- azul mar claro/lavado
+    pillShadow.Color        = Color3.fromRGB(60, 140, 255)
     pillShadow.BlurRadius   = UDim.new(0, 24)
     pillShadow.Spread       = UDim2.fromOffset(6, 8)
     pillShadow.Offset       = UDim2.fromOffset(0, 0)
-    pillShadow.Transparency = 0.1
+    pillShadow.Transparency = 0.05
     pillShadow.ZIndex       = -1
     pillShadow.Parent       = pill
 
