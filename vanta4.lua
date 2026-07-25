@@ -463,6 +463,25 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     })
     if logoAsset and logoAsset ~= "" then
         local lSize = logoSize and UDim2.new(0, logoSize, 0, logoSize) or UDim2.new(0.75, 0, 0.75, 0)
+        -- bolinha atrás da logo com glow igual à pill
+        local logoGlowDot = Frame(logoBlock, {
+            AnchorPoint          = Vector2.new(0.5, 0.5),
+            Position             = UDim2.new(0.5, 0, 0.5, 0),
+            Size                 = UDim2.new(0, 8, 0, 8),
+            BackgroundColor3     = Color3.fromRGB(4, 96, 255),
+            BackgroundTransparency = 0,
+            ZIndex               = 3,
+        })
+        Corner(logoGlowDot, 99)
+        local logoGlowShadow = Instance.new("UIShadow")
+        logoGlowShadow.Color        = Color3.fromRGB(100, 160, 255)
+        logoGlowShadow.BlurRadius   = UDim.new(0, 24)
+        logoGlowShadow.Spread       = UDim2.fromOffset(6, 8)
+        logoGlowShadow.Offset       = UDim2.fromOffset(0, 0)
+        logoGlowShadow.Transparency = 0.2
+        logoGlowShadow.ZIndex       = -1
+        logoGlowShadow.Parent       = logoGlowDot
+
         local logoImg = Image(logoBlock, {
             AnchorPoint       = Vector2.new(0.5,0.5),
             Position          = UDim2.new(0.5,0,0.5,0),
@@ -473,14 +492,6 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             ScaleType         = Enum.ScaleType.Fit,
             ZIndex            = 4,
         })
-        local logoShadow = Instance.new("UIShadow")
-        logoShadow.Color        = Color3.fromRGB(100, 160, 255)
-        logoShadow.BlurRadius   = UDim.new(0, 8)
-        logoShadow.Spread       = UDim2.fromOffset(2, 2)
-        logoShadow.Offset       = UDim2.fromOffset(0, 0)
-        logoShadow.Transparency = 0.75
-        logoShadow.ZIndex       = -1
-        logoShadow.Parent       = logoImg
     else
         Label(logoBlock, {
             AnchorPoint    = Vector2.new(0.5,0.5),
