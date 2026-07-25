@@ -1121,7 +1121,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             tw(pill, {Position = UDim2.new(0, 0, 0, targetY), Size = UDim2.new(0, 2, 0, 14)}, 0.28, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
 
             -- fundo roxo escuro + borda roxa no tab ativo
-            tw(tabBtn, {BackgroundColor3 = Color3.fromRGB(60, 0, 100), BackgroundTransparency = 0.3}, 0.18)
+            tw(tabBtn, {BackgroundColor3 = Color3.fromRGB(90, 0, 194), BackgroundTransparency = 0.15}, 0.18)
             local activeStroke = Instance.new("UIStroke")
             activeStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
             activeStroke.Color           = Color3.fromRGB(160, 0, 255)
