@@ -582,12 +582,12 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     local pillGlow = Frame(sidebar, {
         Name                 = "pillGlow",
         Position             = UDim2.new(0,0,0,118),
-        Size                 = UDim2.new(0,2,0,14),
+        Size                 = UDim2.new(0,4,0,14),
         BackgroundColor3     = Color3.fromRGB(4, 96, 255),
         BackgroundTransparency = 1,
         ZIndex               = 5,
     })
-    Corner(pillGlow, 2)
+    Corner(pillGlow, 6)
     local pillShadow = Instance.new("UIShadow")
     pillShadow.Color        = Color3.fromRGB(4, 96, 255)
     pillShadow.BlurRadius   = UDim.new(0, 30)
@@ -1151,7 +1151,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             -- pill viaja verticalmente até o centro do tab ativo
             local targetY = tabBtn.AbsolutePosition.Y - sidebarScroll.AbsolutePosition.Y + sidebarScroll.CanvasPosition.Y + (36 - 14) / 2 + 118
             tw(pill,     {Position = UDim2.new(0, 0, 0, targetY), Size = UDim2.new(0, 2, 0, 14)}, 0.28, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-            tw(pillGlow, {Position = UDim2.new(0, 0, 0, targetY), Size = UDim2.new(0, 2, 0, 14)}, 0.28, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+            tw(pillGlow, {Position = UDim2.new(0, 0, 0, targetY), Size = UDim2.new(0, 4, 0, 14)}, 0.28, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
 
             -- fundo roxo sólido no tab ativo (sem stroke, com gradiente e scale up)
             tw(tabBtn, {BackgroundColor3 = Color3.fromRGB(4, 60, 160), BackgroundTransparency = 0.15, Size = UDim2.new(0, 38, 0, 38)}, 0.18)
