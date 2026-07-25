@@ -562,10 +562,10 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     -- ── UIShadow no pill: glow roxo suave igual ao efeito da imagem ───────
     local pillShadow = Instance.new("UIShadow")
     pillShadow.Color        = C.accent
-    pillShadow.BlurRadius   = UDim.new(0, 28)         -- mais espalhado
-    pillShadow.Spread       = UDim2.fromOffset(4, 6)  -- bem menos denso
-    pillShadow.Offset       = UDim2.fromOffset(8, 0)  -- sem vazar pra esquerda
-    pillShadow.Transparency = 0.45                    -- bem mais suave
+    pillShadow.BlurRadius   = UDim.new(0, 24)
+    pillShadow.Spread       = UDim2.fromOffset(6, 8)
+    pillShadow.Offset       = UDim2.fromOffset(8, 0)
+    pillShadow.Transparency = 0.15
     pillShadow.ZIndex       = -1
     pillShadow.Parent       = pill
 
@@ -1114,7 +1114,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             end
 
             -- pill viaja verticalmente até o centro do tab ativo
-            local targetY = tabBtn.AbsolutePosition.Y - sidebarScroll.AbsolutePosition.Y + sidebarScroll.CanvasPosition.Y + (36 - 36) / 2 + 118
+            local targetY = tabBtn.AbsolutePosition.Y - sidebarScroll.AbsolutePosition.Y + sidebarScroll.CanvasPosition.Y + (36 - 14) / 2 + 118
             tw(pill, {Position = UDim2.new(0, 0, 0, targetY), Size = UDim2.new(0, 2, 0, 14)}, 0.28, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
 
             -- ativa o tab atual
