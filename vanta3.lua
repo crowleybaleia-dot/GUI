@@ -475,10 +475,10 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         })
         local logoShadow = Instance.new("UIShadow")
         logoShadow.Color        = Color3.fromRGB(100, 160, 255)
-        logoShadow.BlurRadius   = UDim.new(0, 4)
-        logoShadow.Spread       = UDim2.fromOffset(0, 0)
+        logoShadow.BlurRadius   = UDim.new(0, 24)
+        logoShadow.Spread       = UDim2.fromOffset(6, 8)
         logoShadow.Offset       = UDim2.fromOffset(0, 0)
-        logoShadow.Transparency = 0.93
+        logoShadow.Transparency = 0.75
         logoShadow.ZIndex       = -1
         logoShadow.Parent       = logoImg
     else
