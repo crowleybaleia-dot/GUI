@@ -1059,7 +1059,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         local tabIcon = Image(tabBtn, {
             AnchorPoint       = Vector2.new(0.5,0.5),
             Position          = UDim2.new(0.5,0,0.5,0),
-            Size              = UDim2.new(0,18,0,18),
+            Size              = UDim2.new(0,24,0,24),
             Image             = iconAsset or "",
             ImageColor3       = C.low,
             ImageTransparency = (iconAsset and iconAsset ~= "") and 0.3 or 1,
@@ -1312,6 +1312,12 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     LayoutOrder      = #body:GetChildren(),
                 })
                 Corner(row, 6)
+                row.MouseEnter:Connect(function()
+                    tw(row, {BackgroundTransparency = 0.95}, 0.12)
+                end)
+                row.MouseLeave:Connect(function()
+                    tw(row, {BackgroundTransparency = 1}, 0.12)
+                end)
 
                 if hasDesc then
                     -- label principal
