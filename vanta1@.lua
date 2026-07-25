@@ -565,7 +565,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     pillShadow.BlurRadius   = UDim.new(0, 24)
     pillShadow.Spread       = UDim2.fromOffset(6, 8)
     pillShadow.Offset       = UDim2.fromOffset(8, 0)
-    pillShadow.Transparency = 0.15
+    pillShadow.Transparency = 0.35
     pillShadow.ZIndex       = -1
     pillShadow.Parent       = pill
 
