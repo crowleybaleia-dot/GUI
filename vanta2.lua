@@ -1865,8 +1865,12 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 local function closePopup()
                     open = false
                     tw(chevron, {Rotation = 0}, 0.15)
-                    tw(panel, {BackgroundTransparency = 1, Size = UDim2.new(panel.Size.X.Scale, panel.Size.X.Offset, 0, panel.Size.Y.Offset - 6)}, 0.12)
-                    task.delay(0.13, function() panel.Visible = false; panel.BackgroundTransparency = 0 end)
+                    -- fecha: encolhe com Back.In (leve overshoot inverso antes de sumir)
+                    TweenService:Create(panel,
+                        TweenInfo.new(0.18, Enum.EasingStyle.Back, Enum.EasingDirection.In),
+                        {Size = UDim2.new(0, panel.Size.X.Offset, 0, 0), BackgroundTransparency = 0.4}
+                    ):Play()
+                    task.delay(0.19, function() panel.Visible = false end)
                 end
 
                 local function buildOptions(opts)
@@ -1959,19 +1963,28 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                         -- mede altura do conteúdo
                         task.wait()
                         local contentH = panelList.AbsoluteContentSize.Y + 8
-                        local panelW   = math.max(triggerBox.AbsoluteSize.X, 120)
 
-                        -- posição inicial ligeiramente acima (animação de descida)
-                        panel.Size    = UDim2.new(0, panelW, 0, contentH)
-                        panel.Position = UDim2.new(0, relX, 0, relY - 6)
-                        panel.BackgroundTransparency = 1
-                        panel.Visible = true
+                        -- largura dinâmica: mede o texto mais longo das opções
+                        local maxTextW = 80
+                        for _, opt in ipairs(currentOptions or {}) do
+                            local approxW = #tostring(opt) * 7 + 40 -- ~7px por char + padding
+                            if approxW > maxTextW then maxTextW = approxW end
+                        end
+                        local panelW = math.max(maxTextW, triggerBox.AbsoluteSize.X)
+
+                        -- começa do tamanho 0, no lugar certo, invisível
+                        panel.Size               = UDim2.new(0, panelW, 0, 0)
+                        panel.Position           = UDim2.new(0, relX, 0, relY)
+                        panel.BackgroundTransparency = 0
+                        panel.Visible            = true
 
                         tw(chevron, {Rotation = 180}, 0.15)
-                        tw(panel, {
-                            BackgroundTransparency = 0,
-                            Position = UDim2.new(0, relX, 0, relY),
-                        }, 0.15)
+
+                        -- POP: Back.Out — cresce até o tamanho com overshoot real
+                        TweenService:Create(panel,
+                            TweenInfo.new(0.28, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+                            {Size = UDim2.new(0, panelW, 0, contentH)}
+                        ):Play()
                     else
                         closePopup()
                     end
