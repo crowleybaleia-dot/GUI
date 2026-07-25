@@ -1312,12 +1312,6 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     LayoutOrder      = #body:GetChildren(),
                 })
                 Corner(row, 6)
-                row.MouseEnter:Connect(function()
-                    tw(row, {BackgroundTransparency = 0.95}, 0.12)
-                end)
-                row.MouseLeave:Connect(function()
-                    tw(row, {BackgroundTransparency = 1}, 0.12)
-                end)
 
                 if hasDesc then
                     -- label principal
