@@ -2057,178 +2057,211 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     else return n .. " selected" end
                 end
 
-                -- container externo — mesma estrutura do Dropdown (48px)
-                local ddFrame = Frame(body, {
-                    Size                 = UDim2.new(1,0,0,48),
-                    BackgroundTransparency = 1,
-                    ZIndex               = 5,
-                    LayoutOrder          = #body:GetChildren(),
-                })
+                -- row idêntico ao Dropdown
+                local row = baseRow(lbl)
 
-                -- botão principal — idêntico ao Dropdown
-                local ddBtn = Button(ddFrame, {
-                    Size                 = UDim2.new(1,0,1,0),
-                    BackgroundColor3     = C.sidebar,
-                    BackgroundTransparency = 0,
-                    Text                 = "",
-                    ZIndex               = 6,
-                })
-                Corner(ddBtn, 8)
-                Stroke(ddBtn, C.border, 1, 0)
-
-                -- bloco esquerda: label
-                local leftBlock = Frame(ddBtn, {
-                    Position             = UDim2.new(0,14,0,0),
-                    Size                 = UDim2.new(0.55,0,1,0),
-                    BackgroundTransparency = 1,
-                    ZIndex               = 7,
-                })
-                local leftLayout = Instance.new("UIListLayout")
-                leftLayout.FillDirection       = Enum.FillDirection.Vertical
-                leftLayout.VerticalAlignment   = Enum.VerticalAlignment.Center
-                leftLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
-                leftLayout.Padding             = UDim.new(0,2)
-                leftLayout.SortOrder           = Enum.SortOrder.LayoutOrder
-                leftLayout.Parent              = leftBlock
-
-                Label(leftBlock, {
-                    Size           = UDim2.new(1,0,0,16),
-                    Text           = lbl,
-                    TextColor3     = C.hi,
-                    TextSize       = 12,
-                    Font           = Enum.Font.GothamMedium,
-                    TextXAlignment = Enum.TextXAlignment.Left,
-                    ZIndex         = 7,
-                    LayoutOrder    = 1,
-                })
-
-                -- pill do valor selecionado — idêntico ao Dropdown (corner 20)
-                local pillBg = Frame(ddBtn, {
+                -- caixinha sutil do trigger (valor + chevron) — idêntico ao Dropdown
+                local triggerBox = Frame(row, {
                     AnchorPoint          = Vector2.new(1, 0.5),
-                    Position             = UDim2.new(1, -12, 0.5, 0),
-                    Size                 = UDim2.new(0, 120, 0, 28),
-                    BackgroundColor3     = C.bg,
+                    Position             = UDim2.new(1, 0, 0.5, 0),
+                    Size                 = UDim2.new(0, 110, 0, 22),
+                    BackgroundColor3     = Color3.fromRGB(28, 28, 28),
                     BackgroundTransparency = 0,
                     ZIndex               = 7,
                 })
-                Corner(pillBg, 20)
-                Stroke(pillBg, C.border, 1, 0)
+                Corner(triggerBox, 6)
+                Stroke(triggerBox, C.border, 1, 0)
 
-                local btnLbl = Label(pillBg, {
-                    Position       = UDim2.new(0, 12, 0, 0),
-                    Size           = UDim2.new(1, -30, 1, 0),
+                local valLbl = Label(triggerBox, {
+                    Position       = UDim2.new(0, 8, 0, 0),
+                    Size           = UDim2.new(1, -24, 1, 0),
                     Text           = labelTxt(),
-                    TextColor3     = C.hi,
+                    TextColor3     = C.mid,
                     TextSize       = 11,
                     Font           = Enum.Font.GothamMedium,
                     TextXAlignment = Enum.TextXAlignment.Left,
                     ZIndex         = 8,
                 })
 
-                -- chevron animado — idêntico ao Dropdown
-                local chevron = Label(pillBg, {
+                local chevron = Label(triggerBox, {
                     AnchorPoint    = Vector2.new(1, 0.5),
-                    Position       = UDim2.new(1, -10, 0.5, 0),
-                    Size           = UDim2.new(0, 14, 0, 14),
-                    Text           = "▾",
-                    TextColor3     = C.mid,
-                    TextSize       = 13,
+                    Position       = UDim2.new(1, -7, 0.5, 0),
+                    Size           = UDim2.new(0, 12, 0, 12),
+                    Text           = "v",
+                    TextColor3     = C.dim,
+                    TextSize       = 10,
                     Font           = Enum.Font.GothamBold,
                     TextXAlignment = Enum.TextXAlignment.Center,
                     ZIndex         = 8,
                 })
 
-                local clickBtn = Button(ddBtn, {
+                -- botão invisível cobre o triggerBox
+                local clickBtn = Button(triggerBox, {
                     Size                 = UDim2.new(1,0,1,0),
                     BackgroundTransparency = 1,
                     Text                 = "",
                     ZIndex               = 9,
                 })
 
-                -- painel de opções — idêntico ao Dropdown
-                local panel = Frame(gbox, {
-                    Size             = UDim2.new(1,0,0,0),
-                    AutomaticSize    = Enum.AutomaticSize.Y,
-                    BackgroundColor3 = Color3.fromRGB(20,20,20),
+                -- popup flutuante parentado no main (raiz), ZIndex alto — idêntico ao Dropdown
+                local panel = Frame(main, {
+                    Size                 = UDim2.new(0,0,0,0),
+                    AnchorPoint          = Vector2.new(0.5, 0.5),
+                    AutomaticSize        = Enum.AutomaticSize.None,
+                    BackgroundColor3     = Color3.fromRGB(20,20,20),
                     BackgroundTransparency = 0,
-                    ZIndex           = 20,
-                    Visible          = false,
-                    ClipsDescendants = true,
+                    ZIndex               = 50,
+                    Visible              = false,
+                    ClipsDescendants     = true,
                 })
-                Corner(panel, 10)
-                Stroke(panel, Color3.fromRGB(38,38,38), 1, 0)
-                ListLayout(panel)
-                Padding(panel, 6, 6, 0, 0)
+                Corner(panel, 8)
+                Stroke(panel, Color3.fromRGB(42,42,42), 1, 0)
 
-                for _, opt in ipairs(options or {}) do
-                    local on  = sel[opt] == true
-                    local ob  = Button(panel, {
-                        Size                 = UDim2.new(1,0,0,32),
-                        BackgroundColor3     = Color3.fromRGB(38,38,38),
-                        BackgroundTransparency = on and 0.5 or 1,
-                        Text                 = "",
-                        ZIndex               = 21,
-                    })
-                    Corner(ob, 6)
-                    Padding(ob, 0, 0, 12, 12)
+                local panelList = ListLayout(panel)
+                Padding(panel, 4, 4, 0, 0)
 
-                    -- tick de selecionado — idêntico ao Dropdown
-                    local tickLbl = Label(ob, {
-                        Position       = UDim2.new(0, 0, 0, 0),
-                        Size           = UDim2.new(0, 18, 1, 0),
-                        Text           = on and "✓" or "",
-                        TextColor3     = C.accent,
-                        TextSize       = 11,
-                        Font           = Enum.Font.GothamBold,
-                        TextXAlignment = Enum.TextXAlignment.Center,
-                        ZIndex         = 22,
-                    })
-
-                    local optLbl = Label(ob, {
-                        Position       = UDim2.new(0, 18, 0, 0),
-                        Size           = UDim2.new(1, -18, 1, 0),
-                        Text           = opt,
-                        TextColor3     = on and C.hi or C.mid,
-                        TextSize       = 11,
-                        Font           = on and Enum.Font.GothamMedium or Enum.Font.Gotham,
-                        TextXAlignment = Enum.TextXAlignment.Left,
-                        ZIndex         = 22,
-                    })
-
-                    ob.MouseEnter:Connect(function()
-                        if not sel[opt] then
-                            tw(ob,     {BackgroundTransparency = 0.7}, 0.1)
-                            tw(optLbl, {TextColor3 = C.hi},            0.1)
-                        end
-                    end)
-                    ob.MouseLeave:Connect(function()
-                        if not sel[opt] then
-                            tw(ob,     {BackgroundTransparency = 1},   0.1)
-                            tw(optLbl, {TextColor3 = C.mid},           0.1)
-                        end
-                    end)
-                    ob.MouseButton1Click:Connect(function()
-                        if sel[opt] then sel[opt] = nil else sel[opt] = true end
-                        local s = sel[opt]
-                        tw(ob,     {BackgroundTransparency = s and 0.5 or 1}, 0.12)
-                        tw(optLbl, {TextColor3 = s and C.hi or C.mid},        0.12)
-                        tickLbl.Text = s and "✓" or ""
-                        optLbl.Font  = s and Enum.Font.GothamMedium or Enum.Font.Gotham
-                        btnLbl.Text  = labelTxt()
-                        if cb then cb(sel) end
-                    end)
+                local function closePopup()
+                    open = false
+                    tw(chevron, {Rotation = 0}, 0.15)
+                    local scaleObj = panel:FindFirstChildWhichIsA("UIScale")
+                    if scaleObj then
+                        TweenService:Create(scaleObj,
+                            TweenInfo.new(0.16, Enum.EasingStyle.Back, Enum.EasingDirection.In),
+                            {Scale = 0}
+                        ):Play()
+                        task.delay(0.17, function()
+                            panel.Visible = false
+                            local s = panel:FindFirstChildWhichIsA("UIScale")
+                            if s then s:Destroy() end
+                        end)
+                    else
+                        panel.Visible = false
+                    end
                 end
+
+                local function buildOptions(opts)
+                    for _, ch in ipairs(panel:GetChildren()) do
+                        if ch:IsA("TextButton") then ch:Destroy() end
+                    end
+                    for _, opt in ipairs(opts or {}) do
+                        local on = sel[opt] == true
+                        local ob = Button(panel, {
+                            Size                 = UDim2.new(1,0,0,28),
+                            BackgroundColor3     = Color3.fromRGB(38,38,38),
+                            BackgroundTransparency = on and 0.5 or 1,
+                            Text                 = "",
+                            ZIndex               = 51,
+                        })
+                        Corner(ob, 5)
+                        Padding(ob, 0, 0, 10, 10)
+
+                        local tickLbl = Label(ob, {
+                            Position       = UDim2.new(0, 0, 0, 0),
+                            Size           = UDim2.new(0, 16, 1, 0),
+                            Text           = on and "✓" or "",
+                            TextColor3     = C.accent,
+                            TextSize       = 10,
+                            Font           = Enum.Font.GothamBold,
+                            TextXAlignment = Enum.TextXAlignment.Center,
+                            ZIndex         = 52,
+                        })
+
+                        local optLbl = Label(ob, {
+                            Position       = UDim2.new(0, 16, 0, 0),
+                            Size           = UDim2.new(1, -16, 1, 0),
+                            Text           = opt,
+                            TextColor3     = on and C.hi or C.mid,
+                            TextSize       = 11,
+                            Font           = on and Enum.Font.GothamMedium or Enum.Font.Gotham,
+                            TextXAlignment = Enum.TextXAlignment.Left,
+                            ZIndex         = 52,
+                        })
+
+                        ob.MouseEnter:Connect(function()
+                            if not sel[opt] then
+                                tw(ob,     {BackgroundTransparency = 0.7}, 0.1)
+                                tw(optLbl, {TextColor3 = C.hi},            0.1)
+                            end
+                        end)
+                        ob.MouseLeave:Connect(function()
+                            if not sel[opt] then
+                                tw(ob,     {BackgroundTransparency = 1},   0.1)
+                                tw(optLbl, {TextColor3 = C.mid},           0.1)
+                            end
+                        end)
+                        ob.MouseButton1Click:Connect(function()
+                            if sel[opt] then sel[opt] = nil else sel[opt] = true end
+                            local s = sel[opt]
+                            tw(ob,     {BackgroundTransparency = s and 0.5 or 1}, 0.12)
+                            tw(optLbl, {TextColor3 = s and C.hi or C.mid},        0.12)
+                            tickLbl.Text = s and "✓" or ""
+                            optLbl.Font  = s and Enum.Font.GothamMedium or Enum.Font.Gotham
+                            valLbl.Text  = labelTxt()
+                            if cb then cb(sel) end
+                        end)
+                    end
+                end
+
+                buildOptions(options)
+
+                -- fecha ao clicar fora
+                UserInputService.InputBegan:Connect(function(i)
+                    if not open then return end
+                    if i.UserInputType ~= Enum.UserInputType.MouseButton1 and i.UserInputType ~= Enum.UserInputType.Touch then return end
+                    local mp = i.Position
+                    local pp = panel.AbsolutePosition
+                    local ps = panel.AbsoluteSize
+                    local inside = mp.X >= pp.X and mp.X <= pp.X + ps.X and mp.Y >= pp.Y and mp.Y <= pp.Y + ps.Y
+                    local rp = row.AbsolutePosition
+                    local rs = row.AbsoluteSize
+                    local onRow = mp.X >= rp.X and mp.X <= rp.X + rs.X and mp.Y >= rp.Y and mp.Y <= rp.Y + rs.Y
+                    if not inside and not onRow then
+                        closePopup()
+                    end
+                end)
 
                 clickBtn.MouseButton1Click:Connect(function()
                     open = not open
                     if open then
-                        local relY = ddFrame.AbsolutePosition.Y - gbox.AbsolutePosition.Y + 36
-                        panel.Position = UDim2.new(0,0,0,relY)
+                        buildOptions(options)
+                        -- calcula posição relativa ao main, alinhado ao triggerBox
+                        local rowAbs  = triggerBox.AbsolutePosition
+                        local mainAbs = main.AbsolutePosition
+                        local relX = rowAbs.X - mainAbs.X
+                        local relY = rowAbs.Y - mainAbs.Y + triggerBox.AbsoluteSize.Y + 4
+
+                        -- mede altura do conteúdo
+                        task.wait()
+                        local contentH = panelList.AbsoluteContentSize.Y + 8
+
+                        -- largura dinâmica: mede o texto mais longo das opções
+                        local maxTextW = 80
+                        for _, opt in ipairs(options or {}) do
+                            local approxW = #tostring(opt) * 7 + 40
+                            if approxW > maxTextW then maxTextW = approxW end
+                        end
+                        local panelW = math.max(maxTextW, triggerBox.AbsoluteSize.X)
+
+                        -- posiciona com AnchorPoint central (pop sai do meio)
+                        panel.Size     = UDim2.new(0, panelW, 0, contentH)
+                        panel.Position = UDim2.new(0, relX + panelW/2, 0, relY + contentH/2)
+                        panel.Visible  = true
+
+                        -- destroi UIScale antigo e cria um novo limpo
+                        local oldScale = panel:FindFirstChildWhichIsA("UIScale")
+                        if oldScale then oldScale:Destroy() end
+                        local scaleObj = Instance.new("UIScale", panel)
+                        scaleObj.Scale = 0
+
                         tw(chevron, {Rotation = 180}, 0.15)
-                        slideOpen(panel)
+
+                        -- POP real: escala de 0 a 1 com overshoot Back.Out
+                        TweenService:Create(scaleObj,
+                            TweenInfo.new(0.22, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+                            {Scale = 1}
+                        ):Play()
                     else
-                        tw(chevron, {Rotation = 0}, 0.15)
-                        slideClose(panel)
+                        closePopup()
                     end
                 end)
 
@@ -2240,7 +2273,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 end
                 function o.Set(tbl)
                     sel = {}; for _,v in ipairs(tbl) do sel[v] = true end
-                    btnLbl.Text = labelTxt()
+                    valLbl.Text = labelTxt()
                 end
                 if id then
                     -- copiado do Feral: Get retorna {k=bool}, Set itera tabela
