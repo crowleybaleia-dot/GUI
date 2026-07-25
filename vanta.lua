@@ -559,13 +559,6 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     })
     Corner(pill, 2)
 
-    local pillShadow = Instance.new("UIShadow")
-    pillShadow.BlurRadius   = UDim.new(0, 16)
-    pillShadow.Spread       = UDim2.fromOffset(6, 6)
-    pillShadow.Color        = C.accent
-    pillShadow.Transparency = 0.2
-    pillShadow.Parent       = pill
-
     -- ── state ─────────────────────────────────────────────────────────────
     local sections     = {}
     local workareas    = {}
@@ -1967,7 +1960,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 local open = false
 
                 local function count()
-                    local n = 0; for _, v in pairs(sel) do if v then n+=1 end end; return n
+                    local n = 0; for _, v in pairs(sel) do if v then n=n+1 end end; return n
                 end
                 local function labelTxt()
                     local n = count(); local tot = #(options or {})
