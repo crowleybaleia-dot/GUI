@@ -1803,33 +1803,43 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 -- row idêntico ao toggler — transparente, sem caixa própria
                 local row = baseRow(lbl)
 
-                -- valor selecionado + chevron à direita (sem fundo, sem stroke)
-                local valLbl = Label(row, {
-                    AnchorPoint    = Vector2.new(1, 0.5),
-                    Position       = UDim2.new(1, -18, 0.5, 0),
-                    Size           = UDim2.new(0, 90, 0, 16),
+                -- caixinha sutil do trigger (valor + chevron)
+                local triggerBox = Frame(row, {
+                    AnchorPoint          = Vector2.new(1, 0.5),
+                    Position             = UDim2.new(1, 0, 0.5, 0),
+                    Size                 = UDim2.new(0, 110, 0, 22),
+                    BackgroundColor3     = Color3.fromRGB(28, 28, 28),
+                    BackgroundTransparency = 0,
+                    ZIndex               = 7,
+                })
+                Corner(triggerBox, 6)
+                Stroke(triggerBox, C.border, 1, 0)
+
+                local valLbl = Label(triggerBox, {
+                    Position       = UDim2.new(0, 8, 0, 0),
+                    Size           = UDim2.new(1, -24, 1, 0),
                     Text           = sel,
                     TextColor3     = C.mid,
                     TextSize       = 11,
                     Font           = Enum.Font.GothamMedium,
-                    TextXAlignment = Enum.TextXAlignment.Right,
-                    ZIndex         = 7,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    ZIndex         = 8,
                 })
 
-                local chevron = Label(row, {
+                local chevron = Label(triggerBox, {
                     AnchorPoint    = Vector2.new(1, 0.5),
-                    Position       = UDim2.new(1, -4, 0.5, 0),
+                    Position       = UDim2.new(1, -7, 0.5, 0),
                     Size           = UDim2.new(0, 12, 0, 12),
-                    Text           = "▾",
+                    Text           = "v",
                     TextColor3     = C.dim,
-                    TextSize       = 12,
+                    TextSize       = 10,
                     Font           = Enum.Font.GothamBold,
                     TextXAlignment = Enum.TextXAlignment.Center,
-                    ZIndex         = 7,
+                    ZIndex         = 8,
                 })
 
-                -- botão invisível cobre o row inteiro
-                local clickBtn = Button(row, {
+                -- botão invisível cobre o triggerBox
+                local clickBtn = Button(triggerBox, {
                     Size                 = UDim2.new(1,0,1,0),
                     BackgroundTransparency = 1,
                     Text                 = "",
@@ -1940,16 +1950,16 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     open = not open
                     if open then
                         buildOptions(currentOptions)
-                        -- calcula posição relativa ao main
-                        local rowAbs  = row.AbsolutePosition
+                        -- calcula posição relativa ao main, alinhado ao triggerBox
+                        local rowAbs  = triggerBox.AbsolutePosition
                         local mainAbs = main.AbsolutePosition
                         local relX = rowAbs.X - mainAbs.X
-                        local relY = rowAbs.Y - mainAbs.Y + row.AbsoluteSize.Y + 4
+                        local relY = rowAbs.Y - mainAbs.Y + triggerBox.AbsoluteSize.Y + 4
 
                         -- mede altura do conteúdo
                         task.wait()
                         local contentH = panelList.AbsoluteContentSize.Y + 8
-                        local panelW   = gbox.AbsoluteSize.X
+                        local panelW   = math.max(triggerBox.AbsoluteSize.X, 120)
 
                         -- posição inicial ligeiramente acima (animação de descida)
                         panel.Size    = UDim2.new(0, panelW, 0, contentH)
