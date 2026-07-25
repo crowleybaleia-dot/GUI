@@ -1305,7 +1305,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 local hasDesc = desc and desc ~= ""
                 h = h or (hasDesc and 42 or 30)
                 local row = Frame(body, {
-                    Size             = UDim2.new(1,-20,0,h),
+                    Size             = UDim2.new(1,0,0,h),
                     BackgroundColor3 = Color3.fromRGB(255, 255, 255),
                     BackgroundTransparency = 1,
                     ZIndex           = 5,
