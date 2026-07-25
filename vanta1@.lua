@@ -1125,7 +1125,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             tw(pill, {Position = UDim2.new(0, 0, 0, targetY), Size = UDim2.new(0, 2, 0, 14)}, 0.28, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
 
             -- fundo roxo sólido no tab ativo (sem stroke, com gradiente e scale up)
-            tw(tabBtn, {BackgroundColor3 = Color3.fromRGB(90, 0, 194), BackgroundTransparency = 0.15, Size = UDim2.new(0, 38, 0, 38)}, 0.18)
+            tw(tabBtn, {BackgroundColor3 = Color3.fromRGB(70, 40, 110), BackgroundTransparency = 0.15, Size = UDim2.new(0, 38, 0, 38)}, 0.18)
 
             -- corner mais suave no ativo
             local activeCorner = tabBtn:FindFirstChildWhichIsA("UICorner")
@@ -1136,8 +1136,8 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             if existingGrad then existingGrad:Destroy() end
             local activeGrad = Instance.new("UIGradient")
             activeGrad.Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0,   Color3.fromRGB(110, 20, 220)),
-                ColorSequenceKeypoint.new(1,   Color3.fromRGB(70,  0,  160)),
+                ColorSequenceKeypoint.new(0,   Color3.fromRGB(80, 50, 120)),
+                ColorSequenceKeypoint.new(1,   Color3.fromRGB(55, 30, 90)),
             })
             activeGrad.Rotation = 90
             activeGrad.Parent   = tabBtn
