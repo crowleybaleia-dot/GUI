@@ -1059,7 +1059,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         local tabIcon = Image(tabBtn, {
             AnchorPoint       = Vector2.new(0.5,0.5),
             Position          = UDim2.new(0.5,0,0.5,0),
-            Size              = UDim2.new(0,24,0,24),
+            Size              = UDim2.new(0,20,0,20),
             Image             = iconAsset or "",
             ImageColor3       = C.low,
             ImageTransparency = (iconAsset and iconAsset ~= "") and 0.3 or 1,
