@@ -1306,10 +1306,18 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 h = h or (hasDesc and 42 or 30)
                 local row = Frame(body, {
                     Size             = UDim2.new(1,0,0,h),
+                    BackgroundColor3 = Color3.fromRGB(255, 255, 255),
                     BackgroundTransparency = 1,
                     ZIndex           = 5,
                     LayoutOrder      = #body:GetChildren(),
                 })
+                Corner(row, 6)
+                row.MouseEnter:Connect(function()
+                    tw(row, {BackgroundTransparency = 0.95}, 0.12)
+                end)
+                row.MouseLeave:Connect(function()
+                    tw(row, {BackgroundTransparency = 1}, 0.12)
+                end)
 
                 if hasDesc then
                     -- label principal
