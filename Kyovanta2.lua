@@ -754,27 +754,111 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         end
     end
 
+    -- ── MPrompt ───────────────────────────────────────────────────────────
+    -- pill flutuante no topo central — só existe se useMobilePrompt
+    local mPrompt = nil
+    if useMobilePrompt then
+        mPrompt = Instance.new("TextButton")
+        mPrompt.Name                   = "MPrompt"
+        mPrompt.AnchorPoint            = Vector2.new(0.5, 0)
+        mPrompt.Position               = UDim2.new(0.5, 0, 0, -60)  -- começa escondido acima
+        mPrompt.Size                   = UDim2.new(0, 160, 0, 36)
+        mPrompt.BackgroundColor3       = Color3.fromRGB(10, 10, 10)
+        mPrompt.BackgroundTransparency = 0.15
+        mPrompt.BorderSizePixel        = 0
+        mPrompt.AutoButtonColor        = false
+        mPrompt.Text                   = ""
+        mPrompt.ClipsDescendants       = false
+        mPrompt.Visible                = false
+        mPrompt.ZIndex                 = 60
+        mPrompt.Parent                 = scrgui
+        Corner(mPrompt, 18)
+        Stroke(mPrompt, Color3.fromRGB(255,255,255), 1, 0.82)
+
+        -- ícone
+        local mIcon = Instance.new("ImageLabel")
+        mIcon.Name                 = "MIcon"
+        mIcon.AnchorPoint          = Vector2.new(0, 0.5)
+        mIcon.Position             = UDim2.new(0, 8, 0.5, 0)
+        mIcon.Size                 = UDim2.new(0, 20, 0, 20)
+        mIcon.BackgroundTransparency = 1
+        mIcon.Image                = "rbxassetid://106135897862448"
+        mIcon.ScaleType            = Enum.ScaleType.Fit
+        mIcon.ZIndex               = 61
+        mIcon.Parent               = mPrompt
+
+        -- texto
+        local mLabel = Instance.new("TextLabel")
+        mLabel.Name                = "MLabel"
+        mLabel.AnchorPoint         = Vector2.new(0, 0.5)
+        mLabel.Position            = UDim2.new(0, 34, 0.5, 0)
+        mLabel.Size                = UDim2.new(1, -42, 1, 0)
+        mLabel.BackgroundTransparency = 1
+        mLabel.Text                = "Show " .. (title or "Hub")
+        mLabel.TextColor3          = Color3.fromRGB(224, 224, 224)
+        mLabel.TextSize            = 12
+        mLabel.Font                = Enum.Font.GothamMedium
+        mLabel.TextXAlignment      = Enum.TextXAlignment.Left
+        mLabel.TextTruncate        = Enum.TextTruncate.AtEnd
+        mLabel.ZIndex              = 61
+        mLabel.Parent              = mPrompt
+
+        -- hover
+        mPrompt.MouseEnter:Connect(function()
+            tw(mPrompt, {BackgroundTransparency = 0}, 0.15)
+        end)
+        mPrompt.MouseLeave:Connect(function()
+            tw(mPrompt, {BackgroundTransparency = 0.15}, 0.15)
+        end)
+
+        -- clique reabre o menu
+        mPrompt.MouseButton1Click:Connect(function()
+            if visible then return end
+            visible = true
+            -- esconde o prompt antes de abrir
+            tw(mPrompt, {Position = UDim2.new(0.5, 0, 0, -60), BackgroundTransparency = 1}, 0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
+            task.delay(0.3, function() mPrompt.Visible = false end)
+            -- abre o menu
+            task.delay(0.1, function()
+                main.Visible = true
+                main.Size    = UDim2.new(0, W_seed, 0, H_seed)
+                main.BackgroundTransparency = 1
+                tw(main, {Size = UDim2.new(0, W_open, 0, H_open), BackgroundTransparency = 0.05}, 0.55, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+            end)
+        end)
+    end
+
+    local function showMPrompt()
+        if not mPrompt then return end
+        mPrompt.BackgroundTransparency = 1
+        mPrompt.Position = UDim2.new(0.5, 0, 0, -60)
+        mPrompt.Visible  = true
+        tw(mPrompt, {Position = UDim2.new(0.5, 0, 0, 12), BackgroundTransparency = 0.15}, 0.45, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+    end
+
+    local function hideMPrompt()
+        if not mPrompt then return end
+        tw(mPrompt, {Position = UDim2.new(0.5, 0, 0, -60), BackgroundTransparency = 1}, 0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
+        task.delay(0.31, function() mPrompt.Visible = false end)
+    end
+
     -- ── ToggleVisible ─────────────────────────────────────────────────────
     function window:ToggleVisible()
         if dbc then return end
         visible = not visible
         dbc = true
         if visible then
+            hideMPrompt()
             main.Visible = true
-            main.Size = UDim2.new(0, W_seed, 0, H_seed)
+            main.Size    = UDim2.new(0, W_seed, 0, H_seed)
             main.BackgroundTransparency = 1
             tw(main, {Size = UDim2.new(0, W_open, 0, H_open), BackgroundTransparency = 0.05}, 0.55, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
             task.delay(0.55, function() dbc = false end)
-            if useMobilePrompt then
-                window:TempNotify("Menu", "Interface aberta.", "info", 2)
-            end
         else
             tw(main, {Size = UDim2.new(0, W_open * 0.95, 0, H_open * 0.95), BackgroundTransparency = 1}, 0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
             task.delay(0.28, function() main.Visible = false end)
             task.delay(0.25, function() dbc = false end)
-            if useMobilePrompt then
-                window:TempNotify("Menu", "Toque no botão flutuante para reabrir.", "info", 5)
-            end
+            task.delay(0.3, function() showMPrompt() end)
         end
     end
 
