@@ -199,6 +199,7 @@ local C = {
 
 -- ═══════════════════════════════════════════════════════════════════════════
 function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSize)
+    visibleKey = visibleKey or Enum.KeyCode.RightControl
 
     -- ── ScreenGui ──────────────────────────────────────────────────────────
     local hui = gethui()
@@ -753,9 +754,13 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     end
 
     -- toggle via keybind
-    if visibleKey then
+    local menuKey = visibleKey
+    function window:SetMenuKey(kc) menuKey = kc end
+    function window:GetMenuKey() return menuKey end
+
+    if menuKey then
         UserInputService.InputBegan:Connect(function(i, gp)
-            if not gp and i.KeyCode == visibleKey then window:ToggleVisible() end
+            if not gp and i.KeyCode == menuKey then window:ToggleVisible() end
         end)
     end
 
@@ -2553,7 +2558,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             end
 
             -- ── Keybind ──────────────────────────────────────────────────
-            function grp:Keybind(lbl, default, cb, id)
+            function grp:Keybind(lbl, default, cb, id, onCapture)
                 id = id or lbl
                 local key     = default or Enum.KeyCode.Unknown
                 local waiting = false
@@ -2602,6 +2607,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                         key              = i.KeyCode
                         kbLbl.Text       = tostring(key):gsub("Enum.KeyCode.","")
                         kbLbl.TextColor3     = C.hi
+                        if onCapture then onCapture(key) end
                     elseif i.KeyCode == key then
                         -- tecla correta pressionada: dispara callback
                         if cb then cb(key) end
@@ -2739,6 +2745,12 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
 
         -- popula ao abrir
         refreshDropdown()
+
+        grp:SectionLabel("Menu")
+
+        grp:Keybind("Menu Keybind", window:GetMenuKey(), nil, "MenuKeybind", function(k)
+            window:SetMenuKey(k)
+        end)
 
         grp:SectionLabel("Ações")
 
