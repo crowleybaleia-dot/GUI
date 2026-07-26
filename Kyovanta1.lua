@@ -232,11 +232,6 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     Corner(main, 8)
     Stroke(main, Color3.fromRGB(255,255,255), 1, 0.82)
 
-    -- ── detecção de mobile ────────────────────────────────────────────────
-    local forceMobile = true  -- setar true pra testar no PC
-    local isMobile = forceMobile
-        or (UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled)
-
     -- ── acrylic blur (portado da MacLib) ─────────────────────────────────────
     local acrylicBlur = true
     local BlurTarget = main
@@ -429,24 +424,6 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     RunService.RenderStepped:Connect(UpdateBlurOrientation)
     -- ─────────────────────────────────────────────────────────────────────────
 
-    -- ── drag — funciona em toda a sidebar ────────────────────────────────────
-    local drag, dragStart, startPos
-    main.InputBegan:Connect(function(i)
-        if i.UserInputType ~= Enum.UserInputType.MouseButton1 and i.UserInputType ~= Enum.UserInputType.Touch then return end
-        if (i.Position.X - main.AbsolutePosition.X) > 72 then return end
-        drag = true; dragStart = i.Position; startPos = main.Position
-        i.Changed:Connect(function()
-            if i.UserInputState == Enum.UserInputState.End then drag = false end
-        end)
-    end)
-    UserInputService.InputChanged:Connect(function(i)
-        if drag and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then
-            local d = i.Position - dragStart
-            main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + d.X,
-                                           startPos.Y.Scale, startPos.Y.Offset + d.Y)
-        end
-    end)
-
     -- ── sidebar full-height (56px) ────────────────────────────────────────
     local sidebar = Frame(main, {
         Name                 = "sidebar",
@@ -610,16 +587,49 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     local dbc          = false
     local currentToast = nil
 
+    -- ── mobile detection ──────────────────────────────────────────────────
+    local forceMobile     = true  -- muda pra false em produção
+    local useMobileSizing = forceMobile or (main.AbsoluteSize.X < 1024 and main.AbsoluteSize.Y < 768)
+    local useMobilePrompt = forceMobile or UserInputService.TouchEnabled
+
+    -- tamanhos: desktop 820×460 | mobile 500×275
+    local W_DESK, H_DESK = 820, 460
+    local W_MOB,  H_MOB  = 500, 275
+    local W_open  = useMobileSizing and W_MOB  or W_DESK
+    local H_open  = useMobileSizing and H_MOB  or H_DESK
+    local W_seed  = useMobileSizing and 300     or 492
+    local H_seed  = useMobileSizing and 165     or 264
+
+    -- ── drag — sidebar no desktop, topbar inteira no mobile ──────────────
+    local drag, dragStart, startPos
+    main.InputBegan:Connect(function(i)
+        if i.UserInputType ~= Enum.UserInputType.MouseButton1 and i.UserInputType ~= Enum.UserInputType.Touch then return end
+        local relY = i.Position.Y - main.AbsolutePosition.Y
+        local relX = i.Position.X - main.AbsolutePosition.X
+        if useMobileSizing then
+            if relY > 44 then return end  -- mobile: arrasta pela topbar (44px)
+        else
+            if relX > 72 then return end  -- desktop: só pela sidebar
+        end
+        drag = true; dragStart = i.Position; startPos = main.Position
+        i.Changed:Connect(function()
+            if i.UserInputState == Enum.UserInputState.End then drag = false end
+        end)
+    end)
+    UserInputService.InputChanged:Connect(function(i)
+        if drag and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then
+            local d = i.Position - dragStart
+            main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + d.X,
+                                           startPos.Y.Scale, startPos.Y.Offset + d.Y)
+        end
+    end)
+
     -- animate in: grow + fade
-    local mainW  = isMobile and 380 or 820
-    local mainH  = isMobile and 560 or 460
-    local mainW0 = isMobile and 240 or 492
-    local mainH0 = isMobile and 340 or 264
-    main.Size = UDim2.new(0, mainW0, 0, mainH0)
+    main.Size = UDim2.new(0, W_seed, 0, H_seed)
     main.BackgroundTransparency = 1
     main.Position = UDim2.new(0.5, 0, 0.5, 0)
     main.Visible = true
-    tw(main, {Size = UDim2.new(0, mainW, 0, mainH), BackgroundTransparency = 0.05}, 0.55, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+    tw(main, {Size = UDim2.new(0, W_open, 0, H_open), BackgroundTransparency = 0.05}, 0.55, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
 
     -- ═════════════════════════════════════════════════════════════════════
     local window = {}
@@ -751,16 +761,20 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         dbc = true
         if visible then
             main.Visible = true
-            main.Size = UDim2.new(0, mainW0, 0, mainH0)
+            main.Size = UDim2.new(0, W_seed, 0, H_seed)
             main.BackgroundTransparency = 1
-            tw(main, {Size = UDim2.new(0, mainW, 0, mainH), BackgroundTransparency = 0.05}, 0.55, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+            tw(main, {Size = UDim2.new(0, W_open, 0, H_open), BackgroundTransparency = 0.05}, 0.55, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
             task.delay(0.55, function() dbc = false end)
+            if useMobilePrompt then
+                window:TempNotify("Menu", "Interface aberta.", "info", 2)
+            end
         else
-            local closeW = isMobile and 360 or 779
-            local closeH = isMobile and 532 or 437
-            tw(main, {Size = UDim2.new(0, closeW, 0, closeH), BackgroundTransparency = 1}, 0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
+            tw(main, {Size = UDim2.new(0, W_open * 0.95, 0, H_open * 0.95), BackgroundTransparency = 1}, 0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
             task.delay(0.28, function() main.Visible = false end)
             task.delay(0.25, function() dbc = false end)
+            if useMobilePrompt then
+                window:TempNotify("Menu", "Toque no botão flutuante para reabrir.", "info", 5)
+            end
         end
     end
 
@@ -1135,108 +1149,39 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             ClipsDescendants     = false,
         })
 
-        -- no mobile: workarea vira um ScrollingFrame vertical único que contém as duas colunas empilhadas
-        -- no desktop: layout de duas colunas lado a lado (comportamento original)
-        local workareaL, workareaR
+        -- coluna esquerda
+        local workareaL = Instance.new("ScrollingFrame")
+        workareaL.Name                = "waL_" .. name
+        workareaL.Position            = UDim2.new(0,0,0,0)
+        workareaL.Size                = UDim2.new(0.5,-5,1,0)
+        workareaL.BackgroundTransparency = 1
+        workareaL.BorderSizePixel     = 0
+        workareaL.ScrollBarThickness  = 3
+        workareaL.ScrollBarImageColor3 = Color3.fromRGB(45,45,45)
+        workareaL.ScrollBarImageTransparency = 1
+        workareaL.AutomaticCanvasSize = Enum.AutomaticSize.Y
+        workareaL.CanvasSize          = UDim2.new(0,0,0,0)
+        workareaL.ZIndex              = 2
+        workareaL.Parent              = workarea
+        ListLayout(workareaL, {Padding = UDim.new(0,8)})
+        Padding(workareaL, 12, 12, 8, 8)
 
-        if isMobile then
-            -- scroll externo que ocupa todo o workarea
-            local mobileScroll = Instance.new("ScrollingFrame")
-            mobileScroll.Name                = "waMobile_" .. name
-            mobileScroll.Position            = UDim2.new(0,0,0,0)
-            mobileScroll.Size                = UDim2.new(1,0,1,0)
-            mobileScroll.BackgroundTransparency = 1
-            mobileScroll.BorderSizePixel     = 0
-            mobileScroll.ScrollBarThickness  = 3
-            mobileScroll.ScrollBarImageColor3 = Color3.fromRGB(45,45,45)
-            mobileScroll.ScrollBarImageTransparency = 0.6
-            mobileScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
-            mobileScroll.CanvasSize          = UDim2.new(0,0,0,0)
-            mobileScroll.ZIndex              = 2
-            mobileScroll.Parent              = workarea
-            ListLayout(mobileScroll, {Padding = UDim.new(0,0), FillDirection = Enum.FillDirection.Vertical})
-
-            -- scroll por mouse wheel (só ativo quando forceMobile = true, pra testar no PC)
-            if forceMobile then
-                local SCROLL_STEP = 40
-                mobileScroll.MouseWheelForward:Connect(function()
-                    local maxY = math.max(0, mobileScroll.AbsoluteCanvasSize.Y - mobileScroll.AbsoluteSize.Y)
-                    local newY = math.clamp(mobileScroll.CanvasPosition.Y - SCROLL_STEP, 0, maxY)
-                    mobileScroll.CanvasPosition = Vector2.new(0, newY)
-                end)
-                mobileScroll.MouseWheelBackward:Connect(function()
-                    local maxY = math.max(0, mobileScroll.AbsoluteCanvasSize.Y - mobileScroll.AbsoluteSize.Y)
-                    local newY = math.clamp(mobileScroll.CanvasPosition.Y + SCROLL_STEP, 0, maxY)
-                    mobileScroll.CanvasPosition = Vector2.new(0, newY)
-                end)
-            end
-
-            -- coluna esquerda: largura 100%, altura automática
-            workareaL = Instance.new("ScrollingFrame")
-            workareaL.Name                = "waL_" .. name
-            workareaL.Size                = UDim2.new(1,0,0,0)
-            workareaL.AutomaticSize       = Enum.AutomaticSize.Y
-            workareaL.BackgroundTransparency = 1
-            workareaL.BorderSizePixel     = 0
-            workareaL.ScrollBarThickness  = 0
-            workareaL.AutomaticCanvasSize = Enum.AutomaticSize.Y
-            workareaL.CanvasSize          = UDim2.new(0,0,0,0)
-            workareaL.ZIndex              = 2
-            workareaL.LayoutOrder         = 1
-            workareaL.Parent              = mobileScroll
-            ListLayout(workareaL, {Padding = UDim.new(0,8)})
-            Padding(workareaL, 8, 4, 8, 8)
-
-            -- coluna direita: largura 100%, empilhada abaixo da esquerda
-            workareaR = Instance.new("ScrollingFrame")
-            workareaR.Name                = "waR_" .. name
-            workareaR.Size                = UDim2.new(1,0,0,0)
-            workareaR.AutomaticSize       = Enum.AutomaticSize.Y
-            workareaR.BackgroundTransparency = 1
-            workareaR.BorderSizePixel     = 0
-            workareaR.ScrollBarThickness  = 0
-            workareaR.AutomaticCanvasSize = Enum.AutomaticSize.Y
-            workareaR.CanvasSize          = UDim2.new(0,0,0,0)
-            workareaR.ZIndex              = 2
-            workareaR.LayoutOrder         = 2
-            workareaR.Parent              = mobileScroll
-            ListLayout(workareaR, {Padding = UDim.new(0,8)})
-            Padding(workareaR, 4, 8, 8, 8)
-        else
-            -- coluna esquerda (desktop)
-            workareaL = Instance.new("ScrollingFrame")
-            workareaL.Name                = "waL_" .. name
-            workareaL.Position            = UDim2.new(0,0,0,0)
-            workareaL.Size                = UDim2.new(0.5,-5,1,0)
-            workareaL.BackgroundTransparency = 1
-            workareaL.BorderSizePixel     = 0
-            workareaL.ScrollBarThickness  = 3
-            workareaL.ScrollBarImageColor3 = Color3.fromRGB(45,45,45)
-            workareaL.ScrollBarImageTransparency = 1
-            workareaL.AutomaticCanvasSize = Enum.AutomaticSize.Y
-            workareaL.CanvasSize          = UDim2.new(0,0,0,0)
-            workareaL.ZIndex              = 2
-            workareaL.Parent              = workarea
-            ListLayout(workareaL, {Padding = UDim.new(0,8)})
-            Padding(workareaL, 12, 12, 8, 8)
-
-            -- coluna direita (desktop)
-            workareaR = Instance.new("ScrollingFrame")
-            workareaR.Name                = "waR_" .. name
-            workareaR.Position            = UDim2.new(0.5,5,0,0)
-            workareaR.Size                = UDim2.new(0.5,-5,1,0)
-            workareaR.BackgroundTransparency = 1
-            workareaR.BorderSizePixel     = 0
-            workareaR.ScrollBarThickness  = 3
-            workareaR.ScrollBarImageColor3 = Color3.fromRGB(45,45,45)
-            workareaR.ScrollBarImageTransparency = 1
-            workareaR.AutomaticCanvasSize = Enum.AutomaticSize.Y
-            workareaR.CanvasSize          = UDim2.new(0,0,0,0)
-            workareaR.ZIndex              = 2
-            workareaR.Parent              = workarea
-            ListLayout(workareaR, {Padding = UDim.new(0,8)})
-            Padding(workareaR, 12, 12, 8, 8)
-        end
+        -- coluna direita
+        local workareaR = Instance.new("ScrollingFrame")
+        workareaR.Name                = "waR_" .. name
+        workareaR.Position            = UDim2.new(0.5,5,0,0)
+        workareaR.Size                = UDim2.new(0.5,-5,1,0)
+        workareaR.BackgroundTransparency = 1
+        workareaR.BorderSizePixel     = 0
+        workareaR.ScrollBarThickness  = 3
+        workareaR.ScrollBarImageColor3 = Color3.fromRGB(45,45,45)
+        workareaR.ScrollBarImageTransparency = 1
+        workareaR.AutomaticCanvasSize = Enum.AutomaticSize.Y
+        workareaR.CanvasSize          = UDim2.new(0,0,0,0)
+        workareaR.ZIndex              = 2
+        workareaR.Parent              = workarea
+        ListLayout(workareaR, {Padding = UDim.new(0,8)})
+        Padding(workareaR, 12, 12, 8, 8)
 
         table.insert(sections, tabBtn)
         table.insert(workareas, workarea)
