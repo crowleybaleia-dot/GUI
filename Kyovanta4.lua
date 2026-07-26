@@ -180,10 +180,10 @@ local C = {
     surface  = Color3.fromRGB(18,  18,  18),   -- #121212 surface/modal
     element  = Color3.fromRGB(18,  18,  18),   -- #121212 elementos
     white    = Color3.fromRGB(255, 255, 255),  -- #ffffff branco puro
-    hi       = Color3.fromRGB(224, 224, 224),  -- #e0e0e0 texto principal
+    hi       = Color3.fromRGB(245, 245, 245),  -- #f5f5f5 texto principal
     mid      = Color3.fromRGB(170, 170, 170),  -- #aaaaaa cinza médio
     low      = Color3.fromRGB(102, 102, 102),  -- #666666 texto inativo
-    dim      = Color3.fromRGB(68,  68,  68),   -- #444444 descrição/placeholder
+    dim      = Color3.fromRGB(130, 130, 130),  -- #828282 descrição/placeholder
     border   = Color3.fromRGB(42,  42,  42),   -- #2a2a2a bordas sutis
     accent   = Color3.fromRGB(4,   96,  255),  -- azul mar accent
     accentBg = Color3.fromRGB(2,   60,  180),  -- azul mar escuro hover
@@ -1299,7 +1299,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 Size           = UDim2.new(1,0,0,16),
                 Text           = string.upper(groupName or ""),
                 TextColor3     = C.low,
-                TextSize       = 9,
+                TextSize       = 11,
                 Font           = Enum.Font.GothamBold,
                 TextXAlignment = Enum.TextXAlignment.Left,
                 ZIndex         = 4,
@@ -1375,7 +1375,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                         Size           = UDim2.new(0.6,0,0,14),
                         Text           = lbl or "",
                         TextColor3     = C.hi,
-                        TextSize       = 11,
+                        TextSize       = 13,
                         Font           = Enum.Font.Gotham,
                         TextXAlignment = Enum.TextXAlignment.Left,
                         ZIndex         = 6,
@@ -1386,7 +1386,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                         Size           = UDim2.new(0.75,0,0,12),
                         Text           = desc,
                         TextColor3     = C.dim,
-                        TextSize       = 9,
+                        TextSize       = 11,
                         Font           = Enum.Font.Gotham,
                         TextXAlignment = Enum.TextXAlignment.Left,
                         ZIndex         = 6,
@@ -1397,7 +1397,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                         Size           = UDim2.new(0.55,0,1,0),
                         Text           = lbl or "",
                         TextColor3     = C.hi,
-                        TextSize       = 11,
+                        TextSize       = 13,
                         Font           = Enum.Font.Gotham,
                         TextXAlignment = Enum.TextXAlignment.Left,
                         ZIndex         = 6,
@@ -1454,7 +1454,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                         Size                 = UDim2.new(0, 60, 0, 20),
                         Text                 = "[" .. keyName .. "]",
                         TextColor3           = C.hi,
-                        TextSize             = 11,
+                        TextSize             = 13,
                         Font                 = Enum.Font.Code,
                         TextXAlignment       = Enum.TextXAlignment.Center,
                         BackgroundTransparency = 1,
@@ -1667,7 +1667,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     Size           = UDim2.new(1,0,1,0),
                     Text           = keyName,
                     TextColor3     = C.hi,
-                    TextSize       = 9,
+                    TextSize       = 11,
                     Font           = Enum.Font.Code,
                     ZIndex         = 8,
                 })
@@ -1750,7 +1750,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     Size           = UDim2.new(0.7,0,0,16),
                     Text           = lbl or "",
                     TextColor3     = C.hi,
-                    TextSize       = 11,
+                    TextSize       = 13,
                     Font           = Enum.Font.Gotham,
                     TextXAlignment = Enum.TextXAlignment.Left,
                     ZIndex         = 6,
@@ -1761,7 +1761,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     Size           = UDim2.new(0.3,0,0,16),
                     Text           = tostring(val),
                     TextColor3     = C.hi,
-                    TextSize       = 11,
+                    TextSize       = 13,
                     Font           = Enum.Font.GothamMedium,
                     TextXAlignment = Enum.TextXAlignment.Right,
                     ZIndex         = 6,
@@ -1882,7 +1882,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     Size           = UDim2.new(1, -24, 1, 0),
                     Text           = sel,
                     TextColor3     = C.mid,
-                    TextSize       = 11,
+                    TextSize       = 13,
                     Font           = Enum.Font.GothamMedium,
                     TextXAlignment = Enum.TextXAlignment.Left,
                     ZIndex         = 8,
@@ -1977,7 +1977,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                             Size           = UDim2.new(1, -16, 1, 0),
                             Text           = opt,
                             TextColor3     = isSel and C.hi or C.mid,
-                            TextSize       = 11,
+                            TextSize       = 13,
                             Font           = isSel and Enum.Font.GothamMedium or Enum.Font.Gotham,
                             TextXAlignment = Enum.TextXAlignment.Left,
                             ZIndex         = 52,
@@ -2140,7 +2140,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     Size           = UDim2.new(1, -24, 1, 0),
                     Text           = labelTxt(),
                     TextColor3     = C.mid,
-                    TextSize       = 11,
+                    TextSize       = 13,
                     Font           = Enum.Font.GothamMedium,
                     TextXAlignment = Enum.TextXAlignment.Left,
                     ZIndex         = 8,
@@ -2234,7 +2234,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                             Size           = UDim2.new(1, -16, 1, 0),
                             Text           = opt,
                             TextColor3     = on and C.hi or C.mid,
-                            TextSize       = 11,
+                            TextSize       = 13,
                             Font           = on and Enum.Font.GothamMedium or Enum.Font.Gotham,
                             TextXAlignment = Enum.TextXAlignment.Left,
                             ZIndex         = 52,
@@ -2469,7 +2469,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     Size           = UDim2.new(1,-10,0.5,0),
                     Text           = lbl or "",
                     TextColor3     = C.hi,
-                    TextSize       = 11,
+                    TextSize       = 13,
                     Font           = Enum.Font.GothamMedium,
                     TextXAlignment = Enum.TextXAlignment.Left,
                     ZIndex         = 7,
@@ -2579,7 +2579,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     Size           = UDim2.new(1,0,1,0),
                     Text           = tostring(key):gsub("Enum.KeyCode.",""),
                     TextColor3     = C.hi,
-                    TextSize       = 9,
+                    TextSize       = 11,
                     Font           = Enum.Font.Code,
                     ZIndex         = 8,
                 })
@@ -2658,7 +2658,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     Position       = UDim2.new(0,0,0,4),
                     Text           = string.upper(name or ""),
                     TextColor3     = C.accent,
-                    TextSize       = 9,
+                    TextSize       = 11,
                     Font           = Enum.Font.GothamBold,
                     TextXAlignment = Enum.TextXAlignment.Center,
                     ZIndex         = 6,
