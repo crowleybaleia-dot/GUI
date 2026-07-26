@@ -756,77 +756,92 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
 
     -- ── MPrompt ───────────────────────────────────────────────────────────
     -- pill flutuante sempre visível no mobile — toggle abre/fecha o menu
-    local mPrompt = nil
+    -- estrutura: mPromptWrap (container invisível) → mIconCircle + mPill
+    local mPrompt = nil  -- referência ao wrap, pra compatibilidade
     if useMobilePrompt then
 
-        -- container pill
-        mPrompt = Instance.new("TextButton")
-        mPrompt.Name                   = "MPrompt"
-        mPrompt.AnchorPoint            = Vector2.new(0.5, 0)
-        mPrompt.Position               = UDim2.new(0.5, 18, 0, 12) -- offset +18 pra compensar o ícone que sobrepõe à esquerda
-        mPrompt.Size                   = UDim2.new(0, 180, 0, 38)
-        mPrompt.BackgroundColor3       = Color3.fromRGB(10, 10, 10)
-        mPrompt.BackgroundTransparency = 0
-        mPrompt.BorderSizePixel        = 0
-        mPrompt.AutoButtonColor        = false
-        mPrompt.Text                   = ""
-        mPrompt.ClipsDescendants       = false
-        mPrompt.Visible                = true
-        mPrompt.ZIndex                 = 60
-        mPrompt.Parent                 = scrgui
-        Corner(mPrompt, 19)
+        -- wrap invisível: ancora tudo junto no topo central
+        -- círculo 62px, pill começa em x=38 (círculo penetra 24px no pill), pill 196px → total 234px
+        local mWrap = Instance.new("Frame")
+        mWrap.Name                   = "MPromptWrap"
+        mWrap.AnchorPoint            = Vector2.new(0.5, 0)
+        mWrap.Position               = UDim2.new(0.5, 0, 0, 10)
+        mWrap.Size                   = UDim2.new(0, 234, 0, 62)
+        mWrap.BackgroundTransparency = 1
+        mWrap.BorderSizePixel        = 0
+        mWrap.ClipsDescendants       = false
+        mWrap.ZIndex                 = 60
+        mWrap.Visible                = true
+        mWrap.Parent                 = scrgui
+        mPrompt = mWrap
 
-        -- texto "Show or hide [título]"
+        -- pill — começa em x=38 pra o círculo sobrepor bem à esquerda
+        local mPill = Instance.new("TextButton")
+        mPill.Name                   = "MPill"
+        mPill.AnchorPoint            = Vector2.new(0, 0.5)
+        mPill.Position               = UDim2.new(0, 38, 0.5, 0)
+        mPill.Size                   = UDim2.new(0, 196, 0, 44)
+        mPill.BackgroundColor3       = Color3.fromRGB(0, 0, 0)
+        mPill.BackgroundTransparency = 0
+        mPill.BorderSizePixel        = 0
+        mPill.AutoButtonColor        = false
+        mPill.Text                   = ""
+        mPill.ClipsDescendants       = false
+        mPill.ZIndex                 = 61
+        mPill.Parent                 = mWrap
+        Corner(mPill, 22)
+
+        -- texto dentro do pill — recuado pra não ficar sob o círculo
         local mLabel = Instance.new("TextLabel")
         mLabel.Name                = "MLabel"
         mLabel.AnchorPoint         = Vector2.new(0, 0.5)
-        mLabel.Position            = UDim2.new(0, 14, 0.5, 0)
-        mLabel.Size                = UDim2.new(1, -20, 1, 0)
+        mLabel.Position            = UDim2.new(0, 28, 0.5, 0)
+        mLabel.Size                = UDim2.new(1, -36, 1, 0)
         mLabel.BackgroundTransparency = 1
         mLabel.Text                = "Show or hide " .. (title or "Hub")
-        mLabel.TextColor3          = Color3.fromRGB(224, 224, 224)
+        mLabel.TextColor3          = Color3.fromRGB(220, 220, 220)
         mLabel.TextSize            = 12
         mLabel.Font                = Enum.Font.GothamMedium
         mLabel.TextXAlignment      = Enum.TextXAlignment.Left
         mLabel.TextTruncate        = Enum.TextTruncate.AtEnd
-        mLabel.ZIndex              = 61
-        mLabel.Parent              = mPrompt
+        mLabel.ZIndex              = 62
+        mLabel.Parent              = mPill
 
-        -- círculo do ícone — sobrepõe a borda esquerda do pill
+        -- círculo do ícone — pai do wrap, ZIndex maior, sobrepõe o pill
         local mIconCircle = Instance.new("Frame")
         mIconCircle.Name                 = "MIconCircle"
-        mIconCircle.AnchorPoint          = Vector2.new(1, 0.5)
-        mIconCircle.Position             = UDim2.new(0, 0, 0.5, 0) -- grudado na borda esquerda do pill
-        mIconCircle.Size                 = UDim2.new(0, 46, 0, 46)  -- maior que o pill pra sobrepor
-        mIconCircle.BackgroundColor3     = Color3.fromRGB(60, 75, 30) -- fundo verde escuro igual ao print
+        mIconCircle.AnchorPoint          = Vector2.new(0, 0.5)
+        mIconCircle.Position             = UDim2.new(0, 0, 0.5, 0)
+        mIconCircle.Size                 = UDim2.new(0, 62, 0, 62)  -- bem maior que o pill pra sangrar dos dois lados
+        mIconCircle.BackgroundColor3     = Color3.fromRGB(72, 90, 28) -- verde oliva mais saturado
         mIconCircle.BackgroundTransparency = 0
         mIconCircle.BorderSizePixel      = 0
-        mIconCircle.ZIndex               = 62
-        mIconCircle.Parent               = mPrompt
+        mIconCircle.ZIndex               = 63
+        mIconCircle.Parent               = mWrap
         Corner(mIconCircle, 99)
+        Stroke(mIconCircle, Color3.fromRGB(4, 96, 255), 2, 0)
 
         -- ícone dentro do círculo
         local mIcon = Instance.new("ImageLabel")
-        mIcon.Name                 = "MIcon"
         mIcon.AnchorPoint          = Vector2.new(0.5, 0.5)
         mIcon.Position             = UDim2.new(0.5, 0, 0.5, 0)
-        mIcon.Size                 = UDim2.new(0.78, 0, 0.78, 0)
+        mIcon.Size                 = UDim2.new(0.65, 0, 0.65, 0)
         mIcon.BackgroundTransparency = 1
         mIcon.Image                = "rbxassetid://106135897862448"
         mIcon.ScaleType            = Enum.ScaleType.Fit
-        mIcon.ZIndex               = 63
+        mIcon.ZIndex               = 64
         mIcon.Parent               = mIconCircle
 
-        -- hover
-        mPrompt.MouseEnter:Connect(function()
-            tw(mPrompt, {BackgroundColor3 = Color3.fromRGB(22, 22, 22)}, 0.15)
+        -- hover no pill
+        mPill.MouseEnter:Connect(function()
+            tw(mPill, {BackgroundColor3 = Color3.fromRGB(42, 42, 42)}, 0.15)
         end)
-        mPrompt.MouseLeave:Connect(function()
-            tw(mPrompt, {BackgroundColor3 = Color3.fromRGB(10, 10, 10)}, 0.15)
+        mPill.MouseLeave:Connect(function()
+            tw(mPill, {BackgroundColor3 = Color3.fromRGB(30, 30, 30)}, 0.15)
         end)
 
         -- clique = toggle
-        mPrompt.MouseButton1Click:Connect(function()
+        mPill.MouseButton1Click:Connect(function()
             window:ToggleVisible()
         end)
     end
