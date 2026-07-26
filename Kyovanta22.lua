@@ -1378,6 +1378,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
 
             -- ── Toggle ───────────────────────────────────────────────────
             function grp:Toggle(lbl, default, cb, keybind, desc, id)
+                id = id or lbl
                 local state   = default == true
                 local key     = keybind or nil
                 local waiting = false
@@ -1478,6 +1479,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             -- uso: grp:ToggleInput(lbl, desc, defaultNum, defaultBool, cb)
             -- cb(state, num)
             function grp:ToggleInput(lbl, desc, defaultNum, defaultBool, cb, id)
+                id = id or lbl
                 local state  = defaultBool == true
                 local num    = defaultNum or 0
                 local row, controlsFrame = baseRow(lbl, nil, desc)
@@ -1580,6 +1582,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             -- uso: grp:ToggleKeybind(lbl, desc, defaultKey, defaultBool, cb)
             -- cb(state) ao flip; keybind também faz flip
             function grp:ToggleKeybind(lbl, desc, defaultKey, defaultBool, cb, id)
+                id = id or lbl
                 local state   = defaultBool == true
                 local key     = defaultKey and defaultKey.Name or "Unknown"  -- string, igual ao Feral
                 local waiting = false
@@ -1697,6 +1700,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
 
             -- ── Slider ───────────────────────────────────────────────────
             function grp:Slider(lbl, min, max, default, cb, id)
+                id = id or lbl
                 min = min or 0; max = max or 100; default = default or min
                 local val = default
 
@@ -1821,6 +1825,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
 
             -- ── Dropdown ─────────────────────────────────────────────────
             function grp:Dropdown(lbl, options, default, cb, id)
+                id = id or lbl
                 local sel  = default or (options and options[1]) or ""
                 local open = false
                 local currentOptions = options
@@ -2069,6 +2074,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
 
             -- ── MultiDropdown ─────────────────────────────────────────────
             function grp:MultiDropdown(lbl, options, defaults, cb, id)
+                id = id or lbl
                 local sel  = {}
                 for _, v in ipairs(defaults or {}) do sel[v] = true end
                 local open = false
@@ -2405,6 +2411,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
 
             -- ── TextField ────────────────────────────────────────────────
             function grp:TextField(lbl, placeholder, cb, id)
+                id = id or lbl
                 local tfFrame = Frame(body, {
                     Size                 = UDim2.new(1,0,0,60),
                     BackgroundTransparency = 1,
@@ -2517,6 +2524,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
 
             -- ── Keybind ──────────────────────────────────────────────────
             function grp:Keybind(lbl, default, cb, id)
+                id = id or lbl
                 local key     = default or Enum.KeyCode.Unknown
                 local waiting = false
                 local row     = baseRow(lbl)
