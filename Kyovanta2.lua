@@ -1731,10 +1731,10 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     ZIndex         = 6,
                 })
 
-                -- track fino full-width
+                -- track com padding lateral (8px cada lado) pra knob não sair pela borda
                 local trackBg = Frame(slFrame, {
-                    Position             = UDim2.new(0,0,0,28),
-                    Size                 = UDim2.new(1,0,0,4),
+                    Position             = UDim2.new(0,8,0,28),
+                    Size                 = UDim2.new(1,-16,0,4),
                     BackgroundColor3     = Color3.fromRGB(50,50,50),
                     BackgroundTransparency = 0,
                     ZIndex               = 7,
