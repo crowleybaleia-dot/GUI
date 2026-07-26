@@ -1375,21 +1375,21 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     Text                 = "",
                     ZIndex               = 7,
                 })
-                Corner(pillBg, 8)
+                Corner(pillBg, 99)
 
                 -- knob (bolinha branca)
                 local knob = Frame(pillBg, {
-                    Position         = state and UDim2.new(1,-15,0.5,-6) or UDim2.new(0,2,0.5,-6),
-                    Size             = UDim2.new(0,13,0,13),
+                    Position         = state and UDim2.new(1,-13,0.5,-5) or UDim2.new(0,2,0.5,-5),
+                    Size             = UDim2.new(0,11,0,11),
                     BackgroundColor3 = Color3.fromRGB(255,255,255),
                     ZIndex           = 8,
                 })
-                Corner(knob, 7)
+                Corner(knob, 99)
 
                 local function flip()
                     state = not state
                     tw(pillBg, {BackgroundColor3 = state and C.onBg or C.offBg}, 0.14)
-                    tw(knob,   {Position = state and UDim2.new(1,-15,0.5,-6) or UDim2.new(0,2,0.5,-6)}, 0.14)
+                    tw(knob,   {Position = state and UDim2.new(1,-13,0.5,-5) or UDim2.new(0,2,0.5,-5)}, 0.14)
                     if cb then cb(state) end
                 end
                 pillBg.MouseButton1Click:Connect(flip)
@@ -1397,7 +1397,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 -- keybind
                 if keybind then
                     local keyName = tostring(key):gsub("Enum.KeyCode.","")
-                    local kbOffset = -(pillBg.Size.X.Offset + 6)
+                    local kbOffset = -(pillBg.Size.X.Offset + 4)
                     local kbLbl = Label(row, {
                         AnchorPoint    = Vector2.new(1, 0.5),
                         Position       = UDim2.new(1, kbOffset, 0.5, 0),
@@ -1481,19 +1481,19 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     Text                 = "",
                     ZIndex               = 7,
                 })
-                Corner(pillBg, 8)
+                Corner(pillBg, 99)
                 local knob = Frame(pillBg, {
-                    Position         = state and UDim2.new(1,-15,0.5,-6) or UDim2.new(0,2,0.5,-6),
-                    Size             = UDim2.new(0,13,0,13),
+                    Position         = state and UDim2.new(1,-13,0.5,-5) or UDim2.new(0,2,0.5,-5),
+                    Size             = UDim2.new(0,11,0,11),
                     BackgroundColor3 = Color3.fromRGB(255,255,255),
                     ZIndex           = 8,
                 })
-                Corner(knob, 7)
+                Corner(knob, 99)
 
                 local function flip()
                     state = not state
                     tw(pillBg, {BackgroundColor3 = state and C.onBg or C.offBg}, 0.14)
-                    tw(knob,   {Position = state and UDim2.new(1,-15,0.5,-6) or UDim2.new(0,2,0.5,-6)}, 0.14)
+                    tw(knob,   {Position = state and UDim2.new(1,-13,0.5,-5) or UDim2.new(0,2,0.5,-5)}, 0.14)
                     if cb then cb(state, num) end
                 end
                 pillBg.MouseButton1Click:Connect(flip)
@@ -1502,7 +1502,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 local inputBgW = 46
                 local inputBg = Frame(row, {
                     AnchorPoint          = Vector2.new(1, 0.5),
-                    Position             = UDim2.new(1, -(pillBg.Size.X.Offset + 6 + inputBgW), 0.5, 0),
+                    Position             = UDim2.new(1, -(pillBg.Size.X.Offset + 4 + inputBgW), 0.5, 0),
                     Size                 = UDim2.new(0, inputBgW, 0, 20),
                     BackgroundColor3     = C.border,
                     BackgroundTransparency = 0,
@@ -1582,19 +1582,19 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     Text                 = "",
                     ZIndex               = 7,
                 })
-                Corner(pillBg, 8)
+                Corner(pillBg, 99)
                 local knob = Frame(pillBg, {
-                    Position         = state and UDim2.new(1,-15,0.5,-6) or UDim2.new(0,2,0.5,-6),
-                    Size             = UDim2.new(0,13,0,13),
+                    Position         = state and UDim2.new(1,-13,0.5,-5) or UDim2.new(0,2,0.5,-5),
+                    Size             = UDim2.new(0,11,0,11),
                     BackgroundColor3 = Color3.fromRGB(255,255,255),
                     ZIndex           = 8,
                 })
-                Corner(knob, 7)
+                Corner(knob, 99)
 
                 local function flip()
                     state = not state
                     tw(pillBg, {BackgroundColor3 = state and C.onBg or C.offBg}, 0.14)
-                    tw(knob,   {Position = state and UDim2.new(1,-15,0.5,-6) or UDim2.new(0,2,0.5,-6)}, 0.14)
+                    tw(knob,   {Position = state and UDim2.new(1,-13,0.5,-5) or UDim2.new(0,2,0.5,-5)}, 0.14)
                     if cb then cb(state) end
                 end
                 pillBg.MouseButton1Click:Connect(flip)
@@ -1604,7 +1604,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 local kbfW = 36
                 local kbf = Button(row, {
                     AnchorPoint          = Vector2.new(1, 0.5),
-                    Position             = UDim2.new(1, -(pillBg.Size.X.Offset + 6 + kbfW), 0.5, 0),
+                    Position             = UDim2.new(1, -(pillBg.Size.X.Offset + 4 + kbfW), 0.5, 0),
                     Size                 = UDim2.new(0, kbfW, 0, 20),
                     BackgroundColor3     = C.white,
                     BackgroundTransparency = 0.94,
