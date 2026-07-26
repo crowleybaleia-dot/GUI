@@ -2789,6 +2789,10 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             window:TempNotify("Configs", "Lista atualizada.", "info", 3)
         end)
 
+        -- label mostrando autoload atual
+        local autoloadName = window:GetAutoload()
+        local autoloadLabel = grp:Label(autoloadName and ('Auto-load: "' .. autoloadName .. '"') or "Auto-load: nenhuma")
+
         -- Definir Autoload (igual ao Feral: Set as autoload)
         grp:Button("Definir Autoload", function()
             local name = currentName
@@ -2800,10 +2804,6 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             autoloadLabel.Set('Auto-load: "' .. name .. '"')
             window:TempNotify("Configs", '"' .. name .. '" definida como autoload.', "success", 5)
         end)
-
-        -- label mostrando autoload atual
-        local autoloadName = window:GetAutoload()
-        local autoloadLabel = grp:Label(autoloadName and ('Auto-load: "' .. autoloadName .. '"') or "Auto-load: nenhuma")
 
     end)
 
