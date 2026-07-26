@@ -1156,6 +1156,23 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             mobileScroll.Parent              = workarea
             ListLayout(mobileScroll, {Padding = UDim.new(0,0), FillDirection = Enum.FillDirection.Vertical})
 
+            -- scroll por mouse wheel (só ativo quando forceMobile = true, pra testar no PC)
+            if forceMobile then
+                mobileScroll.MouseEnter:Connect(function()
+                    local conn
+                    conn = UserInputService.InputChanged:Connect(function(i)
+                        if i.UserInputType == Enum.UserInputType.MouseWheel then
+                            local layout = mobileScroll:FindFirstChildWhichIsA("UIListLayout")
+                            local totalH = layout and layout.AbsoluteContentSize.Y or 0
+                            local maxCanvas = math.max(0, totalH - mobileScroll.AbsoluteSize.Y)
+                            local newY = math.clamp(mobileScroll.CanvasPosition.Y - i.Position.Z * 40, 0, maxCanvas)
+                            mobileScroll.CanvasPosition = Vector2.new(0, newY)
+                        end
+                    end)
+                    mobileScroll.MouseLeave:Connect(function() conn:Disconnect() end)
+                end)
+            end
+
             -- coluna esquerda: largura 100%, altura automática
             workareaL = Instance.new("ScrollingFrame")
             workareaL.Name                = "waL_" .. name
