@@ -2350,7 +2350,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 local icon = Instance.new("ImageLabel")
                 icon.AnchorPoint          = Vector2.new(1, 0.5)
                 icon.Position             = UDim2.new(1, -14, 0.5, 0)
-                icon.Size                 = UDim2.new(0, 14, 0, 14)
+                icon.Size                 = UDim2.new(0, 18, 0, 18)
                 icon.BackgroundTransparency = 1
                 icon.Image                = "rbxassetid://101493069014530"
                 icon.ZIndex               = 8
