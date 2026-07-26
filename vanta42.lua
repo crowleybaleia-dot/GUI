@@ -1368,7 +1368,8 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
 
                 -- pill container (30×16px oval)
                 local pillBg = Button(row, {
-                    Position             = UDim2.new(1, -36, 0.5, -9),
+                    AnchorPoint          = Vector2.new(1, 0.5),
+                    Position             = UDim2.new(1, 0, 0.5, 0),
                     Size                 = UDim2.new(0, 36, 0, 19),
                     BackgroundColor3     = state and C.onBg or C.offBg,
                     BackgroundTransparency = 0,
@@ -1474,7 +1475,8 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
 
                 -- pill toggle
                 local pillBg = Button(row, {
-                    Position             = UDim2.new(1, -36, 0.5, -9),
+                    AnchorPoint          = Vector2.new(1, 0.5),
+                    Position             = UDim2.new(1, 0, 0.5, 0),
                     Size                 = UDim2.new(0, 36, 0, 19),
                     BackgroundColor3     = state and C.onBg or C.offBg,
                     BackgroundTransparency = 0,
@@ -1575,7 +1577,8 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
 
                 -- pill toggle
                 local pillBg = Button(row, {
-                    Position             = UDim2.new(1, -36, 0.5, -9),
+                    AnchorPoint          = Vector2.new(1, 0.5),
+                    Position             = UDim2.new(1, 0, 0.5, 0),
                     Size                 = UDim2.new(0, 36, 0, 19),
                     BackgroundColor3     = state and C.onBg or C.offBg,
                     BackgroundTransparency = 0,
