@@ -1158,18 +1158,15 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
 
             -- scroll por mouse wheel (só ativo quando forceMobile = true, pra testar no PC)
             if forceMobile then
-                UserInputService.InputChanged:Connect(function(i)
-                    if i.UserInputType ~= Enum.UserInputType.MouseWheel then return end
-                    if not mobileScroll.Visible or not workarea.Visible then return end
-                    local mp = UserInputService:GetMouseLocation()
-                    local ap = mobileScroll.AbsolutePosition
-                    local as = mobileScroll.AbsoluteSize
-                    if mp.X < ap.X or mp.X > ap.X + as.X then return end
-                    if mp.Y < ap.Y or mp.Y > ap.Y + as.Y then return end
-                    local layout = mobileScroll:FindFirstChildWhichIsA("UIListLayout")
-                    local totalH = layout and layout.AbsoluteContentSize.Y or 0
-                    local maxY = math.max(0, totalH - as.Y)
-                    local newY = math.clamp(mobileScroll.CanvasPosition.Y - i.Position.Z * 40, 0, maxY)
+                local SCROLL_STEP = 40
+                mobileScroll.MouseWheelForward:Connect(function()
+                    local maxY = math.max(0, mobileScroll.AbsoluteCanvasSize.Y - mobileScroll.AbsoluteSize.Y)
+                    local newY = math.clamp(mobileScroll.CanvasPosition.Y - SCROLL_STEP, 0, maxY)
+                    mobileScroll.CanvasPosition = Vector2.new(0, newY)
+                end)
+                mobileScroll.MouseWheelBackward:Connect(function()
+                    local maxY = math.max(0, mobileScroll.AbsoluteCanvasSize.Y - mobileScroll.AbsoluteSize.Y)
+                    local newY = math.clamp(mobileScroll.CanvasPosition.Y + SCROLL_STEP, 0, maxY)
                     mobileScroll.CanvasPosition = Vector2.new(0, newY)
                 end)
             end
