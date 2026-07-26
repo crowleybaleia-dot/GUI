@@ -1402,9 +1402,9 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 if keybind then
                     local keyName = tostring(key):gsub("Enum.KeyCode.","")
                     local kbGap = 4
-                    local kbLbl = Label(pillBg, {
+                    local kbLbl = Label(row, {
                         AnchorPoint    = Vector2.new(1, 0.5),
-                        Position       = UDim2.new(0, -kbGap, 0.5, 0),
+                        Position       = UDim2.new(1, -(pillBg.Size.X.Offset + kbGap), 0.5, 0),
                         Size           = UDim2.new(0, 60, 0, 20),
                         Text           = "[" .. keyName .. "]",
                         TextColor3     = C.hi,
@@ -1414,9 +1414,9 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                         BackgroundTransparency = 1,
                         ZIndex         = 7,
                     })
-                    local kbBtn = Button(pillBg, {
+                    local kbBtn = Button(row, {
                         AnchorPoint          = Vector2.new(1, 0.5),
-                        Position             = UDim2.new(0, -kbGap, 0.5, 0),
+                        Position             = UDim2.new(1, -(pillBg.Size.X.Offset + kbGap), 0.5, 0),
                         Size                 = UDim2.new(0, 60, 0, 20),
                         BackgroundTransparency = 1,
                         Text                 = "",
