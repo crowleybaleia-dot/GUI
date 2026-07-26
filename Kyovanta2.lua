@@ -501,7 +501,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             Text           = string.upper((title or "V"):sub(1,1)),
             TextColor3     = C.hi,
             TextSize       = 18,
-            Font           = Enum.Font.UbuntuBold,
+            Font           = Enum.Font.Ubuntu,
             TextXAlignment = Enum.TextXAlignment.Center,
             ZIndex         = 4,
         })
@@ -1062,7 +1062,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             Text           = string.upper(name or ""),
             TextColor3     = C.accent,
             TextSize       = 8,
-            Font           = Enum.Font.UbuntuBold,
+            Font           = Enum.Font.Ubuntu,
             TextXAlignment = Enum.TextXAlignment.Left,
             ZIndex         = 3,
             LayoutOrder    = #sidebarScroll:GetChildren() + 1,
@@ -1107,7 +1107,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             Text           = (not iconAsset or iconAsset == "") and name:sub(1,1):upper() or "",
             TextColor3     = C.low,
             TextSize       = 12,
-            Font           = Enum.Font.UbuntuBold,
+            Font           = Enum.Font.Ubuntu,
             TextXAlignment = Enum.TextXAlignment.Center,
             ZIndex         = 4,
         })
@@ -1205,7 +1205,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
 
             -- letra/ícone branco no tab ativo
             tw(tabLabel, {TextColor3 = C.white}, 0.18)
-            tabLabel.Font = Enum.Font.UbuntuBold
+            tabLabel.Font = Enum.Font.Ubuntu
             if iconAsset and iconAsset ~= "" then
                 tw(tabIcon, {ImageColor3 = C.white, ImageTransparency = 0}, 0.18)
             end
@@ -1300,7 +1300,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 Text           = string.upper(groupName or ""),
                 TextColor3     = C.low,
                 TextSize       = 11,
-                Font           = Enum.Font.UbuntuBold,
+                Font           = Enum.Font.Ubuntu,
                 TextXAlignment = Enum.TextXAlignment.Left,
                 ZIndex         = 4,
                 LayoutOrder    = 0,
@@ -1895,7 +1895,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     Text           = "v",
                     TextColor3     = C.dim,
                     TextSize       = 10,
-                    Font           = Enum.Font.UbuntuBold,
+                    Font           = Enum.Font.Ubuntu,
                     TextXAlignment = Enum.TextXAlignment.Center,
                     ZIndex         = 8,
                 })
@@ -1967,7 +1967,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                             Text           = isSel and "✓" or "",
                             TextColor3     = C.accent,
                             TextSize       = 10,
-                            Font           = Enum.Font.UbuntuBold,
+                            Font           = Enum.Font.Ubuntu,
                             TextXAlignment = Enum.TextXAlignment.Center,
                             ZIndex         = 52,
                         })
@@ -2153,7 +2153,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     Text           = "v",
                     TextColor3     = C.dim,
                     TextSize       = 10,
-                    Font           = Enum.Font.UbuntuBold,
+                    Font           = Enum.Font.Ubuntu,
                     TextXAlignment = Enum.TextXAlignment.Center,
                     ZIndex         = 8,
                 })
@@ -2224,7 +2224,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                             Text           = on and "✓" or "",
                             TextColor3     = C.accent,
                             TextSize       = 10,
-                            Font           = Enum.Font.UbuntuBold,
+                            Font           = Enum.Font.Ubuntu,
                             TextXAlignment = Enum.TextXAlignment.Center,
                             ZIndex         = 52,
                         })
@@ -2659,7 +2659,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     Text           = string.upper(name or ""),
                     TextColor3     = C.accent,
                     TextSize       = 11,
-                    Font           = Enum.Font.UbuntuBold,
+                    Font           = Enum.Font.Ubuntu,
                     TextXAlignment = Enum.TextXAlignment.Center,
                     ZIndex         = 6,
                 })
