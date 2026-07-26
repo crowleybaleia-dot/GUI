@@ -2333,7 +2333,6 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     LayoutOrder          = #body:GetChildren(),
                 })
                 Corner(btn, 8)
-                Stroke(btn, C.border, 1, 0)
 
                 -- texto à esquerda
                 Label(btn, {
@@ -2347,18 +2346,15 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     ZIndex         = 8,
                 })
 
-                -- seta ▶ à direita
-                Label(btn, {
-                    AnchorPoint    = Vector2.new(1, 0.5),
-                    Position       = UDim2.new(1, -14, 0.5, 0),
-                    Size           = UDim2.new(0, 14, 0, 14),
-                    Text           = "▶",
-                    TextColor3     = C.dim,
-                    TextSize       = 9,
-                    Font           = Enum.Font.GothamBold,
-                    TextXAlignment = Enum.TextXAlignment.Center,
-                    ZIndex         = 8,
-                })
+                -- ícone à direita
+                local icon = Instance.new("ImageLabel")
+                icon.AnchorPoint          = Vector2.new(1, 0.5)
+                icon.Position             = UDim2.new(1, -14, 0.5, 0)
+                icon.Size                 = UDim2.new(0, 14, 0, 14)
+                icon.BackgroundTransparency = 1
+                icon.Image                = "rbxassetid://101493069014530"
+                icon.ZIndex               = 8
+                icon.Parent               = btn
 
                 btn.MouseEnter:Connect(function()
                     tw(btn, {BackgroundTransparency = 0.55}, 0.12)
