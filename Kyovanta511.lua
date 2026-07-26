@@ -233,7 +233,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     Stroke(main, Color3.fromRGB(255,255,255), 1, 0.82)
 
     -- ── detecção de mobile ────────────────────────────────────────────────
-    local forceMobile = true  -- setar true pra testar no PC
+    local forceMobile = false  -- setar true pra testar no PC
     local isMobile = forceMobile
         or (UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled)
 
@@ -1158,18 +1158,19 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
 
             -- scroll por mouse wheel (só ativo quando forceMobile = true, pra testar no PC)
             if forceMobile then
-                mobileScroll.MouseEnter:Connect(function()
-                    local conn
-                    conn = UserInputService.InputChanged:Connect(function(i)
-                        if i.UserInputType == Enum.UserInputType.MouseWheel then
-                            local layout = mobileScroll:FindFirstChildWhichIsA("UIListLayout")
-                            local totalH = layout and layout.AbsoluteContentSize.Y or 0
-                            local maxCanvas = math.max(0, totalH - mobileScroll.AbsoluteSize.Y)
-                            local newY = math.clamp(mobileScroll.CanvasPosition.Y - i.Position.Z * 40, 0, maxCanvas)
-                            mobileScroll.CanvasPosition = Vector2.new(0, newY)
-                        end
-                    end)
-                    mobileScroll.MouseLeave:Connect(function() conn:Disconnect() end)
+                UserInputService.InputChanged:Connect(function(i)
+                    if i.UserInputType ~= Enum.UserInputType.MouseWheel then return end
+                    if not mobileScroll.Visible or not workarea.Visible then return end
+                    local mp = UserInputService:GetMouseLocation()
+                    local ap = mobileScroll.AbsolutePosition
+                    local as = mobileScroll.AbsoluteSize
+                    if mp.X < ap.X or mp.X > ap.X + as.X then return end
+                    if mp.Y < ap.Y or mp.Y > ap.Y + as.Y then return end
+                    local layout = mobileScroll:FindFirstChildWhichIsA("UIListLayout")
+                    local totalH = layout and layout.AbsoluteContentSize.Y or 0
+                    local maxY = math.max(0, totalH - as.Y)
+                    local newY = math.clamp(mobileScroll.CanvasPosition.Y - i.Position.Z * 40, 0, maxY)
+                    mobileScroll.CanvasPosition = Vector2.new(0, newY)
                 end)
             end
 
