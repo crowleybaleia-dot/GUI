@@ -1379,8 +1379,8 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
 
                 -- knob (bolinha branca)
                 local knob = Frame(pillBg, {
-                    Position         = state and UDim2.new(1,-13,0.5,-5) or UDim2.new(0,2,0.5,-5),
-                    Size             = UDim2.new(0,11,0,11),
+                    Position         = state and UDim2.new(1,-15,0.5,-6) or UDim2.new(0,2,0.5,-6),
+                    Size             = UDim2.new(0,13,0,13),
                     BackgroundColor3 = Color3.fromRGB(255,255,255),
                     ZIndex           = 8,
                 })
@@ -1389,7 +1389,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 local function flip()
                     state = not state
                     tw(pillBg, {BackgroundColor3 = state and C.onBg or C.offBg}, 0.14)
-                    tw(knob,   {Position = state and UDim2.new(1,-13,0.5,-5) or UDim2.new(0,2,0.5,-5)}, 0.14)
+                    tw(knob,   {Position = state and UDim2.new(1,-15,0.5,-6) or UDim2.new(0,2,0.5,-6)}, 0.14)
                     if cb then cb(state) end
                 end
                 pillBg.MouseButton1Click:Connect(flip)
@@ -1483,8 +1483,8 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 })
                 Corner(pillBg, 99)
                 local knob = Frame(pillBg, {
-                    Position         = state and UDim2.new(1,-13,0.5,-5) or UDim2.new(0,2,0.5,-5),
-                    Size             = UDim2.new(0,11,0,11),
+                    Position         = state and UDim2.new(1,-15,0.5,-6) or UDim2.new(0,2,0.5,-6),
+                    Size             = UDim2.new(0,13,0,13),
                     BackgroundColor3 = Color3.fromRGB(255,255,255),
                     ZIndex           = 8,
                 })
@@ -1493,7 +1493,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 local function flip()
                     state = not state
                     tw(pillBg, {BackgroundColor3 = state and C.onBg or C.offBg}, 0.14)
-                    tw(knob,   {Position = state and UDim2.new(1,-13,0.5,-5) or UDim2.new(0,2,0.5,-5)}, 0.14)
+                    tw(knob,   {Position = state and UDim2.new(1,-15,0.5,-6) or UDim2.new(0,2,0.5,-6)}, 0.14)
                     if cb then cb(state, num) end
                 end
                 pillBg.MouseButton1Click:Connect(flip)
@@ -1584,8 +1584,8 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 })
                 Corner(pillBg, 99)
                 local knob = Frame(pillBg, {
-                    Position         = state and UDim2.new(1,-13,0.5,-5) or UDim2.new(0,2,0.5,-5),
-                    Size             = UDim2.new(0,11,0,11),
+                    Position         = state and UDim2.new(1,-15,0.5,-6) or UDim2.new(0,2,0.5,-6),
+                    Size             = UDim2.new(0,13,0,13),
                     BackgroundColor3 = Color3.fromRGB(255,255,255),
                     ZIndex           = 8,
                 })
@@ -1594,7 +1594,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 local function flip()
                     state = not state
                     tw(pillBg, {BackgroundColor3 = state and C.onBg or C.offBg}, 0.14)
-                    tw(knob,   {Position = state and UDim2.new(1,-13,0.5,-5) or UDim2.new(0,2,0.5,-5)}, 0.14)
+                    tw(knob,   {Position = state and UDim2.new(1,-15,0.5,-6) or UDim2.new(0,2,0.5,-6)}, 0.14)
                     if cb then cb(state) end
                 end
                 pillBg.MouseButton1Click:Connect(flip)
