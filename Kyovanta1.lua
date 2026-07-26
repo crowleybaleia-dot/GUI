@@ -755,46 +755,35 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     end
 
     -- ── MPrompt ───────────────────────────────────────────────────────────
-    -- pill flutuante no topo central — só existe se useMobilePrompt
+    -- pill flutuante sempre visível no mobile — toggle abre/fecha o menu
     local mPrompt = nil
     if useMobilePrompt then
+
+        -- container pill
         mPrompt = Instance.new("TextButton")
         mPrompt.Name                   = "MPrompt"
         mPrompt.AnchorPoint            = Vector2.new(0.5, 0)
-        mPrompt.Position               = UDim2.new(0.5, 0, 0, -60)  -- começa escondido acima
-        mPrompt.Size                   = UDim2.new(0, 160, 0, 36)
+        mPrompt.Position               = UDim2.new(0.5, 18, 0, 12) -- offset +18 pra compensar o ícone que sobrepõe à esquerda
+        mPrompt.Size                   = UDim2.new(0, 180, 0, 38)
         mPrompt.BackgroundColor3       = Color3.fromRGB(10, 10, 10)
-        mPrompt.BackgroundTransparency = 0.15
+        mPrompt.BackgroundTransparency = 0
         mPrompt.BorderSizePixel        = 0
         mPrompt.AutoButtonColor        = false
         mPrompt.Text                   = ""
         mPrompt.ClipsDescendants       = false
-        mPrompt.Visible                = false
+        mPrompt.Visible                = true
         mPrompt.ZIndex                 = 60
         mPrompt.Parent                 = scrgui
-        Corner(mPrompt, 18)
-        Stroke(mPrompt, Color3.fromRGB(255,255,255), 1, 0.82)
+        Corner(mPrompt, 19)
 
-        -- ícone
-        local mIcon = Instance.new("ImageLabel")
-        mIcon.Name                 = "MIcon"
-        mIcon.AnchorPoint          = Vector2.new(0, 0.5)
-        mIcon.Position             = UDim2.new(0, 8, 0.5, 0)
-        mIcon.Size                 = UDim2.new(0, 20, 0, 20)
-        mIcon.BackgroundTransparency = 1
-        mIcon.Image                = "rbxassetid://106135897862448"
-        mIcon.ScaleType            = Enum.ScaleType.Fit
-        mIcon.ZIndex               = 61
-        mIcon.Parent               = mPrompt
-
-        -- texto
+        -- texto "Show or hide [título]"
         local mLabel = Instance.new("TextLabel")
         mLabel.Name                = "MLabel"
         mLabel.AnchorPoint         = Vector2.new(0, 0.5)
-        mLabel.Position            = UDim2.new(0, 34, 0.5, 0)
-        mLabel.Size                = UDim2.new(1, -42, 1, 0)
+        mLabel.Position            = UDim2.new(0, 14, 0.5, 0)
+        mLabel.Size                = UDim2.new(1, -20, 1, 0)
         mLabel.BackgroundTransparency = 1
-        mLabel.Text                = "Show " .. (title or "Hub")
+        mLabel.Text                = "Show or hide " .. (title or "Hub")
         mLabel.TextColor3          = Color3.fromRGB(224, 224, 224)
         mLabel.TextSize            = 12
         mLabel.Font                = Enum.Font.GothamMedium
@@ -803,43 +792,53 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         mLabel.ZIndex              = 61
         mLabel.Parent              = mPrompt
 
+        -- círculo do ícone — sobrepõe a borda esquerda do pill
+        local mIconCircle = Instance.new("Frame")
+        mIconCircle.Name                 = "MIconCircle"
+        mIconCircle.AnchorPoint          = Vector2.new(1, 0.5)
+        mIconCircle.Position             = UDim2.new(0, 0, 0.5, 0) -- grudado na borda esquerda do pill
+        mIconCircle.Size                 = UDim2.new(0, 46, 0, 46)  -- maior que o pill pra sobrepor
+        mIconCircle.BackgroundColor3     = Color3.fromRGB(60, 75, 30) -- fundo verde escuro igual ao print
+        mIconCircle.BackgroundTransparency = 0
+        mIconCircle.BorderSizePixel      = 0
+        mIconCircle.ZIndex               = 62
+        mIconCircle.Parent               = mPrompt
+        Corner(mIconCircle, 99)
+
+        -- ícone dentro do círculo
+        local mIcon = Instance.new("ImageLabel")
+        mIcon.Name                 = "MIcon"
+        mIcon.AnchorPoint          = Vector2.new(0.5, 0.5)
+        mIcon.Position             = UDim2.new(0.5, 0, 0.5, 0)
+        mIcon.Size                 = UDim2.new(0.78, 0, 0.78, 0)
+        mIcon.BackgroundTransparency = 1
+        mIcon.Image                = "rbxassetid://106135897862448"
+        mIcon.ScaleType            = Enum.ScaleType.Fit
+        mIcon.ZIndex               = 63
+        mIcon.Parent               = mIconCircle
+
         -- hover
         mPrompt.MouseEnter:Connect(function()
-            tw(mPrompt, {BackgroundTransparency = 0}, 0.15)
+            tw(mPrompt, {BackgroundColor3 = Color3.fromRGB(22, 22, 22)}, 0.15)
         end)
         mPrompt.MouseLeave:Connect(function()
-            tw(mPrompt, {BackgroundTransparency = 0.15}, 0.15)
+            tw(mPrompt, {BackgroundColor3 = Color3.fromRGB(10, 10, 10)}, 0.15)
         end)
 
-        -- clique reabre o menu
+        -- clique = toggle
         mPrompt.MouseButton1Click:Connect(function()
-            if visible then return end
-            visible = true
-            -- esconde o prompt antes de abrir
-            tw(mPrompt, {Position = UDim2.new(0.5, 0, 0, -60), BackgroundTransparency = 1}, 0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
-            task.delay(0.3, function() mPrompt.Visible = false end)
-            -- abre o menu
-            task.delay(0.1, function()
-                main.Visible = true
-                main.Size    = UDim2.new(0, W_seed, 0, H_seed)
-                main.BackgroundTransparency = 1
-                tw(main, {Size = UDim2.new(0, W_open, 0, H_open), BackgroundTransparency = 0.05}, 0.55, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-            end)
+            window:ToggleVisible()
         end)
     end
 
     local function showMPrompt()
         if not mPrompt then return end
-        mPrompt.BackgroundTransparency = 1
-        mPrompt.Position = UDim2.new(0.5, 0, 0, -60)
-        mPrompt.Visible  = true
-        tw(mPrompt, {Position = UDim2.new(0.5, 0, 0, 12), BackgroundTransparency = 0.15}, 0.45, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+        mPrompt.Visible = true
     end
 
     local function hideMPrompt()
         if not mPrompt then return end
-        tw(mPrompt, {Position = UDim2.new(0.5, 0, 0, -60), BackgroundTransparency = 1}, 0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
-        task.delay(0.31, function() mPrompt.Visible = false end)
+        -- no toggle o prompt nunca some, só o menu fecha/abre
     end
 
     -- ── ToggleVisible ─────────────────────────────────────────────────────
@@ -848,7 +847,6 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         visible = not visible
         dbc = true
         if visible then
-            hideMPrompt()
             main.Visible = true
             main.Size    = UDim2.new(0, W_seed, 0, H_seed)
             main.BackgroundTransparency = 1
@@ -858,7 +856,6 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             tw(main, {Size = UDim2.new(0, W_open * 0.95, 0, H_open * 0.95), BackgroundTransparency = 1}, 0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
             task.delay(0.28, function() main.Visible = false end)
             task.delay(0.25, function() dbc = false end)
-            task.delay(0.3, function() showMPrompt() end)
         end
     end
 
