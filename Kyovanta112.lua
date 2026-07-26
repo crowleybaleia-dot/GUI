@@ -707,6 +707,33 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         return ok, err
     end
 
+    -- Autoload
+    local autoloadFile = ConfigFolder .. "/autoload.txt"
+
+    function window:SetAutoload(name)
+        ensureFolder()
+        pcall(function() writefile(autoloadFile, name) end)
+    end
+
+    function window:GetAutoload()
+        if isfile(autoloadFile) then
+            local ok, name = pcall(function() return readfile(autoloadFile) end)
+            if ok and name and name ~= "" then return name end
+        end
+        return nil
+    end
+
+    function window:LoadAutoloadConfig()
+        local name = self:GetAutoload()
+        if not name then return end
+        local ok, err = self:LoadConfig(name)
+        if ok then
+            self:TempNotify("Configs", 'Auto-carregado "' .. name .. '"', "success", 5)
+        else
+            self:TempNotify("Configs", "Falha no auto-load: " .. tostring(err), "error", 5)
+        end
+    end
+
     -- ── ToggleVisible ─────────────────────────────────────────────────────
     function window:ToggleVisible()
         if dbc then return end
@@ -2379,7 +2406,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
 
             -- ── Label ────────────────────────────────────────────────────
             function grp:Label(text)
-                Label(body, {
+                local lbl = Label(body, {
                     Size           = UDim2.new(1,0,0,26),
                     Text           = text or "",
                     TextColor3     = C.hi,
@@ -2389,6 +2416,9 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     ZIndex         = 5,
                     LayoutOrder    = #body:GetChildren(),
                 })
+                local o = {}
+                function o.Set(v) lbl.Text = v or "" end
+                return o
             end
 
             -- ── Paragraph ────────────────────────────────────────────────
@@ -2759,6 +2789,26 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             window:TempNotify("Configs", "Lista atualizada.", "info", 3)
         end)
 
+        -- Definir Autoload (igual ao Feral: Set as autoload)
+        grp:Button("Definir Autoload", function()
+            local name = currentName
+            if not name or name == "" then
+                window:TempNotify("Configs", "Nenhuma config selecionada.", "warn", 5)
+                return
+            end
+            window:SetAutoload(name)
+            autoloadLabel.Set('Auto-load: "' .. name .. '"')
+            window:TempNotify("Configs", '"' .. name .. '" definida como autoload.', "success", 5)
+        end)
+
+        -- label mostrando autoload atual
+        local autoloadName = window:GetAutoload()
+        local autoloadLabel = grp:Label(autoloadName and ('Auto-load: "' .. autoloadName .. '"') or "Auto-load: nenhuma")
+
+    end)
+
+    task.defer(function()
+        window:LoadAutoloadConfig()
     end)
 
     return window
