@@ -233,7 +233,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     Stroke(main, Color3.fromRGB(255,255,255), 1, 0.82)
 
     -- ── detecção de mobile ────────────────────────────────────────────────
-    local forceMobile = false  -- setar true pra testar no PC
+    local forceMobile = true  -- setar true pra testar no PC
     local isMobile = forceMobile
         or (UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled)
 
