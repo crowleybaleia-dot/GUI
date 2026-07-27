@@ -590,7 +590,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     local currentToast = nil
 
     -- ── mobile detection ──────────────────────────────────────────────────
-    local forceMobile     = true  -- muda pra false em produção
+    local forceMobile     = false  -- muda pra false em produção
     local useMobileSizing = forceMobile or (main.AbsoluteSize.X < 1024 and main.AbsoluteSize.Y < 768)
     local useMobilePrompt = forceMobile or UserInputService.TouchEnabled
 
