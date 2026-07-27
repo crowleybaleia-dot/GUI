@@ -424,6 +424,8 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     RunService.RenderStepped:Connect(UpdateBlurOrientation)
     -- ─────────────────────────────────────────────────────────────────────────
 
+
+
     -- ── sidebar full-height (56px) ────────────────────────────────────────
     local sidebar = Frame(main, {
         Name                 = "sidebar",
@@ -592,7 +594,6 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     local useMobileSizing = forceMobile or (main.AbsoluteSize.X < 1024 and main.AbsoluteSize.Y < 768)
     local useMobilePrompt = forceMobile or UserInputService.TouchEnabled
 
-    -- tamanhos: desktop 820×460 | mobile 500×275
     local W_DESK, H_DESK = 820, 460
     local W_MOB,  H_MOB  = 500, 275
     local W_open  = useMobileSizing and W_MOB  or W_DESK
@@ -600,16 +601,16 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     local W_seed  = useMobileSizing and 300     or 492
     local H_seed  = useMobileSizing and 165     or 264
 
-    -- ── drag — sidebar no desktop, topbar inteira no mobile ──────────────
+    -- ── drag ──────────────────────────────────────────────────────────────
     local drag, dragStart, startPos
     main.InputBegan:Connect(function(i)
         if i.UserInputType ~= Enum.UserInputType.MouseButton1 and i.UserInputType ~= Enum.UserInputType.Touch then return end
         local relY = i.Position.Y - main.AbsolutePosition.Y
         local relX = i.Position.X - main.AbsolutePosition.X
         if useMobileSizing then
-            if relY > 44 then return end  -- mobile: arrasta pela topbar (44px)
+            if relY > 44 then return end
         else
-            if relX > 72 then return end  -- desktop: só pela sidebar
+            if relX > 72 then return end
         end
         drag = true; dragStart = i.Position; startPos = main.Position
         i.Changed:Connect(function()
@@ -754,13 +755,13 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         end
     end
 
+    -- ── ToggleVisible ─────────────────────────────────────────────────────
     -- ── MPrompt ───────────────────────────────────────────────────────────
     if useMobilePrompt then
         local MP_CIRCLE = 41
         local MP_OVERLAP = 20
         local MP_Y = 14
 
-        -- wrap
         local mWrap = Frame(scrgui, {
             Name                 = "MPrompt",
             AnchorPoint          = Vector2.new(0.5, 0),
@@ -772,7 +773,6 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             ZIndex               = 60,
         })
 
-        -- pill
         local mPill = Button(mWrap, {
             Name                 = "MPill",
             AnchorPoint          = Vector2.new(0, 0.5),
@@ -786,7 +786,6 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         Corner(mPill, 99)
         Padding(mPill, 6, 6, MP_OVERLAP + 8, 12)
 
-        -- label
         Label(mPill, {
             AnchorPoint      = Vector2.new(0, 0.5),
             Position         = UDim2.new(0, 0, 0.5, 0),
@@ -801,7 +800,6 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             ZIndex           = 62,
         })
 
-        -- círculo
         local mCircle = Frame(mWrap, {
             Name             = "MCircle",
             AnchorPoint      = Vector2.new(0, 0.5),
@@ -813,7 +811,6 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         Corner(mCircle, 99)
         Stroke(mCircle, C.accent, 2, 0)
 
-        -- glow (mesmo padrão do logoGlowDot)
         local mGlowDot = Frame(mCircle, {
             AnchorPoint          = Vector2.new(0.5, 0.5),
             Position             = UDim2.new(0.5, 0, 0.5, 0),
@@ -832,7 +829,6 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         mGlowShadow.ZIndex       = -1
         mGlowShadow.Parent       = mGlowDot
 
-        -- ícone
         Image(mCircle, {
             AnchorPoint          = Vector2.new(0.5, 0.5),
             Position             = UDim2.new(0.5, 0, 0.5, 0),
@@ -842,14 +838,12 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             ZIndex               = 65,
         })
 
-        -- botão invisível sobre o círculo
         local mCircleBtn = Button(mCircle, {
             Size                   = UDim2.new(1, 0, 1, 0),
             BackgroundTransparency = 1,
             ZIndex                 = 66,
         })
 
-        -- interações
         mPill.MouseEnter:Connect(function()
             tw(mPill, {BackgroundColor3 = C.offBg}, 0.12)
         end)
@@ -860,7 +854,6 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         mCircleBtn.MouseButton1Click:Connect(function() window:ToggleVisible() end)
     end
 
-    -- ── ToggleVisible ─────────────────────────────────────────────────────
     function window:ToggleVisible()
         if dbc then return end
         visible = not visible
@@ -2033,8 +2026,8 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     ZIndex               = 9,
                 })
 
-                -- popup flutuante parentado no main (raiz), ZIndex alto
-                local panel = Frame(main, {
+                -- popup flutuante parentado no scrgui — não é cortado pelo ClipsDescendants
+                local panel = Frame(scrgui, {
                     Size                 = UDim2.new(0,0,0,0),
                     AnchorPoint          = Vector2.new(0.5, 0.5),
                     AutomaticSize        = Enum.AutomaticSize.None,
@@ -2153,9 +2146,8 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                         buildOptions(currentOptions)
                         -- calcula posição relativa ao main, alinhado ao triggerBox
                         local rowAbs  = triggerBox.AbsolutePosition
-                        local mainAbs = main.AbsolutePosition
-                        local relX = rowAbs.X - mainAbs.X
-                        local relY = rowAbs.Y - mainAbs.Y + triggerBox.AbsoluteSize.Y + 4
+                        local relX = rowAbs.X
+                        local relY = rowAbs.Y + triggerBox.AbsoluteSize.Y + 4
 
                         -- mede altura do conteúdo
                         task.wait()
@@ -2414,9 +2406,8 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                         buildOptions(options)
                         -- calcula posição relativa ao main, alinhado ao triggerBox
                         local rowAbs  = triggerBox.AbsolutePosition
-                        local mainAbs = main.AbsolutePosition
-                        local relX = rowAbs.X - mainAbs.X
-                        local relY = rowAbs.Y - mainAbs.Y + triggerBox.AbsoluteSize.Y + 4
+                        local relX = rowAbs.X
+                        local relY = rowAbs.Y + triggerBox.AbsoluteSize.Y + 4
 
                         -- mede altura do conteúdo
                         task.wait()
