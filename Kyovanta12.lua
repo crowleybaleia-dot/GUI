@@ -591,7 +591,8 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
 
     -- ── mobile detection ──────────────────────────────────────────────────
     local forceMobile     = false  -- muda pra false em produção
-    local useMobileSizing = forceMobile or (main.AbsoluteSize.X < 1024 and main.AbsoluteSize.Y < 768)
+    local _vp             = workspace.CurrentCamera.ViewportSize
+    local useMobileSizing = forceMobile or (_vp.X < 1024 and _vp.Y < 768)
     local useMobilePrompt = forceMobile or UserInputService.TouchEnabled
 
     local W_DESK, H_DESK = 820, 460
