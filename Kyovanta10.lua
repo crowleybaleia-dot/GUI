@@ -755,105 +755,109 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     end
 
     -- ── MPrompt ───────────────────────────────────────────────────────────
-    -- pill flutuante sempre visível no mobile — toggle abre/fecha o menu
-    -- estrutura: mPromptWrap (container invisível) → mIconCircle + mPill
-    local mPrompt = nil  -- referência ao wrap, pra compatibilidade
     if useMobilePrompt then
+        local MP_CIRCLE = 41
+        local MP_OVERLAP = 20
+        local MP_Y = 14
 
-        -- wrap invisível: ancora tudo junto no topo central
-        -- círculo 62px, pill começa em x=38 (círculo penetra 24px no pill), pill 196px → total 234px
-        local mWrap = Instance.new("Frame")
-        mWrap.Name                   = "MPromptWrap"
-        mWrap.AnchorPoint            = Vector2.new(0.5, 0)
-        mWrap.Position               = UDim2.new(0.5, 0, 0, 10)
-        mWrap.Size                   = UDim2.new(0, 234, 0, 62)
-        mWrap.BackgroundTransparency = 1
-        mWrap.BorderSizePixel        = 0
-        mWrap.ClipsDescendants       = false
-        mWrap.ZIndex                 = 60
-        mWrap.Visible                = true
-        mWrap.Parent                 = scrgui
-        mPrompt = mWrap
+        -- wrap
+        local mWrap = Frame(scrgui, {
+            Name                 = "MPrompt",
+            AnchorPoint          = Vector2.new(0.5, 0),
+            Position             = UDim2.new(0.5, 0, 0, MP_Y),
+            Size                 = UDim2.new(0, 0, 0, 0),
+            AutomaticSize        = Enum.AutomaticSize.XY,
+            BackgroundTransparency = 1,
+            ClipsDescendants     = false,
+            ZIndex               = 60,
+        })
 
-        -- pill — começa em x=38 pra o círculo sobrepor bem à esquerda
-        local mPill = Instance.new("TextButton")
-        mPill.Name                   = "MPill"
-        mPill.AnchorPoint            = Vector2.new(0, 0.5)
-        mPill.Position               = UDim2.new(0, 38, 0.5, 0)
-        mPill.Size                   = UDim2.new(0, 196, 0, 44)
-        mPill.BackgroundColor3       = Color3.fromRGB(0, 0, 0)
-        mPill.BackgroundTransparency = 0
-        mPill.BorderSizePixel        = 0
-        mPill.AutoButtonColor        = false
-        mPill.Text                   = ""
-        mPill.ClipsDescendants       = false
-        mPill.ZIndex                 = 61
-        mPill.Parent                 = mWrap
-        Corner(mPill, 22)
+        -- pill
+        local mPill = Button(mWrap, {
+            Name                 = "MPill",
+            AnchorPoint          = Vector2.new(0, 0.5),
+            Position             = UDim2.new(0, MP_CIRCLE - MP_OVERLAP, 0.5, 0),
+            Size                 = UDim2.new(0, 0, 0, 0),
+            AutomaticSize        = Enum.AutomaticSize.XY,
+            BackgroundColor3     = C.sidebar,
+            ClipsDescendants     = false,
+            ZIndex               = 61,
+        })
+        Corner(mPill, 99)
+        Padding(mPill, 6, 6, MP_OVERLAP + 8, 12)
 
-        -- texto dentro do pill — recuado pra não ficar sob o círculo
-        local mLabel = Instance.new("TextLabel")
-        mLabel.Name                = "MLabel"
-        mLabel.AnchorPoint         = Vector2.new(0, 0.5)
-        mLabel.Position            = UDim2.new(0, 28, 0.5, 0)
-        mLabel.Size                = UDim2.new(1, -36, 1, 0)
-        mLabel.BackgroundTransparency = 1
-        mLabel.Text                = "Show or hide " .. (title or "Hub")
-        mLabel.TextColor3          = Color3.fromRGB(220, 220, 220)
-        mLabel.TextSize            = 12
-        mLabel.Font                = Enum.Font.GothamMedium
-        mLabel.TextXAlignment      = Enum.TextXAlignment.Left
-        mLabel.TextTruncate        = Enum.TextTruncate.AtEnd
-        mLabel.ZIndex              = 62
-        mLabel.Parent              = mPill
+        -- label
+        Label(mPill, {
+            AnchorPoint      = Vector2.new(0, 0.5),
+            Position         = UDim2.new(0, 0, 0.5, 0),
+            Size             = UDim2.new(0, 0, 0, 0),
+            AutomaticSize    = Enum.AutomaticSize.XY,
+            Text             = "Show or hide " .. (title or "Hub"),
+            TextColor3       = C.hi,
+            TextSize         = 12,
+            Font             = Enum.Font.GothamMedium,
+            TextXAlignment   = Enum.TextXAlignment.Left,
+            TextTruncate     = Enum.TextTruncate.None,
+            ZIndex           = 62,
+        })
 
-        -- círculo do ícone — pai do wrap, ZIndex maior, sobrepõe o pill
-        local mIconCircle = Instance.new("Frame")
-        mIconCircle.Name                 = "MIconCircle"
-        mIconCircle.AnchorPoint          = Vector2.new(0, 0.5)
-        mIconCircle.Position             = UDim2.new(0, 0, 0.5, 0)
-        mIconCircle.Size                 = UDim2.new(0, 62, 0, 62)  -- bem maior que o pill pra sangrar dos dois lados
-        mIconCircle.BackgroundColor3     = Color3.fromRGB(72, 90, 28) -- verde oliva mais saturado
-        mIconCircle.BackgroundTransparency = 0
-        mIconCircle.BorderSizePixel      = 0
-        mIconCircle.ZIndex               = 63
-        mIconCircle.Parent               = mWrap
-        Corner(mIconCircle, 99)
-        Stroke(mIconCircle, Color3.fromRGB(4, 96, 255), 2, 0)
+        -- círculo
+        local mCircle = Frame(mWrap, {
+            Name             = "MCircle",
+            AnchorPoint      = Vector2.new(0, 0.5),
+            Position         = UDim2.new(0, 0, 0.5, 0),
+            Size             = UDim2.new(0, MP_CIRCLE, 0, MP_CIRCLE),
+            BackgroundColor3 = C.sidebar,
+            ZIndex           = 63,
+        })
+        Corner(mCircle, 99)
+        Stroke(mCircle, C.accent, 2, 0)
 
-        -- ícone dentro do círculo
-        local mIcon = Instance.new("ImageLabel")
-        mIcon.AnchorPoint          = Vector2.new(0.5, 0.5)
-        mIcon.Position             = UDim2.new(0.5, 0, 0.5, 0)
-        mIcon.Size                 = UDim2.new(0.65, 0, 0.65, 0)
-        mIcon.BackgroundTransparency = 1
-        mIcon.Image                = "rbxassetid://106135897862448"
-        mIcon.ScaleType            = Enum.ScaleType.Fit
-        mIcon.ZIndex               = 64
-        mIcon.Parent               = mIconCircle
+        -- glow (mesmo padrão do logoGlowDot)
+        local mGlowDot = Frame(mCircle, {
+            AnchorPoint          = Vector2.new(0.5, 0.5),
+            Position             = UDim2.new(0.5, 0, 0.5, 0),
+            Size                 = UDim2.new(0, 8, 0, 8),
+            BackgroundColor3     = C.accent,
+            BackgroundTransparency = 0,
+            ZIndex               = 64,
+        })
+        Corner(mGlowDot, 99)
+        local mGlowShadow = Instance.new("UIShadow")
+        mGlowShadow.Color        = Color3.fromRGB(60, 140, 255)
+        mGlowShadow.BlurRadius   = UDim.new(0, 24)
+        mGlowShadow.Spread       = UDim2.fromOffset(6, 8)
+        mGlowShadow.Offset       = UDim2.fromOffset(0, 0)
+        mGlowShadow.Transparency = 0.05
+        mGlowShadow.ZIndex       = -1
+        mGlowShadow.Parent       = mGlowDot
 
-        -- hover no pill
+        -- ícone
+        Image(mCircle, {
+            AnchorPoint          = Vector2.new(0.5, 0.5),
+            Position             = UDim2.new(0.5, 0, 0.5, 0),
+            Size                 = UDim2.new(0, MP_CIRCLE * 0.88, 0, MP_CIRCLE * 0.88),
+            Image                = logoAsset or "",
+            ScaleType            = Enum.ScaleType.Fit,
+            ZIndex               = 65,
+        })
+
+        -- botão invisível sobre o círculo
+        local mCircleBtn = Button(mCircle, {
+            Size                   = UDim2.new(1, 0, 1, 0),
+            BackgroundTransparency = 1,
+            ZIndex                 = 66,
+        })
+
+        -- interações
         mPill.MouseEnter:Connect(function()
-            tw(mPill, {BackgroundColor3 = Color3.fromRGB(42, 42, 42)}, 0.15)
+            tw(mPill, {BackgroundColor3 = C.offBg}, 0.12)
         end)
         mPill.MouseLeave:Connect(function()
-            tw(mPill, {BackgroundColor3 = Color3.fromRGB(30, 30, 30)}, 0.15)
+            tw(mPill, {BackgroundColor3 = C.sidebar}, 0.12)
         end)
-
-        -- clique = toggle
-        mPill.MouseButton1Click:Connect(function()
-            window:ToggleVisible()
-        end)
-    end
-
-    local function showMPrompt()
-        if not mPrompt then return end
-        mPrompt.Visible = true
-    end
-
-    local function hideMPrompt()
-        if not mPrompt then return end
-        -- no toggle o prompt nunca some, só o menu fecha/abre
+        mPill.MouseButton1Click:Connect(function() window:ToggleVisible() end)
+        mCircleBtn.MouseButton1Click:Connect(function() window:ToggleVisible() end)
     end
 
     -- ── ToggleVisible ─────────────────────────────────────────────────────
