@@ -2029,7 +2029,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 -- popup flutuante parentado no scrgui — não é cortado pelo ClipsDescendants
                 local panel = Frame(scrgui, {
                     Size                 = UDim2.new(0,0,0,0),
-                    AnchorPoint          = Vector2.new(0.5, 0.5),
+                    AnchorPoint          = Vector2.new(0, 0),
                     AutomaticSize        = Enum.AutomaticSize.None,
                     BackgroundColor3     = Color3.fromRGB(20,20,20),
                     BackgroundTransparency = 0,
@@ -2164,7 +2164,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                         -- posiciona com AnchorPoint central (pop sai do meio)
                         panel.Size     = UDim2.new(0, panelW, 0, contentH)
                         -- centro do triggerBox horizontalmente, abaixo dele
-                        panel.Position = UDim2.new(0, relX + panelW/2, 0, relY + contentH/2)
+                        panel.Position = UDim2.new(0, relX, 0, relY)
                         panel.Visible  = true
 
                         -- destroi UIScale antigo e cria um novo limpo
@@ -2283,10 +2283,10 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     ZIndex               = 9,
                 })
 
-                -- popup flutuante parentado no main (raiz), ZIndex alto — idêntico ao Dropdown
-                local panel = Frame(main, {
+                -- popup flutuante parentado no scrgui — não é cortado pelo ClipsDescendants
+                local panel = Frame(scrgui, {
                     Size                 = UDim2.new(0,0,0,0),
-                    AnchorPoint          = Vector2.new(0.5, 0.5),
+                    AnchorPoint          = Vector2.new(0, 0),
                     AutomaticSize        = Enum.AutomaticSize.None,
                     BackgroundColor3     = Color3.fromRGB(20,20,20),
                     BackgroundTransparency = 0,
@@ -2423,7 +2423,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
 
                         -- posiciona com AnchorPoint central (pop sai do meio)
                         panel.Size     = UDim2.new(0, panelW, 0, contentH)
-                        panel.Position = UDim2.new(0, relX + panelW/2, 0, relY + contentH/2)
+                        panel.Position = UDim2.new(0, relX, 0, relY)
                         panel.Visible  = true
 
                         -- destroi UIScale antigo e cria um novo limpo
