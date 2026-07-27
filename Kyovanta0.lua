@@ -1557,8 +1557,10 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 })
                 Corner(knob, 99)
 
+                local o = {}
                 local function flip()
                     state = not state
+                    o.Value = state
                     tw(pillBg, {BackgroundColor3 = state and C.onBg or C.offBg}, 0.14)
                     tw(knob,   {Position = state and UDim2.new(1, -(knobSize/2 + knobMargin), 0.5, 0) or UDim2.new(0, knobSize/2 + knobMargin, 0.5, 0)}, 0.14)
                     if cb then cb(state) end
@@ -1598,9 +1600,10 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     end)
                 end
 
-                local o = {}
-                function o.Set(v) if state ~= v then flip() end end
+                o.Value = state
+                function o.Set(v) if state ~= (not not v) then flip() end end
                 function o.Get() return state end
+                function o:SetValue(v) o.Set(v) end
                 if id then
                     Registry.Toggles[id] = {
                         Get = function() return state end,
@@ -1667,8 +1670,10 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 })
                 Corner(knob, 99)
 
+                local o = {}
                 local function flip()
                     state = not state
+                    o.Value = state
                     tw(pillBg, {BackgroundColor3 = state and C.onBg or C.offBg}, 0.14)
                     tw(knob,   {Position = state and UDim2.new(1, -(knobSize/2 + knobMargin), 0.5, 0) or UDim2.new(0, knobSize/2 + knobMargin, 0.5, 0)}, 0.14)
                     if cb then cb(state, num) end
@@ -1712,12 +1717,13 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     if cb then cb(state, num) end
                 end)
 
-                local o = {}
+                o.Value = state
                 function o.Set(s, n)
                     if s ~= nil and state ~= s then flip() end
                     if n ~= nil then num = n; tb.Text = tostring(n) end
                 end
                 function o.Get() return state, num end
+                function o:SetValue(v) o.Set(v) end
                 if id then
                     Registry.Toggles[id] = {
                         Get = function() return state end,
@@ -1773,8 +1779,10 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 })
                 Corner(knob, 99)
 
+                local o = {}
                 local function flip()
                     state = not state
+                    o.Value = state
                     tw(pillBg, {BackgroundColor3 = state and C.onBg or C.offBg}, 0.14)
                     tw(knob,   {Position = state and UDim2.new(1, -(knobSize/2 + knobMargin), 0.5, 0) or UDim2.new(0, knobSize/2 + knobMargin, 0.5, 0)}, 0.14)
                     if cb then cb(state) end
@@ -1816,9 +1824,10 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     end
                 end)
 
-                local o = {}
-                function o.Set(v) if state ~= v then flip() end end
+                o.Value = state
+                function o.Set(v) if state ~= (not not v) then flip() end end
                 function o.Get() return state end
+                function o:SetValue(v) o.Set(v) end
                 function o.SetKey(k)
                     key = type(k) == "string" and k or k.Name
                     kbLbl.Text = key
@@ -1927,8 +1936,10 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 local sliding = false
                 local moveConn, releaseConn
 
+                local o = {}
                 local function setVal(v)
                     val = math.clamp(v, min, max)
+                    o.Value = val
                     local p = (val-min)/(max-min)
                     fill.Size = UDim2.new(p, 0, 1, 0)
                     valLbl.Text = tostring(val)
@@ -1961,9 +1972,10 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     end)
                 end)
 
-                local o = {}
+                o.Value = val
                 function o.Set(v) setVal(math.floor(v)) end
                 function o.Get() return val end
+                function o:SetValue(v) o.Set(v) end
                 if id then
                     Registry.Sliders[id] = {
                         Get = function() return val end,
@@ -2117,6 +2129,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                             sel = opt
                             valLbl.Text = opt
                             closePopup()
+                            if o then o.Value = sel end
                             if cb then cb(opt) end
                         end)
                     end
@@ -2186,8 +2199,10 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 end)
 
                 local o = {}
-                function o.Set(v) sel = v; valLbl.Text = tostring(v); if cb then cb(v) end end
+                o.Value = sel
+                function o.Set(v) sel = v; o.Value = sel; valLbl.Text = tostring(v); if cb then cb(v) end end
                 function o.Get() return sel end
+                function o:SetValue(v) o.Set(v) end
                 function o.GetNewList(newOpts)
                     currentOptions = newOpts
                     if open then closePopup() end
@@ -2377,6 +2392,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                             tickLbl.Text = s and "✓" or ""
                             optLbl.Font  = s and Enum.Font.GothamMedium or Enum.Font.Gotham
                             valLbl.Text  = labelTxt()
+                            if o then o.Value = sel end
                             if cb then cb(sel) end
                         end)
                     end
@@ -2445,6 +2461,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 end)
 
                 local o = {}
+                o.Value = sel
                 function o.Get()
                     local out = {}
                     for k,v in pairs(sel) do if v then table.insert(out,k) end end
@@ -2452,8 +2469,10 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 end
                 function o.Set(tbl)
                     sel = {}; for _,v in ipairs(tbl) do sel[v] = true end
+                    o.Value = sel
                     valLbl.Text = labelTxt()
                 end
+                function o:SetValue(v) o.Set(v) end
                 if id then
                     -- copiado do Feral: Get retorna {k=bool}, Set itera tabela
                     Registry.Dropdowns[id] = {
