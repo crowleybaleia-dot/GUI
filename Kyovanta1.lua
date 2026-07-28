@@ -233,7 +233,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     Stroke(main, Color3.fromRGB(255,255,255), 1, 0.82)
 
     -- ── acrylic blur (portado da MacLib) ─────────────────────────────────────
-    local acrylicBlur = true
+    local acrylicBlur = false
     local BlurTarget = main
     local camera = workspace.CurrentCamera
     local MTREL = "Glass"
