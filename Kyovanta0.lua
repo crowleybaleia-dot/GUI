@@ -897,68 +897,84 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         end)
     end
 
-    -- ── TempNotify ────────────────────────────────────────────────────────
+    -- ── TempNotify (visual estilo Linoria) ───────────────────────────────
     function window:TempNotify(toastTitle, message, notifType, duration)
         duration = duration or 4
 
-        -- mede o texto pra calcular a largura final
+        -- cor da barra lateral baseada no tipo
+        local accentCol = C.accent
+        if notifType == "success" then accentCol = C.success
+        elseif notifType == "warn"    then accentCol = C.warn
+        elseif notifType == "error"   then accentCol = C.err
+        end
+
+        -- texto completo: "Título: mensagem"
+        local fullText = (toastTitle or "") .. ": " .. (message or "")
         local ts = game:GetService("TextService")
-        local titleW = ts:GetTextSize(toastTitle or "", 10, Enum.Font.GothamMedium, Vector2.new(9999,28)).X
-        local msgW   = ts:GetTextSize((message or "") .. "  ", 10, Enum.Font.Gotham,       Vector2.new(9999,28)).X
-        -- padding(10) + title + dot(8+10) + msg + padding(10)
-        local fullW  = 10 + titleW + 18 + msgW + 10
+        local textW = ts:GetTextSize(fullText, 14, Enum.Font.Gotham, Vector2.new(9999, 999)).X
+        local textH = ts:GetTextSize(fullText, 14, Enum.Font.Gotham, Vector2.new(9999, 999)).Y
+        local ySize = textH + 7
+        local xSize = textW + 8 + 4  -- +8 padding texto, +4 margem barra
 
-        -- card: começa com Size.X = 0, ClipsDescendants corta o conteúdo durante expand
+        -- NotifyOuter: começa X=0, ClipsDescendants corta durante expand
         local toast = Frame(toastContainer, {
-            Name                   = "VantaToast",
-            Size                   = UDim2.new(0, 0, 0, 28),
-            BackgroundColor3       = Color3.fromRGB(14, 14, 14),
-            BackgroundTransparency = 0,
-            ClipsDescendants       = true,
-            ZIndex                 = 50,
-        })
-        Corner(toast, 5)
-        Stroke(toast, C.white, 1, 0.88)
-
-        -- title
-        Label(toast, {
-            Position       = UDim2.new(0, 10, 0, 0),
-            Size           = UDim2.new(0, titleW, 1, 0),
-            Text           = toastTitle or "",
-            TextColor3     = C.hi,
-            TextSize       = 10,
-            Font           = Enum.Font.GothamMedium,
-            TextXAlignment = Enum.TextXAlignment.Left,
-            ZIndex         = 51,
+            Name             = "VantaToast",
+            Size             = UDim2.new(0, 0, 0, ySize),
+            BackgroundColor3 = C.bg,
+            ClipsDescendants = true,
+            ZIndex           = 50,
         })
 
-        -- dot
-        Label(toast, {
-            Position       = UDim2.new(0, 10 + titleW + 4, 0, 0),
-            Size           = UDim2.new(0, 10, 1, 0),
-            Text           = "·",
-            TextColor3     = C.hi,
-            TextSize       = 10,
-            Font           = Enum.Font.Gotham,
-            ZIndex         = 51,
+        -- NotifyInner: fundo escuro com borda
+        local inner = Frame(toast, {
+            Size             = UDim2.new(1, 0, 1, 0),
+            BackgroundColor3 = C.surface,
+            ZIndex           = 51,
         })
+        Stroke(inner, C.border, 1, 0)
 
-        -- message
-        Label(toast, {
-            Position       = UDim2.new(0, 10 + titleW + 18, 0, 0),
-            Size           = UDim2.new(0, msgW, 1, 0),
-            Text           = (message or "") .. "  ",
+        -- InnerFrame: gradient sutil por cima (estilo Linoria)
+        local innerFrame = Frame(inner, {
+            BackgroundColor3 = C.white,
+            BorderSizePixel  = 0,
+            Position         = UDim2.new(0, 1, 0, 1),
+            Size             = UDim2.new(1, -2, 1, -2),
+            ZIndex           = 52,
+        })
+        local grad = Instance.new("UIGradient")
+        grad.Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(30, 30, 30)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(22, 22, 22)),
+        })
+        grad.Rotation = -90
+        grad.Parent = innerFrame
+
+        -- Label do texto
+        Label(innerFrame, {
+            Position       = UDim2.new(0, 4, 0, 0),
+            Size           = UDim2.new(1, -4, 1, 0),
+            Text           = fullText,
             TextColor3     = C.hi,
-            TextSize       = 10,
+            TextSize       = 14,
             Font           = Enum.Font.Gotham,
             TextXAlignment = Enum.TextXAlignment.Left,
-            ZIndex         = 51,
+            TextWrapped    = true,
+            ZIndex         = 53,
         })
 
-        -- entrada: expande X de 0 → fullW, Quad Out 0.4s
+        -- Barra lateral colorida (3px, igual ao Linoria)
+        Frame(toast, {
+            BackgroundColor3 = accentCol,
+            BorderSizePixel  = 0,
+            Position         = UDim2.new(0, -1, 0, -1),
+            Size             = UDim2.new(0, 3, 1, 2),
+            ZIndex           = 54,
+        })
+
+        -- entrada: expande X de 0 → xSize
         pcall(function()
             toast:TweenSize(
-                UDim2.new(0, fullW, 0, 28),
+                UDim2.new(0, xSize, 0, ySize),
                 Enum.EasingDirection.Out,
                 Enum.EasingStyle.Quad,
                 0.4,
@@ -966,13 +982,13 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             )
         end)
 
-        -- saída: contrai X de fullW → 0, Quad In 0.3s
+        -- saída: recolhe X → 0
         task.delay(duration, function()
             if not toast.Parent then return end
             pcall(function()
                 toast:TweenSize(
-                    UDim2.new(0, 0, 0, 28),
-                    Enum.EasingDirection.In,
+                    UDim2.new(0, 0, 0, ySize),
+                    Enum.EasingDirection.Out,
                     Enum.EasingStyle.Quad,
                     0.3,
                     true
