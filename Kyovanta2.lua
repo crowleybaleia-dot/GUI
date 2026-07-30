@@ -587,7 +587,21 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     local workareas    = {}
     local visible      = true
     local dbc          = false
-    local currentToast = nil
+    -- ── toast container (empilhamento estilo Linoria) ──────────────────────
+    local toastContainer = Frame(nil, {
+        Name             = "VantaToastContainer",
+        AnchorPoint      = Vector2.new(0, 0),
+        Position         = UDim2.new(0, 12, 0, 12),
+        Size             = UDim2.new(0, 400, 1, -24),
+        BackgroundTransparency = 1,
+        ZIndex           = 50,
+    })
+    ListLayout(toastContainer, {
+        FillDirection = Enum.FillDirection.Vertical,
+        VerticalAlignment = Enum.VerticalAlignment.Top,
+        Padding = UDim.new(0, 6),
+    })
+    toastContainer.Parent = scrgui
 
     -- ── mobile detection ──────────────────────────────────────────────────
     local forceMobile     = false  -- muda pra false em produção
@@ -887,12 +901,6 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     function window:TempNotify(toastTitle, message, notifType, duration)
         duration = duration or 4
 
-        -- destroi o toast anterior imediatamente
-        if currentToast then
-            currentToast:Destroy()
-            currentToast = nil
-        end
-
         -- mede o texto pra calcular a largura final
         local ts = game:GetService("TextService")
         local titleW = ts:GetTextSize(toastTitle or "", 10, Enum.Font.GothamMedium, Vector2.new(9999,28)).X
@@ -901,10 +909,8 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         local fullW  = 10 + titleW + 18 + msgW + 10
 
         -- card: começa com Size.X = 0, ClipsDescendants corta o conteúdo durante expand
-        local toast = Frame(scrgui, {
+        local toast = Frame(toastContainer, {
             Name                   = "VantaToast",
-            AnchorPoint            = Vector2.new(0, 0),
-            Position               = UDim2.new(0, 12, 0, 12),
             Size                   = UDim2.new(0, 0, 0, 28),
             BackgroundColor3       = Color3.fromRGB(14, 14, 14),
             BackgroundTransparency = 0,
@@ -913,7 +919,6 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         })
         Corner(toast, 5)
         Stroke(toast, C.white, 1, 0.88)
-        currentToast = toast
 
         -- title
         Label(toast, {
@@ -974,9 +979,6 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 )
             end)
             Debris:AddItem(toast, 0.35)
-            task.delay(0.35, function()
-                if currentToast == toast then currentToast = nil end
-            end)
         end)
     end
 
