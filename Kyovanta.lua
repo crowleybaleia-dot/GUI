@@ -764,9 +764,9 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         if not name then return end
         local ok, err = self:LoadConfig(name)
         if ok then
-            self:TempNotify("Configs", 'Auto-carregado "' .. name .. '"', "success", 5)
+            self:TempNotify("Configs", 'Auto-loaded "' .. name .. '"', "success", 5)
         else
-            self:TempNotify("Configs", "Falha no auto-load: " .. tostring(err), "error", 5)
+            self:TempNotify("Configs", "Auto-load failed: " .. tostring(err), "error", 5)
         end
     end
 
@@ -2856,14 +2856,14 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     -- ══════════════════════════════════════════════════════════════════════
     task.spawn(function()
         task.wait()
-        local cfgTab = window:Section("Configs", "")
+        local cfgTab = window:Section("Configs", "rbxassetid://139193436491732")
         local grp    = cfgTab:Group("Save / Load", "")
 
         -- nome atual da config (igual ao L_1595 do Feral)
         local currentName = "default"
 
         -- TextField: digitar nome manualmente (igual ao CreateBox do Feral)
-        local nameField = grp:TextField("Nome", "default", function(v)
+        local nameField = grp:TextField("Name", "default", function(v)
             if v and v ~= "" then
                 currentName = v
             end
@@ -2884,7 +2884,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 ddConfigs.GetNewList(list)
             else
                 ddConfigs = grp:Dropdown(
-                    "Configs Salvas",
+                    "Saved Configs",
                     list,
                     list[1] or "",
                     function(v)
@@ -2906,53 +2906,53 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             window:SetMenuKey(k)
         end)
 
-        grp:SectionLabel("Ações")
+        grp:SectionLabel("Actions")
 
-        -- Salvar (igual ao Feral: salva e refresh imediato)
-        grp:Button("Salvar", function()
+        -- Save
+        grp:Button("Save", function()
             local name = currentName ~= "" and currentName or "default"
             local ok, err = window:SaveConfig(name)
             if ok then
-                window:TempNotify("Configs", 'Salvo como "' .. name .. '"', "success", 5)
+                window:TempNotify("Configs", 'Saved as "' .. name .. '"', "success", 5)
                 refreshDropdown()
             else
-                window:TempNotify("Configs", "Erro ao salvar: " .. tostring(err), "error", 5)
+                window:TempNotify("Configs", "Error saving: " .. tostring(err), "error", 5)
             end
         end)
 
-        -- Carregar (igual ao Feral)
-        grp:Button("Carregar", function()
+        -- Load
+        grp:Button("Load", function()
             local name = currentName ~= "" and currentName or "default"
             local ok, err = window:LoadConfig(name)
             if ok then
-                window:TempNotify("Configs", 'Carregado "' .. name .. '"', "success", 5)
+                window:TempNotify("Configs", 'Loaded "' .. name .. '"', "success", 5)
             else
-                window:TempNotify("Configs", "Erro ao carregar: " .. tostring(err), "error", 5)
+                window:TempNotify("Configs", "Error loading: " .. tostring(err), "error", 5)
             end
         end)
 
-        -- Deletar (igual ao Feral: sem modal, delete direto, refresh imediato)
-        grp:Button("Deletar", function()
+        -- Delete
+        grp:Button("Delete", function()
             local name = currentName
             if not name or name == "" then
-                window:TempNotify("Configs", "Nenhuma config selecionada.", "warn", 5)
+                window:TempNotify("Configs", "No config selected.", "warn", 5)
                 return
             end
             local ok, err = window:DeleteConfig(name)
             if ok then
-                window:TempNotify("Configs", 'Deletado "' .. name .. '"', "success", 5)
+                window:TempNotify("Configs", 'Deleted "' .. name .. '"', "success", 5)
                 currentName = "default"
                 nameField.Set("default")
                 refreshDropdown()
             else
-                window:TempNotify("Configs", "Erro ao deletar: " .. tostring(err), "error", 5)
+                window:TempNotify("Configs", "Error deleting: " .. tostring(err), "error", 5)
             end
         end)
 
-        -- Atualizar Lista (igual ao Feral: Refresh Config List)
-        grp:Button("Atualizar Lista", function()
+        -- Refresh List
+        grp:Button("Refresh List", function()
             refreshDropdown()
-            window:TempNotify("Configs", "Lista atualizada.", "info", 3)
+            window:TempNotify("Configs", "List refreshed.", "info", 3)
         end)
 
         grp:SectionLabel("Autoload")
@@ -2961,20 +2961,20 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         local autoloadLabel
         local autoloadName = window:GetAutoload()
 
-        -- Definir Autoload
-        grp:Button("Definir Autoload", function()
+        -- Set Autoload
+        grp:Button("Set Autoload", function()
             local name = currentName
             if not name or name == "" then
-                window:TempNotify("Configs", "Nenhuma config selecionada.", "warn", 5)
+                window:TempNotify("Configs", "No config selected.", "warn", 5)
                 return
             end
             window:SetAutoload(name)
             if autoloadLabel then autoloadLabel.Set('Auto-load: "' .. name .. '"') end
-            window:TempNotify("Configs", '"' .. name .. '" definida como autoload.', "success", 5)
+            window:TempNotify("Configs", '"' .. name .. '" set as autoload.', "success", 5)
         end)
 
         -- label mostrando autoload atual
-        autoloadLabel = grp:Label(autoloadName and ('Auto-load: "' .. autoloadName .. '"') or "Auto-load: nenhuma")
+        autoloadLabel = grp:Label(autoloadName and ('Auto-load: "' .. autoloadName .. '"') or "Auto-load: none")
 
     end)
 
