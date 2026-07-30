@@ -1475,6 +1475,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 h = h or (hasDesc and 42 or 30)
                 local row = Frame(body, {
                     Size             = UDim2.new(1,0,0,h),
+                    AutomaticSize    = hasDesc and Enum.AutomaticSize.Y or Enum.AutomaticSize.None,
                     BackgroundColor3 = Color3.fromRGB(255, 255, 255),
                     BackgroundTransparency = 1,
                     ZIndex           = 5,
@@ -1520,12 +1521,14 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     -- descrição secundária
                     Label(row, {
                         Position       = UDim2.new(0,0,0,22),
-                        Size           = UDim2.new(0.75,0,0,12),
+                        Size           = UDim2.new(0.75,0,0,0),
+                        AutomaticSize  = Enum.AutomaticSize.Y,
                         Text           = desc,
-                        TextColor3     = C.dim,
-                        TextSize       = 9,
+                        TextColor3     = C.mid,
+                        TextSize       = 11,
                         Font           = Enum.Font.Gotham,
                         TextXAlignment = Enum.TextXAlignment.Left,
+                        TextWrapped    = true,
                         ZIndex         = 6,
                     })
                 else
