@@ -2095,8 +2095,21 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 Corner(panel, 8)
                 Stroke(panel, Color3.fromRGB(42,42,42), 1, 0)
 
-                local panelList = ListLayout(panel)
-                Padding(panel, 4, 4, 0, 0)
+                local MAX_DROPDOWN_H = 200
+                local scrollList = Instance.new("ScrollingFrame")
+                scrollList.Size                  = UDim2.new(1, 0, 1, 0)
+                scrollList.BackgroundTransparency = 1
+                scrollList.BorderSizePixel        = 0
+                scrollList.ScrollBarThickness     = 3
+                scrollList.ScrollBarImageColor3   = Color3.fromRGB(80, 80, 80)
+                scrollList.CanvasSize             = UDim2.new(0, 0, 0, 0)
+                scrollList.AutomaticCanvasSize    = Enum.AutomaticSize.None
+                scrollList.ClipsDescendants       = true
+                scrollList.ZIndex                 = 51
+                scrollList.Parent                 = panel
+
+                local panelList = ListLayout(scrollList)
+                Padding(scrollList, 4, 4, 0, 0)
 
                 local function closePopup()
                     open = false
@@ -2119,12 +2132,12 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 end
 
                 local function buildOptions(opts)
-                    for _, ch in ipairs(panel:GetChildren()) do
+                    for _, ch in ipairs(scrollList:GetChildren()) do
                         if ch:IsA("TextButton") then ch:Destroy() end
                     end
                     for _, opt in ipairs(opts or {}) do
                         local isSel = opt == sel
-                        local ob = Button(panel, {
+                        local ob = Button(scrollList, {
                             Size                 = UDim2.new(1,0,0,28),
                             BackgroundColor3     = Color3.fromRGB(38,38,38),
                             BackgroundTransparency = isSel and 0.5 or 1,
@@ -2208,6 +2221,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                         -- mede altura do conteúdo
                         task.wait()
                         local contentH = panelList.AbsoluteContentSize.Y + 8
+                        local cappedH  = math.min(contentH, MAX_DROPDOWN_H)
 
                         -- largura dinâmica: mede o texto mais longo das opções
                         local maxTextW = 80
@@ -2218,7 +2232,9 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                         local panelW = math.max(maxTextW, triggerBox.AbsoluteSize.X)
 
                         -- posiciona com AnchorPoint central (pop sai do meio)
-                        panel.Size     = UDim2.new(0, panelW, 0, contentH)
+                        panel.Size                = UDim2.new(0, panelW, 0, cappedH)
+                        scrollList.Size           = UDim2.new(1, 0, 1, 0)
+                        scrollList.CanvasSize     = UDim2.new(0, 0, 0, contentH)
                         -- centro do triggerBox horizontalmente, abaixo dele
                         panel.Position = UDim2.new(0, relX, 0, relY)
                         panel.Visible  = true
@@ -2355,8 +2371,21 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 Corner(panel, 8)
                 Stroke(panel, Color3.fromRGB(42,42,42), 1, 0)
 
-                local panelList = ListLayout(panel)
-                Padding(panel, 4, 4, 0, 0)
+                local MAX_DROPDOWN_H = 200
+                local scrollList = Instance.new("ScrollingFrame")
+                scrollList.Size                  = UDim2.new(1, 0, 1, 0)
+                scrollList.BackgroundTransparency = 1
+                scrollList.BorderSizePixel        = 0
+                scrollList.ScrollBarThickness     = 3
+                scrollList.ScrollBarImageColor3   = Color3.fromRGB(80, 80, 80)
+                scrollList.CanvasSize             = UDim2.new(0, 0, 0, 0)
+                scrollList.AutomaticCanvasSize    = Enum.AutomaticSize.None
+                scrollList.ClipsDescendants       = true
+                scrollList.ZIndex                 = 51
+                scrollList.Parent                 = panel
+
+                local panelList = ListLayout(scrollList)
+                Padding(scrollList, 4, 4, 0, 0)
 
                 local function closePopup()
                     open = false
@@ -2378,12 +2407,12 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 end
 
                 local function buildOptions(opts)
-                    for _, ch in ipairs(panel:GetChildren()) do
+                    for _, ch in ipairs(scrollList:GetChildren()) do
                         if ch:IsA("TextButton") then ch:Destroy() end
                     end
                     for _, opt in ipairs(opts or {}) do
                         local on = sel[opt] == true
-                        local ob = Button(panel, {
+                        local ob = Button(scrollList, {
                             Size                 = UDim2.new(1,0,0,28),
                             BackgroundColor3     = Color3.fromRGB(38,38,38),
                             BackgroundTransparency = on and 0.5 or 1,
@@ -2471,6 +2500,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                         -- mede altura do conteúdo
                         task.wait()
                         local contentH = panelList.AbsoluteContentSize.Y + 8
+                        local cappedH  = math.min(contentH, MAX_DROPDOWN_H)
 
                         -- largura dinâmica: mede o texto mais longo das opções
                         local maxTextW = 80
@@ -2481,7 +2511,9 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                         local panelW = math.max(maxTextW, triggerBox.AbsoluteSize.X)
 
                         -- posiciona com AnchorPoint central (pop sai do meio)
-                        panel.Size     = UDim2.new(0, panelW, 0, contentH)
+                        panel.Size                = UDim2.new(0, panelW, 0, cappedH)
+                        scrollList.Size           = UDim2.new(1, 0, 1, 0)
+                        scrollList.CanvasSize     = UDim2.new(0, 0, 0, contentH)
                         panel.Position = UDim2.new(0, relX, 0, relY)
                         panel.Visible  = true
 
