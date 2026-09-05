@@ -228,7 +228,7 @@ local C = {
 }
 
 -- ═══════════════════════════════════════════════════════════════════════════
-function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSize)
+function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSize, bgImage)
     visibleKey = visibleKey or Enum.KeyCode.RightControl
 
     -- ── ScreenGui ──────────────────────────────────────────────────────────
@@ -261,6 +261,21 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     })
     Corner(main, 8)
     Stroke(main, Color3.fromRGB(255,255,255), 1, 0.82)
+
+    -- ── background image ─────────────────────────────────────────────────────
+    if bgImage and bgImage ~= "" then
+        local bgImageLabel = Instance.new("ImageLabel")
+        bgImageLabel.Name                   = "BgImage"
+        bgImageLabel.Size                   = UDim2.new(1, 0, 1, 0)
+        bgImageLabel.Position               = UDim2.new(0, 0, 0, 0)
+        bgImageLabel.BackgroundTransparency = 1
+        bgImageLabel.Image                  = bgImage
+        bgImageLabel.ImageTransparency      = 0
+        bgImageLabel.ScaleType              = Enum.ScaleType.Crop
+        bgImageLabel.ZIndex                 = 0
+        bgImageLabel.Parent                 = main
+        Corner(bgImageLabel, 8)
+    end
 
     -- ── acrylic blur (portado da MacLib) ─────────────────────────────────────
     local acrylicBlur = false
