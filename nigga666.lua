@@ -244,7 +244,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
 
     local scrgui = Instance.new("ScreenGui")
     scrgui.Name           = "VantaUI"
-    scrgui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    scrgui.ZIndexBehavior = Enum.ZIndexBehavior.Global
     scrgui.ResetOnSpawn   = false
     scrgui.Parent         = hui
 
@@ -272,7 +272,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         bgImageLabel.Image                  = bgImage
         bgImageLabel.ImageTransparency      = 0
         bgImageLabel.ScaleType              = Enum.ScaleType.Crop
-        bgImageLabel.ZIndex                 = 2
+        bgImageLabel.ZIndex                 = 0
         bgImageLabel.Parent                 = main
         Corner(bgImageLabel, 8)
     end
