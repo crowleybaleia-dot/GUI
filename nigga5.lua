@@ -1493,7 +1493,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 Size                 = UDim2.new(1,0,0,0),
                 AutomaticSize        = Enum.AutomaticSize.Y,
                 BackgroundColor3     = C.sidebar,
-                BackgroundTransparency = 0.2,
+                BackgroundTransparency = 0.1,
                 ClipsDescendants     = true,
                 ZIndex               = 3,
                 LayoutOrder          = 1,
