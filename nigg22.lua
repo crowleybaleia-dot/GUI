@@ -1563,7 +1563,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                         Size           = UDim2.new(0.6,0,0,14),
                         Text           = lbl or "",
                         TextColor3     = C.hi,
-                        TextSize       = 11,
+                        TextSize       = 12,
                         FontFace        = FONT_SEMIBOLD(),
                         TextXAlignment = Enum.TextXAlignment.Left,
                         ZIndex         = 6,
@@ -1575,7 +1575,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                         AutomaticSize  = Enum.AutomaticSize.Y,
                         Text           = desc,
                         TextColor3     = C.mid,
-                        TextSize       = 11,
+                        TextSize       = 12,
                         FontFace        = FONT_SEMIBOLD(),
                         TextXAlignment = Enum.TextXAlignment.Left,
                         TextWrapped    = true,
@@ -1587,7 +1587,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                         Size           = UDim2.new(0.55,0,1,0),
                         Text           = lbl or "",
                         TextColor3     = C.hi,
-                        TextSize       = 11,
+                        TextSize       = 12,
                         FontFace        = FONT_SEMIBOLD(),
                         TextXAlignment = Enum.TextXAlignment.Left,
                         ZIndex         = 6,
@@ -1646,7 +1646,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                         Size                 = UDim2.new(0, 60, 0, 20),
                         Text                 = "[" .. keyName .. "]",
                         TextColor3           = C.hi,
-                        TextSize             = 11,
+                        TextSize             = 12,
                         FontFace = FONT_SEMIBOLD(),
                         TextXAlignment       = Enum.TextXAlignment.Center,
                         BackgroundTransparency = 1,
@@ -1769,7 +1769,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 tb.FontFace = FONT_SEMIBOLD()
                 tb.Text                  = tostring(num)
                 tb.TextColor3            = C.hi
-                tb.TextSize              = 10
+                tb.TextSize              = 11
                 tb.ClearTextOnFocus      = false
                 tb.TextXAlignment        = Enum.TextXAlignment.Left
                 tb.ZIndex                = 8
@@ -1865,7 +1865,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     Size           = UDim2.new(1,0,1,0),
                     Text           = keyName,
                     TextColor3     = C.hi,
-                    TextSize       = 9,
+                    TextSize       = 10,
                     FontFace        = FONT_SEMIBOLD(),
                     ZIndex         = 8,
                 })
@@ -1950,7 +1950,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     Size           = UDim2.new(0.7,0,0,16),
                     Text           = lbl or "",
                     TextColor3     = C.hi,
-                    TextSize       = 11,
+                    TextSize       = 12,
                     FontFace        = FONT_SEMIBOLD(),
                     TextXAlignment = Enum.TextXAlignment.Left,
                     ZIndex         = 6,
@@ -1961,7 +1961,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     Size           = UDim2.new(0.3,0,0,16),
                     Text           = tostring(val),
                     TextColor3     = C.hi,
-                    TextSize       = 11,
+                    TextSize       = 12,
                     FontFace        = FONT_SEMIBOLD(),
                     TextXAlignment = Enum.TextXAlignment.Right,
                     ZIndex         = 6,
@@ -2102,7 +2102,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     Size           = UDim2.new(1, -24, 1, 0),
                     Text           = sel,
                     TextColor3     = C.mid,
-                    TextSize       = 11,
+                    TextSize       = 12,
                     FontFace        = FONT_SEMIBOLD(),
                     TextXAlignment = Enum.TextXAlignment.Left,
                     ZIndex         = 8,
@@ -2114,7 +2114,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     Size           = UDim2.new(0, 12, 0, 12),
                     Text           = "v",
                     TextColor3     = C.dim,
-                    TextSize       = 10,
+                    TextSize       = 11,
                     FontFace        = FONT_SEMIBOLD(),
                     TextXAlignment = Enum.TextXAlignment.Center,
                     ZIndex         = 8,
@@ -2199,7 +2199,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                             Size           = UDim2.new(0, 16, 1, 0),
                             Text           = isSel and "✓" or "",
                             TextColor3     = C.accent,
-                            TextSize       = 10,
+                            TextSize       = 11,
                             FontFace        = FONT_SEMIBOLD(),
                             TextXAlignment = Enum.TextXAlignment.Center,
                             ZIndex         = 52,
@@ -2210,7 +2210,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                             Size           = UDim2.new(1, -16, 1, 0),
                             Text           = opt,
                             TextColor3     = isSel and C.hi or C.mid,
-                            TextSize       = 11,
+                            TextSize       = 12,
                             FontFace        = FONT_SEMIBOLD(),
                             TextXAlignment = Enum.TextXAlignment.Left,
                             ZIndex         = 52,
@@ -2378,7 +2378,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     Size           = UDim2.new(1, -24, 1, 0),
                     Text           = labelTxt(),
                     TextColor3     = C.mid,
-                    TextSize       = 11,
+                    TextSize       = 12,
                     FontFace        = FONT_SEMIBOLD(),
                     TextXAlignment = Enum.TextXAlignment.Left,
                     ZIndex         = 8,
@@ -2390,7 +2390,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     Size           = UDim2.new(0, 12, 0, 12),
                     Text           = "v",
                     TextColor3     = C.dim,
-                    TextSize       = 10,
+                    TextSize       = 11,
                     FontFace        = FONT_SEMIBOLD(),
                     TextXAlignment = Enum.TextXAlignment.Center,
                     ZIndex         = 8,
@@ -2474,7 +2474,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                             Size           = UDim2.new(0, 16, 1, 0),
                             Text           = on and "✓" or "",
                             TextColor3     = C.accent,
-                            TextSize       = 10,
+                            TextSize       = 11,
                             FontFace        = FONT_SEMIBOLD(),
                             TextXAlignment = Enum.TextXAlignment.Center,
                             ZIndex         = 52,
@@ -2485,7 +2485,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                             Size           = UDim2.new(1, -16, 1, 0),
                             Text           = opt,
                             TextColor3     = on and C.hi or C.mid,
-                            TextSize       = 11,
+                            TextSize       = 12,
                             FontFace        = FONT_SEMIBOLD(),
                             TextXAlignment = Enum.TextXAlignment.Left,
                             ZIndex         = 52,
@@ -2637,7 +2637,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     Size           = UDim2.new(1, -26, 1, 0),
                     Text           = lbl,
                     TextColor3     = C.hi,
-                    TextSize       = 12,
+                    TextSize       = 13,
                     FontFace        = FONT_SEMIBOLD(),
                     TextXAlignment = Enum.TextXAlignment.Left,
                     ZIndex         = 8,
@@ -2672,12 +2672,14 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             function grp:Label(text)
                 addDivider()
                 local lbl = Label(body, {
-                    Size           = UDim2.new(1,0,0,26),
+                    Size           = UDim2.new(1,0,0,0),
+                    AutomaticSize  = Enum.AutomaticSize.Y,
                     Text           = text or "",
                     TextColor3     = C.hi,
-                    TextSize       = 10,
+                    TextSize       = 11,
                     FontFace        = FONT_SEMIBOLD(),
                     TextXAlignment = Enum.TextXAlignment.Left,
+                    TextWrapped    = true,
                     RichText       = true,
                     ZIndex         = 5,
                     LayoutOrder    = #body:GetChildren(),
@@ -2696,7 +2698,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     AutomaticSize  = Enum.AutomaticSize.Y,
                     Text           = text or "",
                     TextColor3     = C.hi,
-                    TextSize       = 10,
+                    TextSize       = 11,
                     FontFace        = FONT_SEMIBOLD(),
                     TextWrapped    = true,
                     TextXAlignment = Enum.TextXAlignment.Left,
@@ -2734,7 +2736,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     Size           = UDim2.new(1,-10,0.5,0),
                     Text           = lbl or "",
                     TextColor3     = C.hi,
-                    TextSize       = 11,
+                    TextSize       = 12,
                     FontFace        = FONT_SEMIBOLD(),
                     TextXAlignment = Enum.TextXAlignment.Left,
                     ZIndex         = 7,
@@ -2770,7 +2772,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 tb.PlaceholderColor3     = C.dim
                 tb.Text                  = ""
                 tb.TextColor3            = C.hi
-                tb.TextSize              = 10
+                tb.TextSize              = 11
                 tb.ClearTextOnFocus      = false
                 tb.TextXAlignment        = Enum.TextXAlignment.Left
                 tb.ZIndex                = 8
@@ -2844,7 +2846,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     Size           = UDim2.new(1,0,1,0),
                     Text           = tostring(key):gsub("Enum.KeyCode.",""),
                     TextColor3     = C.hi,
-                    TextSize       = 9,
+                    TextSize       = 10,
                     FontFace        = FONT_SEMIBOLD(),
                     ZIndex         = 8,
                 })
@@ -2924,7 +2926,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     Position       = UDim2.new(0,0,0,4),
                     Text           = string.upper(name or ""),
                     TextColor3     = C.accent,
-                    TextSize       = 9,
+                    TextSize       = 10,
                     FontFace        = FONT_SEMIBOLD(),
                     TextXAlignment = Enum.TextXAlignment.Center,
                     ZIndex         = 6,
