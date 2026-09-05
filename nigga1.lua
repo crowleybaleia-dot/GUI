@@ -690,7 +690,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     main.BackgroundTransparency = 1
     main.Position = UDim2.new(0.5, 0, 0.5, 0)
     main.Visible = true
-    tw(main, {Size = UDim2.new(0, W_open, 0, H_open), BackgroundTransparency = (bgImage and bgImage ~= "") and 0.30 or 0.05}, 0.55, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+    tw(main, {Size = UDim2.new(0, W_open, 0, H_open), BackgroundTransparency = (bgImage and bgImage ~= "") and 0.35 or 0.05}, 0.55, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
 
     -- ═════════════════════════════════════════════════════════════════════
     local window = {}
@@ -922,7 +922,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             main.Visible = true
             main.Size    = UDim2.new(0, W_seed, 0, H_seed)
             main.BackgroundTransparency = 1
-            tw(main, {Size = UDim2.new(0, W_open, 0, H_open), BackgroundTransparency = 0.05}, 0.55, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+            tw(main, {Size = UDim2.new(0, W_open, 0, H_open), BackgroundTransparency = (bgImage and bgImage ~= "") and 0.35 or 0.05}, 0.55, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
             task.delay(0.55, function() dbc = false end)
         else
             tw(main, {Size = UDim2.new(0, W_open * 0.95, 0, H_open * 0.95), BackgroundTransparency = 1}, 0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
