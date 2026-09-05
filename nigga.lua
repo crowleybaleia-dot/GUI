@@ -266,19 +266,15 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     if bgImage and bgImage ~= "" then
         local bgImageLabel = Instance.new("ImageLabel")
         bgImageLabel.Name                   = "BgImage"
-        bgImageLabel.AnchorPoint            = Vector2.new(0.5, 0.5)
-        bgImageLabel.Size                   = UDim2.new(0, 820, 0, 500)
-        bgImageLabel.Position               = main.Position
+        bgImageLabel.Size                   = UDim2.new(1, 0, 1, 0)
+        bgImageLabel.Position               = UDim2.new(0, 0, 0, 0)
         bgImageLabel.BackgroundTransparency = 1
         bgImageLabel.Image                  = bgImage
         bgImageLabel.ImageTransparency      = 0
         bgImageLabel.ScaleType              = Enum.ScaleType.Crop
-        bgImageLabel.ZIndex                 = 1
-        bgImageLabel.Parent                 = scrgui
+        bgImageLabel.ZIndex                 = 2
+        bgImageLabel.Parent                 = main
         Corner(bgImageLabel, 8)
-        main:GetPropertyChangedSignal("Position"):Connect(function()
-            bgImageLabel.Position = main.Position
-        end)
     end
 
     -- ── acrylic blur (portado da MacLib) ─────────────────────────────────────
