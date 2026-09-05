@@ -1498,10 +1498,10 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 end
                 if hasItems then
                     local divider = Instance.new("Frame")
-                    divider.Size = UDim2.new(1, -16, 0, 1)
-                    divider.Position = UDim2.new(0, 8, 0, 0)
+                    divider.Size = UDim2.new(1, -32, 0, 1)
+                    divider.Position = UDim2.new(0, 16, 0, 0)
                     divider.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-                    divider.BackgroundTransparency = 0.88
+                    divider.BackgroundTransparency = 0.96
                     divider.BorderSizePixel = 0
                     divider.ZIndex = 5
                     divider.LayoutOrder = #body:GetChildren()
