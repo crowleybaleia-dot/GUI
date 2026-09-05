@@ -1990,22 +1990,44 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 local sliding = false
                 local moveConn, releaseConn
 
+                local LERP_SPEED = 14  -- fator por segundo; aumente para mais responsivo
+                local targetVal  = val -- alvo que o arraste define
+                local smoothVal  = val -- valor interpolado atual (float)
+
                 local o = {}
-                local function setVal(v)
-                    val = math.clamp(v, min, max)
+
+                -- aplica visualmente + dispara callback com valor já arredondado
+                local function applyVisual(v)
+                    val = math.clamp(math.floor(v + 0.5), min, max)
                     o.Value = val
-                    local p = (val-min)/(max-min)
-                    fill.Size = UDim2.new(p, 0, 1, 0)
+                    local p = (v - min) / (max - min)
+                    fill.Size = UDim2.new(math.clamp(p, 0, 1), 0, 1, 0)
                     valLbl.Text = tostring(val)
                     if cb then cb(val) end
                 end
 
+                -- seta target sem atualizar visual diretamente (o Heartbeat cuida disso)
                 local function onSlide(inputX)
                     local tw_ = trackBg.AbsoluteSize.X
                     local offset = math.clamp(inputX - trackBg.AbsolutePosition.X, 0, tw_)
-                    local rv = math.floor((max - min) * (offset / tw_) + min)
-                    setVal(rv)
+                    targetVal = (max - min) * (offset / tw_) + min
                 end
+
+                -- loop de interpolação: roda enquanto o slider existir
+                local heartConn
+                heartConn = RunService.Heartbeat:Connect(function(dt)
+                    if not slFrame.Parent then
+                        heartConn:Disconnect()
+                        return
+                    end
+                    local diff = targetVal - smoothVal
+                    if math.abs(diff) < 0.01 then
+                        smoothVal = targetVal
+                    else
+                        smoothVal = smoothVal + diff * math.min(LERP_SPEED * dt, 1)
+                    end
+                    applyVisual(smoothVal)
+                end)
 
                 slBtn.InputBegan:Connect(function(i)
                     if i.UserInputType ~= Enum.UserInputType.MouseButton1 and i.UserInputType ~= Enum.UserInputType.Touch then return end
@@ -2027,13 +2049,18 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 end)
 
                 o.Value = val
-                function o.Set(v) setVal(math.floor(v)) end
+                function o.Set(v)
+                    local clamped = math.clamp(tonumber(v) or val, min, max)
+                    targetVal = clamped
+                    smoothVal = clamped  -- Set programático é instantâneo
+                    applyVisual(clamped)
+                end
                 function o.Get() return val end
                 function o:SetValue(v) o.Set(v) end
                 if id then
                     Registry.Sliders[id] = {
                         Get = function() return val end,
-                        Set = function(v) setVal(tonumber(v) or val) end
+                        Set = function(v) o.Set(v) end
                     }
                 end
                 return o
