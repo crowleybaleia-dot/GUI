@@ -2054,18 +2054,18 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     AnchorPoint          = Vector2.new(1, 0.5),
                     Position             = UDim2.new(1, 0, 0.5, 0),
                     Size                 = UDim2.new(0, 110, 0, 22),
-                    BackgroundColor3     = Color3.fromRGB(24, 24, 24),
+                    BackgroundColor3     = Color3.fromRGB(28, 28, 28),
                     BackgroundTransparency = 0,
                     ZIndex               = 7,
                 })
-                Corner(triggerBox, 5)
+                Corner(triggerBox, 6)
                 Stroke(triggerBox, C.border, 1, 0)
 
                 local valLbl = Label(triggerBox, {
                     Position       = UDim2.new(0, 8, 0, 0),
                     Size           = UDim2.new(1, -24, 1, 0),
                     Text           = sel,
-                    TextColor3     = C.hi,
+                    TextColor3     = C.mid,
                     TextSize       = 11,
                     Font           = Enum.Font.SourceSansSemibold,
                     TextXAlignment = Enum.TextXAlignment.Left,
@@ -2076,9 +2076,9 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     AnchorPoint    = Vector2.new(1, 0.5),
                     Position       = UDim2.new(1, -7, 0.5, 0),
                     Size           = UDim2.new(0, 12, 0, 12),
-                    Text           = "⌄",
+                    Text           = "v",
                     TextColor3     = C.dim,
-                    TextSize       = 12,
+                    TextSize       = 10,
                     Font           = Enum.Font.SourceSansSemibold,
                     TextXAlignment = Enum.TextXAlignment.Center,
                     ZIndex         = 8,
@@ -2097,22 +2097,22 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     Size                 = UDim2.new(0,0,0,0),
                     AnchorPoint          = Vector2.new(0, 0),
                     AutomaticSize        = Enum.AutomaticSize.None,
-                    BackgroundColor3     = C.surface,
+                    BackgroundColor3     = Color3.fromRGB(20,20,20),
                     BackgroundTransparency = 0,
                     ZIndex               = 50,
                     Visible              = false,
                     ClipsDescendants     = true,
                 })
                 Corner(panel, 8)
-                Stroke(panel, C.border, 1, 0)
+                Stroke(panel, Color3.fromRGB(42,42,42), 1, 0)
 
                 local MAX_DROPDOWN_H = 200
                 local scrollList = Instance.new("ScrollingFrame")
                 scrollList.Size                  = UDim2.new(1, 0, 1, 0)
                 scrollList.BackgroundTransparency = 1
                 scrollList.BorderSizePixel        = 0
-                scrollList.ScrollBarThickness     = 2
-                scrollList.ScrollBarImageColor3   = Color3.fromRGB(60, 60, 60)
+                scrollList.ScrollBarThickness     = 3
+                scrollList.ScrollBarImageColor3   = Color3.fromRGB(80, 80, 80)
                 scrollList.CanvasSize             = UDim2.new(0, 0, 0, 0)
                 scrollList.AutomaticCanvasSize    = Enum.AutomaticSize.None
                 scrollList.ClipsDescendants       = true
@@ -2120,7 +2120,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 scrollList.Parent                 = panel
 
                 local panelList = ListLayout(scrollList)
-                Padding(scrollList, 6, 6, 4, 4)
+                Padding(scrollList, 4, 4, 0, 0)
 
                 local function closePopup()
                     open = false
@@ -2149,9 +2149,9 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     for _, opt in ipairs(opts or {}) do
                         local isSel = opt == sel
                         local ob = Button(scrollList, {
-                            Size                 = UDim2.new(1,0,0,26),
-                            BackgroundColor3     = C.accent,
-                            BackgroundTransparency = isSel and 0.88 or 1,
+                            Size                 = UDim2.new(1,0,0,28),
+                            BackgroundColor3     = Color3.fromRGB(38,38,38),
+                            BackgroundTransparency = isSel and 0.5 or 1,
                             Text                 = "",
                             ZIndex               = 51,
                         })
@@ -2175,15 +2175,15 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                             Text           = opt,
                             TextColor3     = isSel and C.hi or C.mid,
                             TextSize       = 11,
-                            Font           = Enum.Font.SourceSansSemibold,
+                            Font           = isSel and Enum.Font.SourceSansSemibold or Enum.Font.SourceSansSemibold,
                             TextXAlignment = Enum.TextXAlignment.Left,
                             ZIndex         = 52,
                         })
 
                         ob.MouseEnter:Connect(function()
                             if opt ~= sel then
-                                tw(ob,     {BackgroundTransparency = 0.92}, 0.1)
-                                tw(optLbl, {TextColor3 = C.hi},             0.1)
+                                tw(ob,     {BackgroundTransparency = 0.7}, 0.1)
+                                tw(optLbl, {TextColor3 = C.hi},            0.1)
                             end
                         end)
                         ob.MouseLeave:Connect(function()
@@ -2330,18 +2330,18 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     AnchorPoint          = Vector2.new(1, 0.5),
                     Position             = UDim2.new(1, 0, 0.5, 0),
                     Size                 = UDim2.new(0, 110, 0, 22),
-                    BackgroundColor3     = Color3.fromRGB(24, 24, 24),
+                    BackgroundColor3     = Color3.fromRGB(28, 28, 28),
                     BackgroundTransparency = 0,
                     ZIndex               = 7,
                 })
-                Corner(triggerBox, 5)
+                Corner(triggerBox, 6)
                 Stroke(triggerBox, C.border, 1, 0)
 
                 local valLbl = Label(triggerBox, {
                     Position       = UDim2.new(0, 8, 0, 0),
                     Size           = UDim2.new(1, -24, 1, 0),
                     Text           = labelTxt(),
-                    TextColor3     = C.hi,
+                    TextColor3     = C.mid,
                     TextSize       = 11,
                     Font           = Enum.Font.SourceSansSemibold,
                     TextXAlignment = Enum.TextXAlignment.Left,
@@ -2352,9 +2352,9 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     AnchorPoint    = Vector2.new(1, 0.5),
                     Position       = UDim2.new(1, -7, 0.5, 0),
                     Size           = UDim2.new(0, 12, 0, 12),
-                    Text           = "⌄",
+                    Text           = "v",
                     TextColor3     = C.dim,
-                    TextSize       = 12,
+                    TextSize       = 10,
                     Font           = Enum.Font.SourceSansSemibold,
                     TextXAlignment = Enum.TextXAlignment.Center,
                     ZIndex         = 8,
@@ -2373,22 +2373,22 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     Size                 = UDim2.new(0,0,0,0),
                     AnchorPoint          = Vector2.new(0, 0),
                     AutomaticSize        = Enum.AutomaticSize.None,
-                    BackgroundColor3     = C.surface,
+                    BackgroundColor3     = Color3.fromRGB(20,20,20),
                     BackgroundTransparency = 0,
                     ZIndex               = 50,
                     Visible              = false,
                     ClipsDescendants     = true,
                 })
                 Corner(panel, 8)
-                Stroke(panel, C.border, 1, 0)
+                Stroke(panel, Color3.fromRGB(42,42,42), 1, 0)
 
                 local MAX_DROPDOWN_H = 200
                 local scrollList = Instance.new("ScrollingFrame")
                 scrollList.Size                  = UDim2.new(1, 0, 1, 0)
                 scrollList.BackgroundTransparency = 1
                 scrollList.BorderSizePixel        = 0
-                scrollList.ScrollBarThickness     = 2
-                scrollList.ScrollBarImageColor3   = Color3.fromRGB(60, 60, 60)
+                scrollList.ScrollBarThickness     = 3
+                scrollList.ScrollBarImageColor3   = Color3.fromRGB(80, 80, 80)
                 scrollList.CanvasSize             = UDim2.new(0, 0, 0, 0)
                 scrollList.AutomaticCanvasSize    = Enum.AutomaticSize.None
                 scrollList.ClipsDescendants       = true
@@ -2396,7 +2396,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 scrollList.Parent                 = panel
 
                 local panelList = ListLayout(scrollList)
-                Padding(scrollList, 6, 6, 4, 4)
+                Padding(scrollList, 4, 4, 0, 0)
 
                 local function closePopup()
                     open = false
@@ -2424,9 +2424,9 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     for _, opt in ipairs(opts or {}) do
                         local on = sel[opt] == true
                         local ob = Button(scrollList, {
-                            Size                 = UDim2.new(1,0,0,26),
-                            BackgroundColor3     = C.accent,
-                            BackgroundTransparency = on and 0.88 or 1,
+                            Size                 = UDim2.new(1,0,0,28),
+                            BackgroundColor3     = Color3.fromRGB(38,38,38),
+                            BackgroundTransparency = on and 0.5 or 1,
                             Text                 = "",
                             ZIndex               = 51,
                         })
@@ -2450,15 +2450,15 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                             Text           = opt,
                             TextColor3     = on and C.hi or C.mid,
                             TextSize       = 11,
-                            Font           = Enum.Font.SourceSansSemibold,
+                            Font           = on and Enum.Font.SourceSansSemibold or Enum.Font.SourceSansSemibold,
                             TextXAlignment = Enum.TextXAlignment.Left,
                             ZIndex         = 52,
                         })
 
                         ob.MouseEnter:Connect(function()
                             if not sel[opt] then
-                                tw(ob,     {BackgroundTransparency = 0.92}, 0.1)
-                                tw(optLbl, {TextColor3 = C.hi},             0.1)
+                                tw(ob,     {BackgroundTransparency = 0.7}, 0.1)
+                                tw(optLbl, {TextColor3 = C.hi},            0.1)
                             end
                         end)
                         ob.MouseLeave:Connect(function()
@@ -2470,9 +2470,10 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                         safeClick(ob, function()
                             if sel[opt] then sel[opt] = nil else sel[opt] = true end
                             local s = sel[opt]
-                            tw(ob,     {BackgroundTransparency = s and 0.88 or 1}, 0.12)
-                            tw(optLbl, {TextColor3 = s and C.hi or C.mid},         0.12)
+                            tw(ob,     {BackgroundTransparency = s and 0.5 or 1}, 0.12)
+                            tw(optLbl, {TextColor3 = s and C.hi or C.mid},        0.12)
                             tickLbl.Text = s and "✓" or ""
+                            optLbl.Font  = s and Enum.Font.SourceSansSemibold or Enum.Font.SourceSansSemibold
                             valLbl.Text  = labelTxt()
                             if o then o.Value = sel end
                             if cb then cb(sel) end
@@ -2596,8 +2597,8 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
 
                 -- texto à esquerda
                 Label(btn, {
-                    Position       = UDim2.new(0, 4, 0, 0),
-                    Size           = UDim2.new(1, -30, 1, 0),
+                    Position       = UDim2.new(0, 0, 0, 0),
+                    Size           = UDim2.new(1, -26, 1, 0),
                     Text           = lbl,
                     TextColor3     = C.hi,
                     TextSize       = 12,
