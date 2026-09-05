@@ -195,7 +195,7 @@ local function Padding(parent, t, b, l, r)
 end
 
 -- ─── fonts ─────────────────────────────────────────────────────────────────
-local FONT_SEMIBOLD = Font.new("rbxasset://fonts/families/SourceSansPro.json", Enum.FontWeight.SemiBold)
+local FONT_SEMIBOLD = Font.fromEnum(Enum.Font.SourceSansSemibold)
 
 -- ─── palette ───────────────────────────────────────────────────────────────
 local C = {
