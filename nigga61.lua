@@ -266,12 +266,12 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     if bgImage and bgImage ~= "" then
         local bgImageLabel = Instance.new("ImageLabel")
         bgImageLabel.Name                   = "BgImage"
-        bgImageLabel.Size                   = UDim2.new(1.2, 0, 1, 0)
-        bgImageLabel.Position               = UDim2.new(-0.1, 0, 0, 0)
+        bgImageLabel.Size                   = UDim2.new(1, 0, 1, 0)
+        bgImageLabel.Position               = UDim2.new(0, 0, 0, 0)
         bgImageLabel.BackgroundTransparency = 1
         bgImageLabel.Image                  = bgImage
         bgImageLabel.ImageTransparency      = 0
-        bgImageLabel.ScaleType              = Enum.ScaleType.Crop
+        bgImageLabel.ScaleType              = Enum.ScaleType.Stretch
         bgImageLabel.ZIndex                 = 0
         bgImageLabel.Parent                 = main
         Corner(bgImageLabel, 8)
