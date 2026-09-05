@@ -255,7 +255,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         Position             = UDim2.new(0.5, 0, 2, 0),
         Size                 = UDim2.new(0, 820, 0, 500),
         BackgroundColor3     = Color3.fromRGB(15, 15, 15),
-        BackgroundTransparency = 0.05,
+        BackgroundTransparency = (bgImage and bgImage ~= "") and 1 or 0.05,
         ClipsDescendants     = true,
         ZIndex               = 1,
     })
@@ -272,7 +272,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         bgImageLabel.Image                  = bgImage
         bgImageLabel.ImageTransparency      = 0
         bgImageLabel.ScaleType              = Enum.ScaleType.Crop
-        bgImageLabel.ZIndex                 = 0
+        bgImageLabel.ZIndex                 = 2
         bgImageLabel.Parent                 = main
         Corner(bgImageLabel, 8)
     end
