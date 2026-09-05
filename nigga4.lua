@@ -2638,7 +2638,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 local btn = Button(body, {
                     Size                 = UDim2.new(1, 0, 0, 36),
                     BackgroundColor3     = C.sidebar,
-                    BackgroundTransparency = 0,
+                    BackgroundTransparency = (bgImage and bgImage ~= "") and 0.6 or 0.1,
                     Text                 = "",
                     ZIndex               = 7,
                     LayoutOrder          = #body:GetChildren(),
@@ -2669,15 +2669,15 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 icon.Parent               = btn
 
                 btn.MouseEnter:Connect(function()
-                    tw(btn, {BackgroundTransparency = 0.55}, 0.12)
+                    tw(btn, {BackgroundTransparency = (bgImage and bgImage ~= "") and 0.75 or 0.6}, 0.12)
                 end)
                 btn.MouseLeave:Connect(function()
-                    tw(btn, {BackgroundTransparency = 0}, 0.12)
+                    tw(btn, {BackgroundTransparency = (bgImage and bgImage ~= "") and 0.6 or 0.1}, 0.12)
                 end)
                 safeClick(btn, function()
-                    tw(btn, {BackgroundTransparency = 0.3}, 0.06)
+                    tw(btn, {BackgroundTransparency = 0.45}, 0.06)
                     task.delay(0.12, function()
-                        tw(btn, {BackgroundTransparency = 0}, 0.1)
+                        tw(btn, {BackgroundTransparency = (bgImage and bgImage ~= "") and 0.6 or 0.1}, 0.1)
                     end)
                     if cb then coroutine.wrap(cb)() end
                 end)
