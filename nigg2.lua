@@ -1450,14 +1450,14 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 ZIndex               = 3,
                 LayoutOrder          = #col:GetChildren(),
             })
-            ListLayout(gboxOuter, {Padding = UDim.new(0, 4)})
+            ListLayout(gboxOuter, {Padding = UDim.new(0, 2)})
 
             -- label do grupo FORA e ACIMA do container
             Label(gboxOuter, {
                 Size           = UDim2.new(1,0,0,16),
                 Text           = string.upper(groupName or ""),
                 TextColor3     = C.low,
-                TextSize       = 9,
+                TextSize       = 11,
                 Font           = Enum.Font.SourceSansSemibold,
                 TextXAlignment = Enum.TextXAlignment.Left,
                 ZIndex         = 4,
