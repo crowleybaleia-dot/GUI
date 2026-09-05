@@ -1487,7 +1487,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 ZIndex           = 4,
             })
             ListLayout(body, {Padding = UDim.new(0, 5)})
-            Padding(body, 8, 8, 10, 10)
+            Padding(body, 8, 8, 0, 0)
 
             -- ── base row ─────────────────────────────────────────────────
             local function addDivider()
@@ -1521,6 +1521,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     ZIndex           = 5,
                     LayoutOrder      = #body:GetChildren(),
                 })
+                Padding(row, 0, 0, 10, 10)
                 Corner(row, 6)
                 row.MouseEnter:Connect(function()
                     tw(row, {BackgroundTransparency = 0.95}, 0.12)
@@ -1932,6 +1933,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     ZIndex               = 5,
                     LayoutOrder          = #body:GetChildren(),
                 })
+                Padding(slFrame, 0, 0, 10, 10)
 
                 -- linha superior: label à esquerda, valor à direita
                 Label(slFrame, {
@@ -1956,10 +1958,10 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     ZIndex         = 6,
                 })
 
-                -- track com padding lateral (8px cada lado)
+                -- track com padding lateral herdado do slFrame
                 local trackBg = Frame(slFrame, {
-                    Position             = UDim2.new(0,8,0,28),
-                    Size                 = UDim2.new(1,-16,0,7),
+                    Position             = UDim2.new(0,0,0,28),
+                    Size                 = UDim2.new(1,0,0,7),
                     BackgroundColor3     = Color3.fromRGB(40,40,40),
                     BackgroundTransparency = 0,
                     ZIndex               = 7,
@@ -2590,12 +2592,13 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     ZIndex               = 7,
                     LayoutOrder          = #body:GetChildren(),
                 })
+                Padding(btn, 0, 0, 10, 10)
                 Corner(btn, 8)
 
                 -- texto à esquerda
                 Label(btn, {
-                    Position       = UDim2.new(0, 14, 0, 0),
-                    Size           = UDim2.new(1, -40, 1, 0),
+                    Position       = UDim2.new(0, 4, 0, 0),
+                    Size           = UDim2.new(1, -30, 1, 0),
                     Text           = lbl,
                     TextColor3     = C.hi,
                     TextSize       = 12,
@@ -2607,7 +2610,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 -- ícone à direita
                 local icon = Instance.new("ImageLabel")
                 icon.AnchorPoint          = Vector2.new(1, 0.5)
-                icon.Position             = UDim2.new(1, -14, 0.5, 0)
+                icon.Position             = UDim2.new(1, -4, 0.5, 0)
                 icon.Size                 = UDim2.new(0, 18, 0, 18)
                 icon.BackgroundTransparency = 1
                 icon.Image                = "rbxassetid://101493069014530"
@@ -2643,6 +2646,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     ZIndex         = 5,
                     LayoutOrder    = #body:GetChildren(),
                 })
+                Padding(lbl, 0, 0, 10, 10)
                 local o = {}
                 function o.Set(v) lbl.Text = v or "" end
                 return o
@@ -2664,7 +2668,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     ZIndex         = 5,
                     LayoutOrder    = #body:GetChildren(),
                 })
-                Padding(lbl, 2, 4, 0, 0)
+                Padding(lbl, 2, 4, 10, 10)
             end
 
             -- ── TextField ────────────────────────────────────────────────
@@ -2677,11 +2681,12 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     ZIndex               = 5,
                     LayoutOrder          = #body:GetChildren(),
                 })
+                Padding(tfFrame, 0, 0, 10, 10)
 
                 local bg1 = Frame(tfFrame, {
                     AnchorPoint          = Vector2.new(0.5,0.5),
                     Position             = UDim2.new(0.5,0,0.5,0),
-                    Size                 = UDim2.new(1,-10,1,0),
+                    Size                 = UDim2.new(1,0,1,0),
                     BackgroundColor3     = C.sidebar,
                     BackgroundTransparency = 0,
                     ZIndex               = 6,
@@ -2876,6 +2881,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     ZIndex      = 5,
                     LayoutOrder = #body:GetChildren(),
                 })
+                Padding(secContainer, 0, 0, 10, 10)
 
                 Label(secContainer, {
                     Size           = UDim2.new(1,0,0,18),
