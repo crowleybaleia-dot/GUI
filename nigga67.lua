@@ -690,7 +690,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     main.BackgroundTransparency = 1
     main.Position = UDim2.new(0.5, 0, 0.5, 0)
     main.Visible = true
-    tw(main, {Size = UDim2.new(0, W_open, 0, H_open), BackgroundTransparency = 0.05}, 0.55, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+    tw(main, {Size = UDim2.new(0, W_open, 0, H_open), BackgroundTransparency = (bgImage and bgImage ~= "") and 0.65 or 0.05}, 0.55, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
 
     -- ═════════════════════════════════════════════════════════════════════
     local window = {}
