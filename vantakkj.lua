@@ -257,7 +257,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         BackgroundColor3     = Color3.fromRGB(15, 15, 15),
         BackgroundTransparency = (bgImage and bgImage ~= "") and 1 or 0.05,
         ClipsDescendants     = true,
-        ZIndex               = 1,
+        ZIndex               = 2,
     })
     Corner(main, 8)
     Stroke(main, Color3.fromRGB(255,255,255), 1, 0.82)
@@ -266,15 +266,19 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     if bgImage and bgImage ~= "" then
         local bgImageLabel = Instance.new("ImageLabel")
         bgImageLabel.Name                   = "BgImage"
-        bgImageLabel.Size                   = UDim2.new(1, 0, 1, 0)
-        bgImageLabel.Position               = UDim2.new(0, 0, 0, 0)
+        bgImageLabel.AnchorPoint            = Vector2.new(0.5, 0.5)
+        bgImageLabel.Size                   = UDim2.new(0, 820, 0, 500)
+        bgImageLabel.Position               = main.Position
         bgImageLabel.BackgroundTransparency = 1
         bgImageLabel.Image                  = bgImage
         bgImageLabel.ImageTransparency      = 0
         bgImageLabel.ScaleType              = Enum.ScaleType.Crop
-        bgImageLabel.ZIndex                 = 2
-        bgImageLabel.Parent                 = main
+        bgImageLabel.ZIndex                 = 1
+        bgImageLabel.Parent                 = scrgui
         Corner(bgImageLabel, 8)
+        main:GetPropertyChangedSignal("Position"):Connect(function()
+            bgImageLabel.Position = main.Position
+        end)
     end
 
     -- ── acrylic blur (portado da MacLib) ─────────────────────────────────────
