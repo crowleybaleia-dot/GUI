@@ -116,6 +116,15 @@ local function safeClick(btn, fn)
     end)
 end
 
+-- ─── fonts ─────────────────────────────────────────────────────────────────
+local _FONT_SEMIBOLD = nil
+local function FONT_SEMIBOLD()
+    if not _FONT_SEMIBOLD then
+        _FONT_SEMIBOLD = Font.fromEnum(Enum.Font.SourceSansSemibold)
+    end
+    return _FONT_SEMIBOLD
+end
+
 -- ─── instance shortcuts ────────────────────────────────────────────────────
 local function applyProps(inst, props)
     for k, v in pairs(props or {}) do inst[k] = v end
@@ -134,7 +143,7 @@ local function Label(parent, props)
     local l = Instance.new("TextLabel")
     l.BackgroundTransparency = 1
     l.BorderSizePixel = 0
-    l.FontFace = FONT_SEMIBOLD()()
+    l.FontFace = FONT_SEMIBOLD()
     applyProps(l, props)
     l.Parent = parent
     return l
@@ -144,7 +153,7 @@ local function Button(parent, props)
     local b = Instance.new("TextButton")
     b.AutoButtonColor = false
     b.BorderSizePixel = 0
-    b.FontFace = FONT_SEMIBOLD()()
+    b.FontFace = FONT_SEMIBOLD()
     applyProps(b, props)
     b.Parent = parent
     return b
@@ -192,15 +201,6 @@ local function Padding(parent, t, b, l, r)
     p.PaddingRight  = UDim.new(0, r or 0)
     p.Parent = parent
     return p
-end
-
--- ─── fonts ─────────────────────────────────────────────────────────────────
-local _FONT_SEMIBOLD = nil
-local function FONT_SEMIBOLD()
-    if not _FONT_SEMIBOLD then
-        _FONT_SEMIBOLD = Font.fromEnum(Enum.Font.SourceSansSemibold)
-    end
-    return _FONT_SEMIBOLD
 end
 
 -- ─── palette ───────────────────────────────────────────────────────────────
@@ -1342,7 +1342,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 local corner = t:FindFirstChildWhichIsA("UICorner")
                 if corner then corner.CornerRadius = UDim.new(0, 8) end
                 local l = t:FindFirstChildWhichIsA("TextLabel")
-                if l then tw(l, {TextColor3 = C.low}, 0.18); l.FontFace = FONT_SEMIBOLD()() end
+                if l then tw(l, {TextColor3 = C.low}, 0.18); l.FontFace = FONT_SEMIBOLD() end
                 local ic = t:FindFirstChildWhichIsA("ImageLabel")
                 if ic then tw(ic, {ImageColor3 = C.low, ImageTransparency = 0.5}, 0.18) end
             end
@@ -1372,7 +1372,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
 
             -- letra/ícone branco no tab ativo
             tw(tabLabel, {TextColor3 = C.white}, 0.18)
-            tabLabel.FontFace = FONT_SEMIBOLD()()
+            tabLabel.FontFace = FONT_SEMIBOLD()
             if iconAsset and iconAsset ~= "" then
                 tw(tabIcon, {ImageColor3 = C.white, ImageTransparency = 0}, 0.18)
             end
@@ -1766,7 +1766,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 tb.Size                  = UDim2.new(1,-8,1,0)
                 tb.BackgroundTransparency = 1
                 tb.BorderSizePixel       = 0
-                tb.FontFace = FONT_SEMIBOLD()()
+                tb.FontFace = FONT_SEMIBOLD()
                 tb.Text                  = tostring(num)
                 tb.TextColor3            = C.hi
                 tb.TextSize              = 10
@@ -2509,7 +2509,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                             tw(ob,     {BackgroundTransparency = s and 0.5 or 1}, 0.12)
                             tw(optLbl, {TextColor3 = s and C.hi or C.mid},        0.12)
                             tickLbl.Text = s and "✓" or ""
-                            optLbl.FontFace = FONT_SEMIBOLD()()
+                            optLbl.FontFace = FONT_SEMIBOLD()
                             valLbl.Text  = labelTxt()
                             if o then o.Value = sel end
                             if cb then cb(sel) end
@@ -2765,7 +2765,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 tb.Size                  = UDim2.new(1,-10,1,0)
                 tb.BackgroundTransparency = 1
                 tb.BorderSizePixel       = 0
-                tb.FontFace = FONT_SEMIBOLD()()
+                tb.FontFace = FONT_SEMIBOLD()
                 tb.PlaceholderText       = placeholder or "Type..."
                 tb.PlaceholderColor3     = C.dim
                 tb.Text                  = ""
